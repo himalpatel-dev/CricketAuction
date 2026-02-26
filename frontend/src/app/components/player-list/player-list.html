@@ -1,0 +1,153 @@
+<div class="page-container">
+    <header class="top-bar">
+        <div class="flex items-center gap-4">
+            <button class="btn btn-secondary py-1 px-3" [routerLink]="backLink">←
+                Back</button>
+            <div>
+                <h1 class="text-xl font-bold gradient-text" *ngIf="tournament">{{ tournament.name }} Players</h1>
+                <p class="text-xs text-muted">Manage Player Pool</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <input type="file" #fileInput (change)="onFileSelected($event)" accept=".csv, .xlsx, .xls" hidden>
+            <button (click)="fileInput.click()" class="btn btn-secondary text-sm">
+                📁 Upload XLSX / CSV
+            </button>
+            <button (click)="openModal()" class="btn btn-primary px-4">+ Add Player</button>
+        </div>
+    </header>
+
+    @if (loading) {
+    <div class="flex-center py-40">
+        <div class="text-center">
+            <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4">
+            </div>
+            <p class="text-muted">Loading Players...</p>
+        </div>
+    </div>
+    } @else if (tournament) {
+    <div class="content-area fade-in">
+        <div class="player-grid">
+            @for (p of tournament.players; track p.id) {
+            <div class="item-card glass-panel">
+                <div class="avatar">👤</div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-lg">{{ p.name }}</h3>
+                            <p class="text-xs text-muted">{{ p.role }} | {{ p.gender }}</p>
+                        </div>
+                        <span
+                            class="text-xs px-2 py-px bg-green-500/20 text-green-400 rounded border border-green-500/30">{{
+                            p.status }}</span>
+                    </div>
+
+                    <div class="mt-2 pt-2 border-t border-white/5 grid grid-cols-2 gap-2 text-xs text-gray-400">
+                        <div>
+                            <span>Base:</span> <span class="text-white ml-1">₹{{ formatPrice(p.basePrice) }}</span>
+                        </div>
+                        <div *ngIf="p.mobileNo">
+                            <span>📞</span> <span class="ml-1">{{ p.mobileNo }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            } @empty {
+            <div class="col-span-full py-20 text-center glass-panel">
+                <p class="text-4xl mb-4">🏏</p>
+                <h3 class="text-xl font-bold">Empty Player Pool</h3>
+                <p class="text-muted">Register players or upload a CSV to start.</p>
+                <button (click)="openModal()" class="btn btn-primary mt-4">Register Player</button>
+            </div>
+            }
+        </div>
+    </div>
+    }
+
+    <!-- Add Player Modal -->
+    @if (showModal) {
+    <div class="modal-overlay">
+        <div class="modal-container" (click)="$event.stopPropagation()">
+            <button (click)="closeModal()"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">✕</button>
+
+            <div class="mb-6">
+                <h2
+                    class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+                    Register New Player
+                </h2>
+                <p class="text-sm text-gray-400 mt-1">Add a player to the auction pool.</p>
+            </div>
+
+            <form (ngSubmit)="addPlayer()" class="space-y-5">
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Full Name</label>
+                    <input type="text" name="pname" [(ngModel)]="newPlayer.name" class="input-field"
+                        placeholder="Player Name" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-5">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Mobile
+                            No</label>
+                        <input type="text" name="pmobile" [(ngModel)]="newPlayer.mobileNo" class="input-field"
+                            placeholder="+91 ...">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Date of
+                            Birth</label>
+                        <input type="date" name="pdob" [(ngModel)]="newPlayer.dob" class="input-field">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-5">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Gender</label>
+                        <select name="pgender" [(ngModel)]="newPlayer.gender" class="input-field">
+                            <option class="bg-gray-800" value="Male">Male</option>
+                            <option class="bg-gray-800" value="Female">Female</option>
+                            <option class="bg-gray-800" value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Role</label>
+                        <select name="prole" [(ngModel)]="newPlayer.role" class="input-field">
+                            <option class="bg-gray-800">Batsman</option>
+                            <option class="bg-gray-800">Bowler</option>
+                            <option class="bg-gray-800">All-Rounder</option>
+                            <option class="bg-gray-800">Wicketkeeper</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-5">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Base Price
+                            (₹)</label>
+                        <input type="number" name="pbprice" [(ngModel)]="newPlayer.basePrice" class="input-field"
+                            required>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">T-Shirt
+                            Size</label>
+                        <input type="text" name="ptshirt" [(ngModel)]="newPlayer.tShirtSize" class="input-field"
+                            placeholder="M, L, XL...">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Trouser
+                        Size</label>
+                    <input type="text" name="ptrouser" [(ngModel)]="newPlayer.trouserSize" class="input-field"
+                        placeholder="30, 32, 34...">
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button type="button" (click)="closeModal()" class="btn btn-secondary flex-1">Cancel</button>
+                    <button type="submit" class="btn btn-primary flex-1">Add Player</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    }
+</div>

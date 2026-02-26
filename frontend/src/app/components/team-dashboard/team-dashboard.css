@@ -1,0 +1,45 @@
+.dashboard-card {
+    min-height: 80vh;
+    backdrop-filter: blur(15px);
+    background: rgba(17, 24, 39, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border-radius: 12px;
+}
+
+.gradient-text {
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 50%, #6dd5ed 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: all 0.5s ease-in-out;
+}
+
+.fade-in {
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeIn 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-disabled {
+    cursor: default;
+    background: #374151;
+    color: #9ca3af;
+}
+
+.btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+}

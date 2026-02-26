@@ -1,0 +1,45 @@
+<div class="login-container">
+    <div class="login-card glass-panel fade-in">
+        <div class="logo-area">
+            <div class="auction-badge">Official Auction Portal</div>
+            <div class="logo-icon">🏏</div>
+            <h1 class="text-4xl font-bold gradient-text">Cricket Auction</h1>
+            <p class="text-muted mt-2">Sign in to manage your team and bids</p>
+        </div>
+
+        <div *ngIf="error" class="error-msg fade-in">
+            {{ error }}
+        </div>
+
+        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="input-field" [(ngModel)]="credentials.username"
+                    placeholder="Enter your username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="input-field"
+                    [(ngModel)]="credentials.password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full mt-4" [disabled]="loading">
+                <span *ngIf="!loading">Sign In</span>
+                <span *ngIf="loading">Authenticating...</span>
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-sm text-muted">New Player?</p>
+            <a routerLink="/register" class="text-primary hover:underline font-semibold cursor-pointer">Register for
+                Auction ↗</a>
+        </div>
+
+        <div class="mt-8 text-center">
+            <p class="text-xs text-muted">
+                © 2024 Cricket Auction System. All rights reserved.
+            </p>
+        </div>
+    </div>
+</div>

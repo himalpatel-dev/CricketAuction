@@ -1,0 +1,225 @@
+<div class="auction-container">
+    <header class="top-bar">
+        <div class="flex items-center gap-4">
+            <button class="btn btn-secondary py-1 px-3" [routerLink]="backLink">← {{ isAdmin ? 'Terminal' : 'Dashboard'
+                }}</button>
+            <div>
+                <h1 class="text-xl font-bold gradient-text" *ngIf="tournament">{{ tournament.name }} Live</h1>
+                <p class="text-xs text-muted">Real-time Auction Terminal</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <p class="text-xs text-muted uppercase">Connected As</p>
+                <p class="font-bold text-primary">{{ isAdmin ? 'ADMIN' : 'TEAM OWNER' }}</p>
+            </div>
+            <button (click)="logout()" class="btn btn-secondary py-2 px-4 text-sm">Sign Out</button>
+        </div>
+    </header>
+
+    @if (loading) {
+    <div class="flex-center py-40">
+        <div class="text-center">
+            <div class="text-5xl mb-4 animate-bounce">⚡</div>
+            <p class="text-muted">Synchronizing with Auction Server...</p>
+        </div>
+    </div>
+    } @else {
+    <div class="status-bar bg-black/40 px-6 py-2 flex justify-between gap-4 text-xs font-mono border-b border-white/10">
+        <span [class.text-green-400]="socketService.isConnected" [class.text-red-400]="!socketService.isConnected">
+            ● {{ socketService.isConnected ? 'Connected' : 'Disconnected' }}
+        </span>
+        <span class="text-muted">
+            State: {{ auctionState?.status }} | Admin: {{ isAdmin ? 'Yes' : 'No' }} | Teams: {{
+            tournament?.teams?.length || 0 }}
+        </span>
+    </div>
+    <div class="auction-layout fade-in">
+        <!-- Debug Info -->
+        <!-- <div class="absolute top-20 left-4 bg-black/50 p-2 text-xs text-muted z-50">
+            Status: {{ auctionState?.status }} | Admin: {{ isAdmin }} | Socket: {{ socketService.socket?.connected ? 'OK' : 'Disconnected' }}
+        </div> -->
+
+        <!-- Left Panel: Players Pool -->
+        <aside class="side-panel glass-panel p-4">
+            <h2 class="panel-title">Available Players</h2>
+
+            @if (!tournament?.teams?.length) {
+            <div class="p-4 bg-red-500/20 border border-red-500 rounded mb-4">
+                <p class="text-xs text-red-200">⚠️ No teams registered! Add teams in Tournament Detail to start bidding.
+                </p>
+            </div>
+            }
+
+            <div class="scroll-area">
+                @for (p of availablePlayers; track p.id) {
+                <div class="player-selector mb-3 border-b border-white/5 pb-2"
+                    [class.opacity-50]="auctionState?.currentPlayer?.id === p.id">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-bold">{{ p.name }}</p>
+                            <p class="text-xs text-muted">{{ p.role }} | Base: ₹{{ formatPrice(p.basePrice) }}</p>
+                        </div>
+                        @if (isAdmin && auctionState?.status !== 'BIDDING') {
+                        <button (click)="startAuction(p.id)" class="btn btn-primary py-1 px-2 text-xs"
+                            [disabled]="!tournament?.teams?.length">Auction</button>
+                        }
+                    </div>
+                </div>
+                } @empty {
+                <p class="text-muted text-center py-10">No players available.</p>
+                }
+            </div>
+        </aside>
+
+        <!-- Center Panel -->
+        <main class="bidding-main">
+            <!-- ... existing content ... -->
+            @if (auctionState?.currentPlayer) {
+            <div class="player-card glass-panel w-full">
+                @if (auctionState.status === 'SOLD') {
+                <div class="sold-overlay">
+                    <div class="status-stamp sold-stamp">SOLD</div>
+                </div>
+                } @else if (auctionState.status === 'UNSOLD') {
+                <div class="unsold-overlay">
+                    <div class="status-stamp unsold-stamp">UNSOLD</div>
+                </div>
+                }
+
+                <div class="player-avatar">👤</div>
+                <span class="role-badge">{{ auctionState.currentPlayer.role }}</span>
+                <h2 class="text-4xl font-black mb-1">{{ auctionState.currentPlayer.name }}</h2>
+                <p class="text-muted">Base Price: ₹{{ formatPrice(auctionState.currentPlayer.basePrice) }}</p>
+            </div>
+
+            <div class="bid-info glass-panel">
+                <p class="current-bid-label">Current Highest Bid</p>
+                <h3 class="bid-amount">₹{{ formatPrice(auctionState.currentBid || auctionState.currentPlayer.basePrice)
+                    }}</h3>
+
+                @if (auctionState.leadingTeam) {
+                <div class="leading-team flex items-center justify-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                    <p>Leading: <span class="text-primary">{{ auctionState.leadingTeam.name }}</span> ({{
+                        auctionState.leadingTeam.code }})</p>
+                </div>
+                } @else {
+                <p class="text-muted italic">Waiting for first bid...</p>
+                }
+            </div>
+
+            <div class="bid-controls">
+                @if (isAdmin) {
+                <!-- Increment Selector -->
+                <div class="text-xs text-muted text-center uppercase tracking-widest mb-2">Bid Increment</div>
+                <div class="increment-selector">
+                    <button class="inc-btn" [class.active]="currentIncrement === 200000"
+                        (click)="setIncrement(200000)">+2 L</button>
+                    <button class="inc-btn" [class.active]="currentIncrement === 500000"
+                        (click)="setIncrement(500000)">+5 L</button>
+                    <button class="inc-btn" [class.active]="currentIncrement === 1000000"
+                        (click)="setIncrement(1000000)">+10 L</button>
+                    <button class="inc-btn" [class.active]="currentIncrement === 2000000"
+                        (click)="setIncrement(2000000)">+20 L</button>
+                </div>
+
+                <!-- Teams Grid for Bidding -->
+                <div class="teams-grid">
+                    @for (team of tournament?.teams; track team.id) {
+                    <button (click)="placeBid(team.id)"
+                        [disabled]="auctionState.status !== 'BIDDING' || auctionState.leadingTeam?.id === team.id"
+                        class="team-bid-btn">
+                        <h4>{{ team.code }}</h4>
+                        <span>₹{{ formatPrice(team.remainingBudget) }}</span>
+                    </button>
+                    }
+                </div>
+
+                <!-- Admin Actions -->
+                <div class="admin-actions">
+                    <button (click)="sellPlayer()" class="btn btn-primary px-8 flex-1"
+                        [disabled]="!auctionState.currentBid || auctionState.status !== 'BIDDING'">
+                        🔨 SELL
+                    </button>
+                    <button (click)="markUnsold()" class="btn btn-danger px-8 flex-1"
+                        [disabled]="auctionState.status !== 'BIDDING'">
+                        🚫 UNSOLD
+                    </button>
+                </div>
+                } @else if (userTeamId) {
+                <!-- Team Owner View -->
+                <div class="flex flex-col gap-4 items-center">
+                    <div class="text-center mb-2">
+                        <p class="text-sm text-muted mb-1">Your Wallet</p>
+                        <p class="text-xl font-bold font-mono text-green-400">
+                            ₹{{ formatPrice(getTeamBudget(userTeamId!)) }}
+                        </p>
+                    </div>
+
+                    <button (click)="placeBid(userTeamId!)"
+                        [disabled]="auctionState.status !== 'BIDDING' || auctionState.leadingTeam?.id === userTeamId"
+                        class="btn btn-primary w-full py-4 text-xl font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed">
+                        @if (auctionState.leadingTeam?.id === userTeamId) {
+                        YOU LEAD 👑
+                        } @else {
+                        BID ₹{{ formatPrice((auctionState.currentBid || auctionState.currentPlayer.basePrice) + 200000)
+                        }} 🚀
+                        }
+                    </button>
+                    <p class="text-xs text-muted mt-2">Default Increment: ₹2 Lakhs</p>
+                </div>
+                } @else {
+                <p class="text-center text-muted">Viewer Mode Only</p>
+                }
+            </div>
+            } @else {
+            <div class="glass-panel p-20 text-center">
+                <div class="text-6xl mb-6">📢</div>
+                <h2 class="text-3xl font-bold mb-2">Auction Paused</h2>
+                <p class="text-muted">{{ isAdmin ? 'Please select a player from the left panel to begin.' : 'Tournament
+                    administrator will start the next player auction soon.' }}</p>
+            </div>
+            }
+        </main>
+
+        <!-- Right Panel: History & Teams -->
+        <aside class="side-panel">
+            <div class="glass-panel p-4 flex-1">
+                <h2 class="panel-title">Bidding History</h2>
+                <div class="scroll-area">
+                    @for (h of history; track h.time) {
+                    <div class="history-item">
+                        <div>
+                            <span class="font-bold text-primary">{{ h.teamCode }}</span>
+                            <span class="text-muted text-xs ml-2">₹{{ formatPrice(h.amount) }}</span>
+                        </div>
+                        <span class="text-[10px] text-muted">{{ h.time | date:'HH:mm:ss' }}</span>
+                    </div>
+                    } @empty {
+                    <p class="text-center text-muted py-10 text-sm">No bids placed yet.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="glass-panel p-4 h-[300px]">
+                <h2 class="panel-title">Team Financials</h2>
+                <div class="scroll-area">
+                    @for (team of tournament?.teams; track team.id) {
+                    <div class="team-stat-card" [class.active]="auctionState?.leadingTeam?.id === team.id">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-bold">{{ team.code }}</span>
+                            <span class="text-primary">₹{{ formatPrice(team.remainingBudget) }}</span>
+                        </div>
+                        <div class="budget-bar-bg">
+                            <div class="budget-bar-fill"
+                                [style.width]="(team.remainingBudget / team.budget * 100) + '%'"></div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </aside>
+    </div>
+    }
+</div>

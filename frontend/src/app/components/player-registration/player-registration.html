@@ -1,0 +1,119 @@
+<div class="page-container flex-center min-h-screen">
+    <div class="registration-card glass-panel fade-in">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold gradient-text">Player Registration</h1>
+            <p class="text-muted mt-2">Join the Cricket Auction Pool</p>
+        </div>
+
+        <form (ngSubmit)="register()" #regForm="ngForm" class="space-y-6">
+            <!-- Basic Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Tournament Info -->
+                <!-- Tournament Info -->
+                <div class="col-span-full bg-white/5 p-4 rounded-lg border border-white/10 mb-2">
+                    <div class="flex justify-between items-start mb-2">
+                        <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold mt-1">Select
+                            Tournament</label>
+                        <span
+                            class="text-xs text-green-400 font-mono bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">Active
+                            / Upcoming</span>
+                    </div>
+
+                    <select name="selectedTournament" [(ngModel)]="selectedTournamentId" (change)="onTournamentChange()"
+                        class="input-field bg-[#1f2937] text-lg font-bold text-primary mb-2" required>
+                        <option value="" disabled>Select a Tournament</option>
+                        @for (t of tournaments; track t.id) {
+                        <option [value]="t.id">{{ t.name }} ({{ t.status }})</option>
+                        } @empty {
+                        <option value="" disabled>No tournaments available</option>
+                        }
+                    </select>
+
+                    <p class="text-xs text-muted">Base Price: <span class="text-green-400 font-mono">₹{{ basePrice |
+                            number }}</span> (Fixed)</p>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Full Name</label>
+                    <input type="text" name="name" [(ngModel)]="player.name" class="input-field"
+                        placeholder="Enter full name" required>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Mobile No</label>
+                    <input type="tel" name="mobile" [(ngModel)]="player.mobileNo" class="input-field"
+                        placeholder="+91 98765 43210" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Role Selection -->
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Role</label>
+                    <select name="role" [(ngModel)]="player.role" class="input-field bg-[#1f2937]">
+                        <option value="Batsman">Batsman</option>
+                        <option value="Bowler">Bowler</option>
+                        <option value="All-Rounder">All-Rounder</option>
+                        <option value="Wicketkeeper">Wicketkeeper</option>
+                    </select>
+                </div>
+
+                <!-- Spacer for grid alignment since Base Price is removed -->
+                <div class="hidden md:block"></div>
+            </div>
+
+            <!-- Additional Details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Date of
+                        Birth</label>
+                    <input type="date" name="dob" [(ngModel)]="player.dob" class="input-field" required>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Gender</label>
+                    <select name="gender" [(ngModel)]="player.gender" class="input-field bg-[#1f2937]">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">T-Shirt
+                        Size</label>
+                    <select name="tshirt" [(ngModel)]="player.tShirtSize" class="input-field bg-[#1f2937]">
+                        <option value="">Select Size</option>
+                        <option value="S">S</option>
+                        <option value="M">M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                        <option value="XXL">XXL</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Trouser Size</label>
+                <input type="text" name="trouser" [(ngModel)]="player.trouserSize" class="input-field"
+                    placeholder="e.g. 30, 32, 34">
+            </div>
+
+            <!-- Error/Success Messages -->
+            @if (message) {
+            <div class="p-4 rounded-lg text-center font-medium" [class.bg-green-500-20]="success"
+                [class.text-green-400]="success" [class.bg-red-500-20]="!success" [class.text-red-400]="!success">
+                {{ message }}
+            </div>
+            }
+
+            <!-- Actions -->
+            <div class="flex gap-4 pt-4">
+                <button type="button" routerLink="/login" class="btn btn-secondary flex-1">Back to Login</button>
+                <button type="submit" class="btn btn-primary flex-1" [disabled]="loading || !regForm.valid">
+                    {{ loading ? 'Registering...' : 'Submit Registration' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

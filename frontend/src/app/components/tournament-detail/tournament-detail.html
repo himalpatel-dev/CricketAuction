@@ -1,0 +1,94 @@
+<div class="detail-container">
+    <header class="top-bar">
+        <div class="flex items-center gap-4">
+            <button class="btn btn-secondary py-1 px-3" routerLink="/admin">← Back</button>
+            <div>
+                <h1 class="text-xl font-bold gradient-text" *ngIf="tournament">{{ tournament.name }}</h1>
+                <p class="text-xs text-muted">Management Terminal</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            @if (tournament) {
+            <button [routerLink]="['/squads', tournament.id]" class="btn btn-secondary py-2 px-4 text-sm">View Squads
+                📋</button>
+            <button (click)="startAuction()" class="btn btn-primary py-2 px-6">Live Auction ⚡</button>
+            }
+            <button (click)="logout()" class="btn btn-secondary py-2 px-4 text-sm">Sign Out</button>
+        </div>
+    </header>
+
+    @if (loading) {
+    <div class="flex-center py-40">
+        <div class="text-center">
+            <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4">
+            </div>
+            <p class="text-muted">Fetching Tournament Data...</p>
+        </div>
+    </div>
+    } @else if (tournament) {
+    <main class="main-content">
+        <!-- Stats Overview -->
+        <div class="stats-row mb-8">
+            <div class="stat-card">
+                <span class="text-muted text-xs block uppercase">Status</span>
+                <span class="text-xl font-bold text-green-400">{{ tournament.status }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="text-muted text-xs block uppercase">Base Budget</span>
+                <span class="text-xl font-bold">₹{{ tournament.totalAmount / 10000000 }} Cr</span>
+            </div>
+            <div class="stat-card">
+                <span class="text-muted text-xs block uppercase">Total Players</span>
+                <span class="text-xl font-bold">{{ tournament.totalPlayers }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="text-muted text-xs block uppercase">Base Price</span>
+                <span class="text-xl font-bold">₹{{ tournament.baseAuctionPrice / 100000 }} L</span>
+            </div>
+        </div>
+
+        <!-- Management Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Manage Teams -->
+            <div class="glass-panel p-8 hover:bg-white/5 transition-colors cursor-pointer group"
+                [routerLink]="['/teams', tournament.id]">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="text-4xl">🏟️</div>
+                    <span class="text-3xl font-bold text-gray-700 group-hover:text-white/20 transition-colors">{{
+                        tournament.teams?.length || 0 }}</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-2 group-hover:text-blue-400 transition-colors">Manage Teams</h2>
+                <p class="text-muted text-sm mb-6">Add, edit, and view all franchise teams participating in this
+                    tournament.</p>
+                <div class="flex items-center text-blue-400 text-sm font-bold">
+                    <span>Go to Teams</span>
+                    <span class="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+            </div>
+
+            <!-- Manage Players -->
+            <div class="glass-panel p-8 hover:bg-white/5 transition-colors cursor-pointer group"
+                [routerLink]="['/players', tournament.id]">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="text-4xl">🏏</div>
+                    <span class="text-3xl font-bold text-gray-700 group-hover:text-white/20 transition-colors">{{
+                        tournament.players?.length || 0 }}</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-2 group-hover:text-green-400 transition-colors">Manage Players</h2>
+                <p class="text-muted text-sm mb-6">Register new players, upload CSVs, and manage the auction pool.</p>
+                <div class="flex items-center text-green-400 text-sm font-bold">
+                    <span>Go to Players</span>
+                    <span class="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+            </div>
+        </div>
+    </main>
+    } @else {
+    <div class="flex-center py-40">
+        <div class="text-center">
+            <p class="text-red-400 mb-4">Tournament not found or connection error.</p>
+            <button routerLink="/admin" class="btn btn-secondary">Back to Dashboard</button>
+        </div>
+    </div>
+    }
+</div>

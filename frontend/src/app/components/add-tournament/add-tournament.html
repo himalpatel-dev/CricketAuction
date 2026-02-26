@@ -1,0 +1,86 @@
+<div class="page-container">
+    <div class="form-card glass-panel fade-in relative">
+        <div *ngIf="loading" class="loading-overlay">
+            <div class="text-center">
+                <div class="text-3xl mb-2">⌛</div>
+                <p>Creating Tournament...</p>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold gradient-text">Add New Tournament</h1>
+            <p class="text-muted">Configure the auction rules and tournament details</p>
+        </div>
+
+        <div *ngIf="error" class="error-msg mb-6">
+            {{ error }}
+        </div>
+
+        <form (ngSubmit)="onSubmit()" #tForm="ngForm">
+            <div class="form-grid">
+                <!-- Basic Info -->
+                <div class="section-title">Basic Information</div>
+
+                <div class="full-width">
+                    <label>Tournament Name</label>
+                    <input type="text" name="name" [(ngModel)]="tournamentData.name" class="input-field"
+                        placeholder="e.g. Mega Cricket League 2026" required>
+                </div>
+
+                <div>
+                    <label>Start Date</label>
+                    <input type="date" name="startDate" [(ngModel)]="tournamentData.startDate" class="input-field"
+                        required>
+                </div>
+
+                <div>
+                    <label>End Date</label>
+                    <input type="date" name="endDate" [(ngModel)]="tournamentData.endDate" class="input-field" required>
+                </div>
+
+                <!-- Auction Configuration -->
+                <div class="section-title">Auction configuration</div>
+
+                <div>
+                    <label>Total Available Players</label>
+                    <input type="number" name="totalPlayers" [(ngModel)]="tournamentData.totalPlayers"
+                        class="input-field" required>
+                </div>
+
+                <div>
+                    <label>Total Budget (INR)</label>
+                    <input type="number" name="totalAmount" [(ngModel)]="tournamentData.totalAmount" class="input-field"
+                        required>
+                    <p class="text-xs text-muted mt-1">Example: 100000000 for 10 Cr</p>
+                </div>
+
+                <div>
+                    <label>Player Reserved Amount (Min)</label>
+                    <input type="number" name="playerReservedAmount" [(ngModel)]="tournamentData.playerReservedAmount"
+                        class="input-field" required>
+                </div>
+
+                <div>
+                    <label>Base Auction Price</label>
+                    <input type="number" name="baseAuctionPrice" [(ngModel)]="tournamentData.baseAuctionPrice"
+                        class="input-field" required>
+                </div>
+
+                <div class="full-width">
+                    <label>Initial Status</label>
+                    <select name="status" [(ngModel)]="tournamentData.status" class="input-field">
+                        <option value="UPCOMING">Upcoming</option>
+                        <option value="ACTIVE">Active</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" (click)="cancel()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="!tForm.valid || loading">
+                    Create Tournament
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

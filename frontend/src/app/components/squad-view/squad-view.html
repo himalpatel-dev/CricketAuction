@@ -1,0 +1,78 @@
+<div class="squad-container">
+    <header class="top-bar">
+        <div class="flex items-center gap-4">
+            <button class="btn btn-secondary py-1 px-3" [routerLink]="backLink">←
+                Back</button>
+            <div>
+                <h1 class="text-xl font-bold gradient-text" *ngIf="tournament">{{ tournament.name }} Squads</h1>
+                <p class="text-xs text-muted">Complete Team Lineups</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="text-right mr-4" *ngIf="tournament">
+                <p class="text-xs text-muted uppercase">Total Players Sold</p>
+                <p class="font-bold text-primary">{{ tournament.players?.length || 0 }} Players</p>
+            </div>
+        </div>
+    </header>
+
+    @if (loading) {
+    <div class="flex-center py-40">
+        <div class="text-center">
+            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4">
+            </div>
+            <p class="text-muted">Loading Team Squads...</p>
+        </div>
+    </div>
+    } @else {
+    <main class="main-content fade-in">
+        <div class="team-grid">
+            @for (team of tournament?.teams; track team.id) {
+            <div class="squad-card glass-panel">
+                <div class="team-header">
+                    <div class="team-info">
+                        <span class="team-code">{{ team.code }}</span>
+                        <h2>{{ team.name }}</h2>
+                    </div>
+                    <div class="budget-pill">
+                        <span class="text-muted">Budget:</span>
+                        <span class="text-primary font-bold ml-1">₹{{ formatPrice(team.remainingBudget) }}</span>
+                    </div>
+                </div>
+
+                <div class="player-list">
+                    @for (player of team.players; track player.id) {
+                    <div class="player-row">
+                        <div class="player-main">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-xs">👤
+                            </div>
+                            <div class="player-meta">
+                                <h4>{{ player.name }}</h4>
+                                <p>{{ player.role }}</p>
+                            </div>
+                        </div>
+                        <div class="sold-price">₹{{ formatPrice(player.soldPrice) }}</div>
+                    </div>
+                    } @empty {
+                    <div class="empty-squad">
+                        <p>No players drafted yet</p>
+                    </div>
+                    }
+                </div>
+
+                <div class="stats-footer">
+                    <div class="stat-group">
+                        <span>Players:</span>
+                        <b>{{ team.players?.length || 0 }}</b>
+                    </div>
+                    <div class="stat-group">
+                        <span>Spent:</span>
+                        <b>₹{{ formatPrice(team.budget - team.remainingBudget) }}</b>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+    </main>
+    }
+</div>

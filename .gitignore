@@ -1,0 +1,16 @@
+# Ignore node_modules in all subdirectories
+**/node_modules/
+node_modules/
+**/.env
+.env
+
+npm-debug.log
+yarn-error.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Any build artifacts
+dist/
+build/
