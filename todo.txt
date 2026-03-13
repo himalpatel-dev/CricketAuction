@@ -1,0 +1,2 @@
+make player with runs and all details like matchs stats
+also make like if auction is pending then shows player overall perfromance else if reg over then shows player particular that tournament perfromanace on that player card

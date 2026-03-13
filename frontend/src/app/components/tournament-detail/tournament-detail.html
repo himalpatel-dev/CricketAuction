@@ -54,6 +54,21 @@
                     <h2 class="h-stat-value accent">₹{{ formatCurrency(stats.avgSoldPrice) }}</h2>
                     <p class="h-stat-sub">per player</p>
                 </div>
+                <div class="h-stat-card h-stat-progress">
+                    <p class="h-stat-label">AUCTION PROGRESS</p>
+                    <div class="radial-progress small">
+                        <svg viewBox="0 0 36 36" class="circular-chart small">
+                            <path class="circle-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="circle"
+                                [style.stroke-dasharray]="(stats.playersSold/tournament.totalPlayers * 100) + ', 100'"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <div class="percentage">
+                            <h3>{{ stats.playersSold }}/{{ tournament.totalPlayers }}</h3>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Navigation Tabs -->
@@ -108,202 +123,206 @@
 
             <!-- Dynamic Grid -->
             @if (currentTab === 'Overview') {
-            <div class="main-grid">
-                <!-- Left & Middle Column Group -->
-                <div class="left-middle-group">
-                    <div class="top-row">
-                        <!-- Tournament Details -->
-                        <section class="card detail-card">
-                            <div class="card-header">
-                                <span class="dot-orange"></span>
-                                <h3>Tournament Details</h3>
-                                <button class="edit-link">Edit →</button>
-                            </div>
-                            <div class="detail-grid">
-                                <div class="detail-item">
-                                    <label>FORMAT</label>
-                                    <p>{{ tournament.format || 'T20' }}</p>
-                                </div>
-                                <div class="detail-item">
-                                    <label>SEASON</label>
-                                    <p>{{ tournament.tournamentStartDate | date:'yyyy' }}</p>
-                                </div>
-                                <div class="detail-item">
-                                    <label>REGISTRATION</label>
-                                    <p>{{ tournament.regStartDate | date:'MMM d' }} - {{ tournament.regEndDate |
-                                        date:'MMM d, y' }}</p>
-                                </div>
-                                <div class="detail-item">
-                                    <label>AUCTION DATE</label>
-                                    <p>{{ tournament.auctionDate | date:'MMM d, y' }}</p>
-                                </div>
-                                <div class="detail-item">
-                                    <label>TOURNAMENT DATES</label>
-                                    <p>{{ tournament.tournamentStartDate | date:'MMM d' }} - {{
-                                        tournament.tournamentEndDate | date:'MMM d,
-                                        y' }}</p>
-                                </div>
-                                <div class="detail-item">
-                                    <label>MATCH DATES</label>
-                                    <p>{{ tournament.matchStartDate | date:'MMM d' }} - {{ tournament.matchEndDate |
-                                        date:'MMM d,
-                                        y' }}</p>
-                                </div>
-                                <div class="detail-item">
-                                    <label>LOCATION</label>
-                                    <p>{{ tournament.location || 'Mumbai, India' }}</p>
-                                </div>
-                                <div class="detail-item">
-                                    <label>AUCTION TYPE</label>
-                                    <p class="text-blue">Live Bidding</p>
-                                </div>
-                                <div class="detail-item">
-                                    <label>BASE PRICE</label>
-                                    <p class="text-orange">₹{{ formatCurrency(tournament.baseAuctionPrice) }}</p>
-                                </div>
-                                <div class="detail-item">
-                                    <label>BUDGET CAP</label>
-                                    <p class="text-blue">₹{{
-                                        formatCurrency(tournament.totalAmount/tournament.teams?.length)
-                                        }} / Team</p>
-                                </div>
-                            </div>
-                            <div class="status-box">
-                                <label>STATUS</label>
-                                <div class="status-pill">
-                                    <span class="dot-green"></span>
-                                    {{ tournament.status }} — Round {{ tournament.currentRound || 1 }} Upcoming
-                                </div>
-                            </div>
-                        </section>
+            <!-- Timeline Section -->
+            <section class="tournament-timeline-section">
+                <div class="timeline-container scrollable">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-items">
+                        @for (item of timeline; track item.label) {
+                        <div class="timeline-node" [ngClass]="[item.status.toLowerCase().replace(' ', '-'), item.type]">
 
-                        <!-- Auction Progress -->
-                        <section class="card progress-card">
-                            <div class="card-header">
-                                <span class="dot-green"></span>
-                                <h3>Auction Progress</h3>
-                            </div>
-                            <div class="progress-container">
-                                <div class="radial-progress">
-                                    <svg viewBox="0 0 36 36" class="circular-chart">
-                                        <path class="circle-bg"
-                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                        <path class="circle"
-                                            [style.stroke-dasharray]="(stats.playersSold/tournament.totalPlayers * 100) + ', 100'"
-                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    </svg>
-                                    <div class="percentage">
-                                        <h3>{{ (stats.playersSold/tournament.totalPlayers * 100).toFixed(0) }}%</h3>
-                                        <p>SOLD</p>
+                            <!-- Top Content Section -->
+                            <div class="node-content top">
+                                <ng-container *ngIf="item.position === 'top'">
+                                    <div class="status-top">
+                                        <span class="status-badge">{{ item.status }}</span>
                                     </div>
-                                </div>
-                                <div class="progress-stats">
-                                    <div class="p-stat">
-                                        <h3 class="green">{{ stats.playersSold }}</h3>
-                                        <p>Sold</p>
-                                    </div>
-                                    <div class="p-stat">
-                                        <h3>{{ stats.remainingPlayers }}</h3>
-                                        <p>Remaining</p>
-                                    </div>
-                                    <div class="p-stat">
-                                        <h3 class="red">{{ stats.unsoldPlayers }}</h3>
-                                        <p>Unsold</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    </div>
-
-                    <div class="bottom-row">
-                        <!-- Quick Stats -->
-                        <section class="card stats-card">
-                            <div class="card-header">
-                                <span class="dot-orange"></span>
-                                <h3>Quick Stats</h3>
-                            </div>
-                            <div class="quick-stats-grid">
-                                <div class="highest-bid">
-                                    <label>HIGHEST BID</label>
-                                    <h2>₹{{ formatCurrency(stats.highestBid) }}</h2>
-                                    <div class="bid-player">
-                                        <span class="label">PLAYER</span>
-                                        <span class="name">{{ stats.highestBidder }}</span>
-                                    </div>
-                                </div>
-                                <div class="counts-grid">
-                                    <div class="count-item">
-                                        <label>BATTING PLAYERS</label>
-                                        <h3>{{ stats.battingCount }}</h3>
-                                    </div>
-                                    <div class="count-item">
-                                        <label>BOWLING PLAYERS</label>
-                                        <h3>{{ stats.bowlingCount }}</h3>
-                                    </div>
-                                    <div class="count-item">
-                                        <label>ALL ROUNDERS</label>
-                                        <h3>{{ stats.arCount }}</h3>
-                                    </div>
-                                    <div class="count-item">
-                                        <label>WICKET KEEPERS</label>
-                                        <h3>{{ stats.wkCount }}</h3>
-                                    </div>
-                                    <div class="count-item full">
-                                        <label>TOTAL ROUNDS</label>
-                                        <h3>{{ tournament.totalRounds || 5 }} ({{ (tournament.currentRound || 1) - 1 }}
-                                            done)</h3>
-                                    </div>
-                                    <div class="count-item full">
-                                        <label>UNSOLD PLAYERS</label>
-                                        <h3>{{ stats.unsoldPlayers }}</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <!-- Recent Auction Activity -->
-                        <section class="card activity-card">
-                            <div class="card-header">
-                                <span class="dot-green"></span>
-                                <h3>Recent Auction Activity</h3>
-                                <button class="view-all">View All →</button>
-                            </div>
-                            <div class="activity-list">
-                                @for (item of recentActivity; track item.name) {
-                                <div class="activity-item">
-                                    <div class="item-left">
-                                        <div class="avatar">{{ item.code }}</div>
-                                        <div class="info">
-                                            <p class="name">{{ item.name }}</p>
-                                            <p class="meta">Sold to <span class="team">{{ item.team }}</span></p>
+                                    <div class="node-info">
+                                        <h4 class="node-label">{{ item.label }}</h4>
+                                        <div class="node-date-container">
+                                            <span class="node-date">{{ item.date }}</span>
                                         </div>
                                     </div>
-                                    <div class="item-right">
-                                        <p class="price">₹{{ formatCurrency(item.price) }}</p>
-                                        <p class="round">{{ item.round }}</p>
+                                </ng-container>
+                            </div>
+
+                            <div class="node-marker">
+                                <div class="marker-glow"></div>
+                                <div class="marker-outer">
+                                    <div class="marker-middle">
+                                        <div class="marker-inner"></div>
                                     </div>
                                 </div>
-                                }
                             </div>
-                        </section>
+
+                            <!-- Bottom Content Section -->
+                            <div class="node-content bottom">
+                                <ng-container *ngIf="item.position === 'bottom'">
+                                    <div class="node-info">
+                                        <h4 class="node-label">{{ item.label }}</h4>
+                                        <div class="node-date-container">
+                                            <span class="node-date">{{ item.date }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="status-bottom">
+                                        <span class="status-badge">{{ item.status }}</span>
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </div>
+                        }
                     </div>
                 </div>
+            </section>
 
-                <!-- Timeline Right Column -->
-                <section class="card timeline-card">
+            <!-- Budget Summary -->
+            <div class="overview-budget-grid">
+                <div class="b-summary-card">
+                    <div class="b-info">
+                        <label>TOTAL BUDGET POOL</label>
+                        <h2>₹{{ formatCurrency(budgetStats.totalPool) }}</h2>
+                        <p>Combined cap across {{ tournament.teams?.length }} teams</p>
+                    </div>
+                    <div class="b-icon">💼</div>
+                </div>
+                <div class="b-summary-card">
+                    <div class="b-info">
+                        <label>TOTAL SPENT</label>
+                        <h2>₹{{ formatCurrency(budgetStats.totalSpent) }}</h2>
+                        <p>{{ budgetStats.spentPercentage.toFixed(1) }}% of total pool used</p>
+                    </div>
+                    <div class="b-icon yellow">💰</div>
+                </div>
+                <div class="b-summary-card">
+                    <div class="b-info">
+                        <label>REMAINING POOL</label>
+                        <h2>₹{{ formatCurrency(budgetStats.remainingPool) }}</h2>
+                        <p>Available for upcoming rounds</p>
+                    </div>
+                    <div class="b-icon green">📊</div>
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- 1. Tournament Details -->
+                <section class="card detail-card">
+                    <div class="card-header">
+                        <span class="dot-orange"></span>
+                        <h3>Tournament Details</h3>
+                        <button class="edit-link" (click)="setTab('Settings')">Edit →</button>
+                    </div>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>FORMAT</label>
+                            <p>{{ tournament.format || 'T20' }}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>SEASON</label>
+                            <p>{{ tournament.tournamentStartDate | date:'yyyy' }}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>REGISTRATION</label>
+                            <p>{{ tournament.regStartDate | date:'MMM d' }} - {{ tournament.regEndDate |
+                                date:'MMM d, y' }}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>AUCTION DATE</label>
+                            <p>{{ tournament.auctionDate | date:'MMM d, y' }}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>TOURNAMENT DATES</label>
+                            <p>{{ tournament.tournamentStartDate | date:'MMM d' }} - {{
+                                tournament.tournamentEndDate | date:'MMM d,
+                                y' }}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>MATCH DATES</label>
+                            <p>{{ tournament.matchStartDate | date:'MMM d' }} - {{ tournament.matchEndDate |
+                                date:'MMM d,
+                                y' }}</p>
+                        </div>
+                        <div class="detail-item full">
+                            <label>LOCATION</label>
+                            <p>{{ tournament.location || 'Mumbai, India' }}</p>
+                        </div>
+                    </div>
+                    <div class="status-box">
+                        <label>STATUS</label>
+                        <div class="status-pill">
+                            <span class="dot-green"></span>
+                            {{ tournament.status }}
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Quick Stats -->
+                <section class="card stats-card">
+                    <div class="card-header">
+                        <span class="dot-blue"></span>
+                        <h3>Quick Stats</h3>
+                    </div>
+                    <div class="quick-stats-grid">
+                        <div class="highest-bid-box">
+                            <label>HIGHEST BID</label>
+                            <div class="bid-value">
+                                <h2>₹{{ formatCurrency(stats.highestBid) }}</h2>
+                                <span class="player-name">{{ stats.highestBidder }}</span>
+                            </div>
+                        </div>
+                        <div class="stat-counts">
+                            <div class="stat-pill">
+                                <label>BAT</label>
+                                <span>{{ stats.battingCount }}</span>
+                            </div>
+                            <div class="stat-pill">
+                                <label>BWL</label>
+                                <span>{{ stats.bowlingCount }}</span>
+                            </div>
+                            <div class="stat-pill">
+                                <label>AR</label>
+                                <span>{{ stats.arCount }}</span>
+                            </div>
+                            <div class="stat-pill">
+                                <label>WK</label>
+                                <span>{{ stats.wkCount }}</span>
+                            </div>
+                        </div>
+                        <div class="unsold-info">
+                            <div class="info-row">
+                                <label>UNSOLD PLAYERS</label>
+                                <span class="count">{{ stats.unsoldPlayers }}</span>
+                            </div>
+                            <div class="info-row">
+                                <label>REMAINING SLOTS</label>
+                                <span class="count">{{ stats.remainingPlayers }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Recent Activity -->
+                <section class="card activity-card">
                     <div class="card-header">
                         <span class="dot-purple"></span>
-                        <h3>Tournament Timeline</h3>
+                        <h3>Auction Activity</h3>
                     </div>
-                    <div class="timeline-list">
-                        @for (item of timeline; track item.label) {
-                        <div class="timeline-item" [class]="item.status.toLowerCase()">
-                            <div class="timeline-marker"></div>
-                            <div class="timeline-content">
-                                <h4 class="label">{{ item.label }}</h4>
-                                <p class="date">{{ item.date }}</p>
-                                <span class="status-tag">{{ item.status }}</span>
+                    <div class="activity-list">
+                        @for (item of recentActivity; track item.name) {
+                        <div class="activity-item">
+                            <div class="item-left">
+                                <div class="avatar">{{ item.code }}</div>
+                                <div class="info">
+                                    <p class="name">{{ item.name }}</p>
+                                    <p class="team">Sold to <span>{{ item.team }}</span></p>
+                                </div>
                             </div>
+                            <div class="item-right">
+                                <p class="price">₹{{ formatCurrency(item.price) }}</p>
+                            </div>
+                        </div>
+                        } @empty {
+                        <div class="empty-activity">
+                            <p>No auction activity yet</p>
                         </div>
                         }
                     </div>
@@ -311,22 +330,18 @@
             </div>
             } @else if (currentTab === 'Teams') {
             <div class="teams-tab-content">
-                <div class="tab-header-row">
-                    <div class="header-info">
-                        <h2>Tournament Teams</h2>
-                        <p>Managing {{ tournament.teams?.length }} authorized franchises</p>
-                    </div>
+                <div class="tab-header-row justify-end">
                     <div class="header-actions">
                         <div class="search-box">
                             <i class="search-icon">🔍</i>
-                            <input type="text" placeholder="Search teams...">
+                            <input type="text" placeholder="Search teams..." [(ngModel)]="searchTerm" (input)="0">
                         </div>
                         <button class="btn btn-primary">+ Add Team</button>
                     </div>
                 </div>
 
                 <div class="teams-grid">
-                    @for (team of processedTeams; track team.id) {
+                    @for (team of filteredTeams; track team.id) {
                     <app-team-card [team]="team"></app-team-card>
                     }
                 </div>
@@ -341,14 +356,14 @@
                     <div class="header-actions">
                         <div class="search-box">
                             <i class="search-icon">🔍</i>
-                            <input type="text" placeholder="Search players...">
+                            <input type="text" placeholder="Search players..." [(ngModel)]="playerSearchTerm" (input)="0">
                         </div>
                         <button class="btn btn-primary">+ Register Player</button>
                     </div>
                 </div>
 
                 <div class="players-grid">
-                    @for (player of tournament.players; track player.id) {
+                    @for (player of filteredPlayers; track player.id) {
                     <app-player-card [player]="player" [tournament]="tournament" [index]="$index"></app-player-card>
                     }
                 </div>
@@ -391,7 +406,7 @@
                             <div class="t-logo">{{ team.code }}</div>
                             <div class="t-name-row">
                                 <h3>{{ team.name }}</h3>
-                                <p>Coach: {{ team.coach }}</p>
+                                <p>Owner: {{ team.ownerName }}</p>
                             </div>
                         </div>
 
@@ -468,14 +483,7 @@
                                     placeholder="e.g. Mega Cricket League 2026">
                             </div>
 
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select [(ngModel)]="tournament.status" name="status">
-                                    <option value="UPCOMING">UPCOMING</option>
-                                    <option value="ACTIVE">ACTIVE</option>
-                                    <option value="COMPLETED">COMPLETED</option>
-                                </select>
-                            </div>
+
 
                             <div class="form-group">
                                 <label>Location</label>

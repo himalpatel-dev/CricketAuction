@@ -198,6 +198,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 .h-stat-label {
@@ -454,6 +456,42 @@
     font-weight: 800;
 }
 
+/* Compact radial for hero-stats */
+.radial-progress.small {
+    width: 84px;
+    height: 84px;
+}
+
+.radial-progress.small .percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.circular-chart.small .circle-bg {
+    stroke-width: 3.2;
+}
+
+.circular-chart.small .circle {
+    stroke-width: 2.4;
+}
+
+.h-stat-card.h-stat-progress {
+    align-items: center;
+    text-align: center;
+}
+
+.h-stat-card.h-stat-progress .percentage h3 {
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.h-stat-card.h-stat-progress .percentage p {
+    font-size: 10px;
+    margin-top: 2px;
+}
+
 .percentage p {
     font-size: 10px;
     font-weight: 800;
@@ -480,6 +518,30 @@
 
 .p-stat .green {
     color: #10b981;
+}
+
+/* Compact radial overrides: ensure inner text centers over small SVG */
+.radial-progress.small {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.radial-progress.small .percentage {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 2 !important;
+    pointer-events: none !important;
+    line-height: 1 !important;
+}
+
+.circular-chart.small {
+    margin: 0 !important;
+    width: 84px !important;
+    height: 84px !important;
 }
 
 .p-stat .red {
@@ -688,34 +750,264 @@
     margin-bottom: 4px;
 }
 
-.timeline-content .date {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
+/* Tournament Timeline Section - Light Mode */
+.tournament-timeline-section {
+    background: #ffffff;
+    margin: 0 24px 16px 24px;
+    padding: 0;
+    /* Remove padding for extreme compactness */
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    border: 1px solid #f0f0e8;
 }
 
-.status-tag {
-    font-size: 9px;
+.timeline-container.scrollable {
+    overflow-x: auto;
+    padding: 10px;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.timeline-container.scrollable::-webkit-scrollbar {
+    height: 3px;
+}
+
+.timeline-container.scrollable::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.timeline-line {
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    right: 40px;
+    height: 1.5px;
+    background: #e2e8f0;
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+.timeline-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    min-width: 800px;
+}
+
+.timeline-node {
+    display: grid;
+    grid-template-rows: 64px 32px 64px;
+    /* Reduced from 110px */
+    align-items: center;
+    justify-items: center;
+    position: relative;
+    width: 150px;
+}
+
+/* Content Sections */
+.node-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    overflow: hidden;
+}
+
+.node-content.top {
+    justify-content: flex-end;
+    padding-bottom: 4px;
+}
+
+.node-content.bottom {
+    justify-content: flex-start;
+    padding-top: 4px;
+}
+
+/* Status Tags */
+.status-top {
+    margin-bottom: 2px;
+}
+
+.status-bottom {
+    margin-top: 2px;
+}
+
+.status-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 8.5px;
     font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    display: inline-block;
+}
+
+/* Label & Date Styling */
+.node-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.node-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 3px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.node-date-container {
+    background: #f1f5f9;
     padding: 2px 8px;
     border-radius: 4px;
-    text-transform: uppercase;
+    border: 1px solid #e2e8f0;
+    display: inline-block;
 }
 
-.completed .status-tag {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.in-progress .status-tag {
-    background: #ffedd5;
-    color: #9a3412;
-}
-
-.upcoming .status-tag {
-    background: #f1f5f9;
+.node-date {
+    font-size: 10px;
+    font-weight: 700;
     color: #64748b;
 }
+
+/* Marker Styling - Concentric Rings */
+.node-marker {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    background: white;
+    border-radius: 50%;
+    z-index: 3;
+}
+
+.marker-glow {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--marker-color-glow) 0%, transparent 70%);
+    opacity: 0.15;
+    z-index: -1;
+    animation: marker-pulse 3s infinite ease-in-out;
+}
+
+@keyframes marker-pulse {
+
+    0%,
+    100% {
+        transform: scale(0.9);
+        opacity: 0.1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.25;
+    }
+}
+
+.marker-outer {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--marker-color-outer);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    box-shadow: 0 0 0 4px white;
+}
+
+.marker-middle {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid var(--marker-color-inner);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.marker-inner {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--marker-color-inner);
+    box-shadow: 0 0 6px var(--marker-color-inner);
+}
+
+/* Theme Colors per Type */
+.timeline-node.tournament,
+.timeline-node.registration {
+    --marker-color-outer: rgba(16, 185, 129, 0.3);
+    --marker-color-inner: #10b981;
+    --marker-color-glow: #10b981;
+}
+
+.timeline-node.auction {
+    --marker-color-outer: rgba(245, 158, 11, 0.3);
+    --marker-color-inner: #f59e0b;
+    --marker-color-glow: #f59e0b;
+}
+
+.timeline-node.match {
+    --marker-color-outer: rgba(59, 130, 246, 0.3);
+    --marker-color-inner: #3b82f6;
+    --marker-color-glow: #3b82f6;
+}
+
+.timeline-node.tournament-end {
+    --marker-color-outer: rgba(100, 116, 139, 0.3);
+    --marker-color-inner: #64748b;
+    --marker-color-glow: #64748b;
+}
+
+/* Status Colors */
+.timeline-node.in-progress .status-badge {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.timeline-node.upcoming .status-badge {
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.timeline-node.upcoming.auction .status-badge {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.timeline-node.upcoming.match .status-badge {
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+.timeline-node.completed .status-badge {
+    background: #f1f5f9;
+    color: #94a3b8;
+}
+
+/* In Progress Marker State */
+.timeline-node.in-progress .marker-outer {
+    border-color: var(--marker-color-inner);
+    transform: scale(1.05);
+}
+
 
 /* Loading State */
 .loading-state {
@@ -790,11 +1082,15 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 32px;
+    margin-bottom: 20px;
     background: white;
-    padding: 24px;
+    padding: 12px 24px;
     border-radius: 12px;
     border: 1px solid var(--border);
+}
+
+.tab-header-row.justify-end {
+    justify-content: flex-end !important;
 }
 
 .header-info h2 {
@@ -808,30 +1104,262 @@
     color: var(--text-muted);
 }
 
-.teams-grid,
-.players-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
-}
-
-/* Budget Summary Cards */
 .budget-summary-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
-    margin-bottom: 32px;
+    padding: 0 0 24px 0;
 }
+
+.overview-budget-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 0 24px 24px 24px;
+}
+
+.teams-grid,
+.players-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+/* Grid Layout */
+.main-grid {
+    padding: 0 24px 24px 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: stretch;
+}
+
+/* Card Enhancements */
+.card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #f0f0e8;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f8fafc;
+}
+
+.card-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    flex: 1;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Detail Card Adjustments */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: auto;
+}
+
+.detail-item.full {
+    grid-column: span 2;
+}
+
+.detail-item label {
+    font-size: 9px;
+    font-weight: 800;
+    color: #64748b;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-item p {
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+}
+
+/* Quick Stats Redesign */
+.quick-stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+}
+
+.highest-bid-box {
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.highest-bid-box label {
+    font-size: 9px;
+    font-weight: 800;
+    color: #64748b;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.bid-value h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #133b33;
+    margin-bottom: 4px;
+}
+
+.bid-value .player-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #d97706;
+}
+
+.stat-counts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.stat-pill {
+    background: #fdfdfa;
+    border: 1px solid #f0f0e8;
+    padding: 8px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-pill label {
+    font-size: 8px;
+    font-weight: 800;
+    color: #94a3b8;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.stat-pill span {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.unsold-info {
+    margin-top: auto;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 16px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.info-row label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.info-row .count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Activity Card Customization */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #fdfdfa;
+    border: 1px solid #f5f5f0;
+    border-radius: 8px;
+}
+
+.item-left {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    background: #133b33;
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.activity-item .info .name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.activity-item .info .team {
+    font-size: 10px;
+    color: #64748b;
+}
+
+.activity-item .info .team span {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+.item-right .price {
+    font-size: 13px;
+    font-weight: 800;
+    color: #10b981;
+}
+
+.empty-activity {
+    padding: 40px 0;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 13px;
+    font-style: italic;
+}
+
+.dot-blue {
+    width: 8px;
+    height: 8px;
+    background: #3b82f6;
+    border-radius: 50%;
+}
+
 
 .b-summary-card {
     background: white;
     padding: 24px;
-    border-radius: 12px;
+    border-radius: 16px;
     border: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
     position: relative;
     overflow: hidden;
 }
@@ -870,6 +1398,7 @@
     display: block;
     margin-bottom: 8px;
 }
+
 
 .b-summary-card h2 {
     font-size: 28px;

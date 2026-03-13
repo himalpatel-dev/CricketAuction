@@ -22,6 +22,10 @@ User.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
 Team.hasMany(Player, { foreignKey: 'soldTo', as: 'players' });
 Player.belongsTo(Team, { foreignKey: 'soldTo', as: 'owner_team' });
 
+// Team - Captain (A team has one captain who is a player)
+Team.belongsTo(Player, { foreignKey: 'captainId', as: 'captain' });
+Player.hasOne(Team, { foreignKey: 'captainId', as: 'captainOf' });
+
 // Bids
 Team.hasMany(Bid, { foreignKey: 'teamId', as: 'bids' });
 Bid.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });

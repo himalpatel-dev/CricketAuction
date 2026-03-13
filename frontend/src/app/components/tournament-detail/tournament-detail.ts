@@ -23,6 +23,8 @@ export class TournamentDetailComponent implements OnInit {
   adminName: string = '';
   showTournamentsList: boolean = true;
   processedTeams: any[] = [];
+  searchTerm: string = '';
+  playerSearchTerm: string = '';
   saving = false;
 
   stats = {
@@ -50,14 +52,7 @@ export class TournamentDetailComponent implements OnInit {
   teamBudgets: any[] = [];
 
   recentActivity: any[] = [];
-  timeline: any[] = [
-    { label: 'Registration Open', date: 'Jan 1 - Jan 10, 2026', status: 'COMPLETED' },
-    { label: 'Player Pool Finalised', date: 'Jan 12, 2026', status: 'COMPLETED' },
-    { label: 'Auction Phase 1', date: 'Jan 15 - Jan 20, 2026', status: 'COMPLETED' },
-    { label: 'Auction Phase 2', date: 'Feb 5, 2028', status: 'IN PROGRESS' },
-    { label: 'Final Auction Phase', date: 'Feb - Mar, 2026', status: 'UPCOMING' },
-    { label: 'Tournament Kick-off', date: 'Mar 30, 2026', status: 'UPCOMING' }
-  ];
+  timeline: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -102,6 +97,8 @@ export class TournamentDetailComponent implements OnInit {
         this.tournamentService.getAll()
       ]);
       this.tournament = detail;
+      this.computeAndSetStatus();
+      this.buildTimeline();
       this.tournaments = all || [];
       this.processTeams();
       this.calculateLocalStats();
@@ -134,7 +131,7 @@ export class TournamentDetailComponent implements OnInit {
 
       return {
         ...team,
-        coach: team.coach || 'Head Coach',
+        ownerName: team.ownerName || 'Admin',
         amountSpent: spent,
         balanceLeft: balance,
         playersBoughtCount: bBought.length,
@@ -169,11 +166,33 @@ export class TournamentDetailComponent implements OnInit {
         playersCount: teamPlayers.length,
         batsmenCount: teamPlayers.filter((p: any) => p.role === 'Batsman').length,
         bowlersCount: teamPlayers.filter((p: any) => p.role === 'Bowler').length,
-        arWkCount: teamPlayers.filter((p: any) => p.role === 'All-Rounder' || p.role === 'Wicketkeeper').length,
+        arCount: teamPlayers.filter((p: any) => p.role === 'All-Rounder').length,
+        wkCount: teamPlayers.filter((p: any) => p.role === 'Wicketkeeper').length,
         isActive: this.tournament.status === 'ACTIVE',
         isLowBudget: team.remainingBudget < (team.budget * 0.2)
       };
     });
+  }
+
+  get filteredTeams() {
+    if (!this.processedTeams) return [];
+    const term = (this.searchTerm || '').trim().toLowerCase();
+    if (!term) return this.processedTeams;
+
+    return this.processedTeams.filter(team => 
+      team?.name?.toLowerCase().includes(term)
+    );
+  }
+
+  get filteredPlayers() {
+    if (!this.tournament?.players) return [];
+    if (!this.playerSearchTerm.trim()) return this.tournament.players;
+    const term = this.playerSearchTerm.toLowerCase();
+    return this.tournament.players.filter((player: any) =>
+      player.name.toLowerCase().includes(term) ||
+      player.role?.toLowerCase().includes(term) ||
+      player.city?.toLowerCase().includes(term)
+    );
   }
 
   calculateLocalStats() {
@@ -259,8 +278,10 @@ export class TournamentDetailComponent implements OnInit {
     if (!this.tournament || this.saving) return;
     this.saving = true;
     try {
+      this.computeAndSetStatus();
       await this.tournamentService.update(this.tournament.id, this.tournament);
-      // alert('Tournament updated successfully!'); // User might prefer toast
+      alert('Tournament updated successfully!');
+      this.setTab('Overview');
       await this.loadTournament(this.tournament.id.toString());
     } catch (err: any) {
       console.error('Error updating tournament:', err);
@@ -269,6 +290,124 @@ export class TournamentDetailComponent implements OnInit {
       this.saving = false;
       this.cdr.detectChanges();
     }
+  }
+
+  computeAndSetStatus() {
+    if (!this.tournament) return;
+    const now = new Date();
+    const start = this.tournament.tournamentStartDate ? new Date(this.tournament.tournamentStartDate) : null;
+    const end = this.tournament.tournamentEndDate ? new Date(this.tournament.tournamentEndDate) : null;
+    let status = this.tournament.status || 'UPCOMING';
+
+    if (start && end) {
+      if (now < start) status = 'UPCOMING';
+      else if (now >= start && now <= end) status = 'ACTIVE';
+      else status = 'COMPLETED';
+    } else if (start && !end) {
+      status = now < start ? 'UPCOMING' : 'ACTIVE';
+    } else if (!start && end) {
+      status = now <= end ? 'ACTIVE' : 'COMPLETED';
+    }
+
+    this.tournament.status = status;
+  }
+
+  private formatDateLabel(date: Date | null) {
+    if (!date) return '';
+    return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  private statusForRange(start: Date | null, end: Date | null) {
+    const now = new Date();
+    if (start && end) {
+      if (now < start) return 'UPCOMING';
+      if (now >= start && now <= end) return 'IN PROGRESS';
+      return 'COMPLETED';
+    }
+    if (start && !end) return now < start ? 'UPCOMING' : 'IN PROGRESS';
+    if (!start && end) return now <= end ? 'IN PROGRESS' : 'COMPLETED';
+    return 'UPCOMING';
+  }
+
+  private statusForDate(d: Date | null) {
+    if (!d) return 'UPCOMING';
+    const now = new Date();
+    const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000 - 1);
+    if (now < startOfDay) return 'UPCOMING';
+    if (now >= startOfDay && now <= endOfDay) return 'IN PROGRESS';
+    return 'COMPLETED';
+  }
+
+  buildTimeline() {
+    if (!this.tournament) {
+      this.timeline = [];
+      return;
+    }
+
+    const tStart = this.tournament.tournamentStartDate ? new Date(this.tournament.tournamentStartDate) : null;
+    const tEnd = this.tournament.tournamentEndDate ? new Date(this.tournament.tournamentEndDate) : null;
+    const regStart = this.tournament.regStartDate ? new Date(this.tournament.regStartDate) : null;
+    const regEnd = this.tournament.regEndDate ? new Date(this.tournament.regEndDate) : null;
+    const auction = this.tournament.auctionDate ? new Date(this.tournament.auctionDate) : null;
+    const mStart = this.tournament.matchStartDate ? new Date(this.tournament.matchStartDate) : null;
+    const mEnd = this.tournament.matchEndDate ? new Date(this.tournament.matchEndDate) : null;
+
+    const timeline: any[] = [];
+
+    // 1. Tournament Start
+    timeline.push({
+      label: 'Tournament Start',
+      date: this.formatDateLabel(tStart),
+      status: this.statusForDate(tStart),
+      type: 'tournament',
+      position: 'top'
+    });
+
+    // 2. Registration (Range)
+    const regStatus = this.statusForRange(regStart, regEnd);
+    timeline.push({
+      label: 'Registration',
+      date: regStart && regEnd ? `${this.formatDateShort(regStart)} → ${this.formatDateShort(regEnd)}` : this.formatDateLabel(regStart),
+      status: regStatus,
+      type: 'registration',
+      position: 'bottom'
+    });
+
+    // 3. Auction
+    timeline.push({
+      label: 'Auction',
+      date: this.formatDateLabel(auction),
+      status: this.statusForDate(auction),
+      type: 'auction',
+      position: 'top'
+    });
+
+    // 4. Match (Range)
+    const matchStatus = this.statusForRange(mStart, mEnd);
+    timeline.push({
+      label: 'Match',
+      date: mStart && mEnd ? `${this.formatDateShort(mStart)} → ${this.formatDateShort(mEnd)}` : this.formatDateLabel(mStart),
+      status: matchStatus,
+      type: 'match',
+      position: 'bottom'
+    });
+
+    // 5. Tournament End
+    timeline.push({
+      label: 'Tournament End',
+      date: this.formatDateLabel(tEnd),
+      status: this.statusForDate(tEnd),
+      type: 'tournament-end',
+      position: 'top'
+    });
+
+    this.timeline = timeline;
+  }
+
+  private formatDateShort(date: Date | null) {
+    if (!date) return '';
+    return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
   }
 
   startAuction() {

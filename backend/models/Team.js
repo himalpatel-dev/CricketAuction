@@ -27,9 +27,17 @@ const Team = sequelize.define('Team', {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    coach: {
+    ownerName: {
         type: DataTypes.STRING,
         allowNull: true,
+    },
+    captainId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: 'Players',
+            key: 'id'
+        }
     },
     tournamentId: {
         type: DataTypes.INTEGER, // Associated Tournament
@@ -41,6 +49,9 @@ const Team = sequelize.define('Team', {
         {
             unique: true,
             fields: ['code', 'tournamentId'] // Unique per tournament
+        },
+        {
+            fields: ['captainId']
         }
     ]
 });

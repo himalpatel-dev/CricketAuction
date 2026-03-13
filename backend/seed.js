@@ -28,9 +28,9 @@ async function seed() {
 
         // 2. Create Teams
         const teamsData = [
-            { name: 'Royal Challengers', code: 'RCB', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, coach: 'Andy Flower' },
-            { name: 'Chennai Super Kings', code: 'CSK', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, coach: 'Stephen Fleming' },
-            { name: 'Mumbai Indians', code: 'MI', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, coach: 'Mark Boucher' },
+            { name: 'Royal Challengers', code: 'RCB', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, ownerName: 'Andy Flower' },
+            { name: 'Chennai Super Kings', code: 'CSK', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, ownerName: 'Stephen Fleming' },
+            { name: 'Mumbai Indians', code: 'MI', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, ownerName: 'Mark Boucher' },
         ];
 
         const teams = await Team.bulkCreate(teamsData);

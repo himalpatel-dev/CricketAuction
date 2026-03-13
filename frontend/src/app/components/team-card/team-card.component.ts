@@ -11,11 +11,6 @@ import { RouterModule } from '@angular/router';
 })
 export class TeamCardComponent {
     @Input() team: any;
-    @Output() edit = new EventEmitter<any>();
-
-    onEdit() {
-        this.edit.emit(this.team);
-    }
 
     formatPrice(amount: number) {
         if (!amount) return '0';
