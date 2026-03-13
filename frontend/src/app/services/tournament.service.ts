@@ -34,6 +34,10 @@ export class TournamentService {
         return firstValueFrom(this.http.get<any>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }));
     }
 
+    async update(id: string | number, data: any) {
+        return firstValueFrom(this.http.put<any>(`${this.apiUrl}/${id}`, data, { headers: this.getHeaders() }));
+    }
+
     async addTeam(tournamentId: string | number, data: any) {
         return firstValueFrom(this.http.post<any>(`${this.apiUrl}/${tournamentId}/teams`, data, { headers: this.getHeaders() }));
     }
@@ -59,12 +63,15 @@ export class TournamentService {
         const formData = new FormData();
         formData.append('file', file);
 
-        // Don't set Content-Type header manually for FormData, browser does it with boundary
         const token = this.authService.getToken();
         const headers = new HttpHeaders({
             'Authorization': `Bearer ${token}`
         });
 
         return firstValueFrom(this.http.post<any>(`${this.apiUrl}/${tournamentId}/upload-players`, formData, { headers }));
+    }
+
+    async getDashboardRosters() {
+        return firstValueFrom(this.http.get<any[]>(`${this.apiUrl}/dashboard/rosters`, { headers: this.getHeaders() }));
     }
 }

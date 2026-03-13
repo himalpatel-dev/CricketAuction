@@ -46,6 +46,17 @@ exports.getTournamentById = async (req, res) => {
     }
 };
 
+exports.updateTournament = async (req, res) => {
+    try {
+        const tournament = await Tournament.findByPk(req.params.id);
+        if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+        await tournament.update(req.body);
+        res.json(tournament);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 exports.addTeam = async (req, res) => {
     try {
         const { id } = req.params;
@@ -109,7 +120,7 @@ exports.getLatestPublicTournament = async (req, res) => {
     try {
         const tournament = await Tournament.findOne({
             order: [['createdAt', 'DESC']],
-            attributes: ['id', 'name', 'baseAuctionPrice', 'status', 'startDate'] // Public fields only
+            attributes: ['id', 'name', 'baseAuctionPrice', 'status', 'tournamentStartDate'] // Public fields only
         });
 
         if (!tournament) {
@@ -130,7 +141,7 @@ exports.getOpenTournaments = async (req, res) => {
                 }
             },
             order: [['createdAt', 'DESC']],
-            attributes: ['id', 'name', 'baseAuctionPrice', 'status', 'startDate']
+            attributes: ['id', 'name', 'baseAuctionPrice', 'status', 'tournamentStartDate']
         });
         res.json(tournaments);
     } catch (error) {
@@ -205,6 +216,58 @@ exports.uploadPlayers = async (req, res) => {
         res.status(201).json({ message: `Successfully added ${players.length} players` });
     } catch (error) {
         console.error('Upload Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.getDashboardRosters = async (req, res) => {
+    try {
+        const teams = await Team.findAll({
+            include: [
+                {
+                    model: Player,
+                    as: 'players',
+                    where: { status: 'SOLD' },
+                    required: false
+                },
+                {
+                    model: Tournament,
+                    as: 'tournament',
+                    attributes: ['id', 'name']
+                }
+            ]
+        });
+
+        const rosters = teams.map(team => {
+            const players = team.players || [];
+            const roleCount = {
+                BAT: 0,
+                BWL: 0,
+                AR: 0,
+                WK: 0
+            };
+
+            players.forEach(p => {
+                if (p.role === 'Batsman') roleCount.BAT++;
+                else if (p.role === 'Bowler') roleCount.BWL++;
+                else if (p.role === 'All-Rounder') roleCount.AR++;
+                else if (p.role === 'Wicketkeeper') roleCount.WK++;
+            });
+
+            return {
+                id: team.id,
+                name: team.name,
+                code: team.code,
+                slotsFilled: players.length,
+                totalSlots: 11, // Standard cricket
+                roles: roleCount,
+                tournamentName: team.tournament ? team.tournament.name : 'Unknown'
+            };
+        }).sort((a, b) => b.slotsFilled - a.slotsFilled);
+
+        res.json(rosters);
+    } catch (error) {
+        console.error('getDashboardRosters Error:', error);
         res.status(500).json({ error: error.message });
     }
 };

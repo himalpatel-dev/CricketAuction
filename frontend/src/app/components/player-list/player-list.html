@@ -1,63 +1,181 @@
 <div class="page-container">
-    <header class="top-bar">
-        <div class="flex items-center gap-4">
-            <button class="btn btn-secondary py-1 px-3" [routerLink]="backLink">←
-                Back</button>
-            <div>
-                <h1 class="text-xl font-bold gradient-text" *ngIf="tournament">{{ tournament.name }} Players</h1>
-                <p class="text-xs text-muted">Manage Player Pool</p>
-            </div>
+    <header
+        class="top-bar flex-col items-start gap-4 md:flex-row md:items-end justify-between border-b border-white/10 pb-4 mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-orange-400 uppercase tracking-wider">ALL PLAYERS</h1>
+            <p class="text-sm text-gray-400 mt-1" *ngIf="tournament">
+                {{ stats.total | number }} players in pool • {{ stats.sold | number }} sold • {{ stats.upcoming | number
+                }} available
+            </p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3 header-actions">
             <input type="file" #fileInput (change)="onFileSelected($event)" accept=".csv, .xlsx, .xls" hidden>
-            <button (click)="fileInput.click()" class="btn btn-secondary text-sm">
-                📁 Upload XLSX / CSV
+            <button (click)="fileInput.click()" class="btn upload-btn flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 3v12m0 0l-4-4m4 4l4-4" />
+                </svg>
+                Upload Players
             </button>
-            <button (click)="openModal()" class="btn btn-primary px-4">+ Add Player</button>
+
+            <button (click)="openModal()" class="btn add-player-btn btn-yellow flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                Add Player
+            </button>
         </div>
     </header>
+
+    <!-- Tournament pills row (horizontal selector) -->
+    <div class="tournament-filter-row mb-4">
+        <!-- Render tournaments dynamically from component -->
+        <button class="pill" [class.pill-active]="!tournament" (click)="selectTournament(null)">All Tournaments</button>
+        <button *ngFor="let t of tournaments" class="pill" (click)="selectTournament(t.id)"
+            [class.pill-active]="tournament?.id === t.id">
+            <span class="dot" [ngClass]="{
+                'dot-red': t.league === 'Red',
+                'dot-green': t.league === 'Green',
+                'dot-blue': t.league === 'Blue',
+                'dot-indigo': t.league === 'Indigo',
+                'dot-orange': t.league === 'Orange'
+            }"></span>
+            {{ t.name }}
+        </button>
+    </div>
 
     @if (loading) {
     <div class="flex-center py-40">
         <div class="text-center">
-            <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4">
+            <div
+                class="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4">
             </div>
             <p class="text-muted">Loading Players...</p>
         </div>
     </div>
     } @else if (tournament) {
-    <div class="content-area fade-in">
-        <div class="player-grid">
-            @for (p of tournament.players; track p.id) {
-            <div class="item-card glass-panel">
-                <div class="avatar">👤</div>
-                <div class="flex-1">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="font-bold text-lg">{{ p.name }}</h3>
-                            <p class="text-xs text-muted">{{ p.role }} | {{ p.gender }}</p>
-                        </div>
-                        <span
-                            class="text-xs px-2 py-px bg-green-500/20 text-green-400 rounded border border-green-500/30">{{
-                            p.status }}</span>
-                    </div>
 
-                    <div class="mt-2 pt-2 border-t border-white/5 grid grid-cols-2 gap-2 text-xs text-gray-400">
-                        <div>
-                            <span>Base:</span> <span class="text-white ml-1">₹{{ formatPrice(p.basePrice) }}</span>
-                        </div>
-                        <div *ngIf="p.mobileNo">
-                            <span>📞</span> <span class="ml-1">{{ p.mobileNo }}</span>
-                        </div>
-                    </div>
-                </div>
+    <!-- Stats Cards Row -->
+    <div class="stats-row grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div class="bg-[#1e2330] rounded-xl p-4 flex items-center gap-3 border border-white/5 shadow-sm">
+            <div class="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center text-xl text-yellow-500">👥
             </div>
+            <div>
+                <div class="stat-value text-xl font-bold text-orange-400">{{ stats.total | number }}</div>
+                <div class="stat-desc text-gray-400 font-semibold uppercase tracking-wider">Total Players</div>
+            </div>
+        </div>
+
+        <div class="bg-[#1e2330] rounded-xl p-4 flex items-center gap-3 border border-white/5 shadow-sm">
+            <div class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-xl">✅</div>
+            <div>
+                <div class="stat-value text-xl font-bold text-green-500">{{ stats.sold | number }}</div>
+                <div class="stat-desc text-gray-400 font-semibold uppercase tracking-wider">Sold</div>
+            </div>
+        </div>
+
+        <div class="bg-[#1e2330] rounded-xl p-4 flex items-center gap-3 border border-white/5 shadow-sm">
+            <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center text-xl">❌</div>
+            <div>
+                <div class="stat-value text-xl font-bold text-red-500">{{ stats.unsold | number }}</div>
+                <div class="stat-desc text-gray-400 font-semibold uppercase tracking-wider">Unsold</div>
+            </div>
+        </div>
+
+        <div class="bg-[#1e2330] rounded-xl p-4 flex items-center gap-3 border border-white/5 shadow-sm">
+            <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-xl">⏳</div>
+            <div>
+                <div class="stat-value text-xl font-bold text-blue-400">{{ stats.upcoming | number }}</div>
+                <div class="stat-desc text-gray-400 font-semibold uppercase tracking-wider">Pending</div>
+            </div>
+        </div>
+
+        <div class="bg-[#1e2330] rounded-xl p-4 flex items-center gap-3 border border-white/5 shadow-sm">
+            <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-xl">💎</div>
+            <div>
+                <div class="stat-value text-xl font-bold text-purple-400">₹{{ formatPrice(stats.highestSale) }}</div>
+                <div class="stat-desc text-gray-400 font-semibold uppercase tracking-wider">Highest Sale</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div
+        class="filters-bar bg-[#1e2330] rounded-xl p-3 mb-6 flex flex-wrap items-center justify-between gap-4 border border-white/5 text-sm">
+        <div class="flex flex-wrap items-center gap-4 flex-1 filters-left">
+            <div class="relative search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Search players, role, city..."
+                    class="search-input w-full bg-transparent text-white border-0 rounded-lg py-1.5 pl-9 pr-3 focus:outline-none"
+                    [value]="searchTerm" (input)="onSearch($event)">
+            </div>
+
+            <div class="role-filters">
+                <button *ngFor="let role of ['All', 'Bat', 'Bowl', 'AR', 'WK']" (click)="setRoleFilter(role)"
+                    class="chip" [class.chip-active]="roleFilter === role">
+                    <span *ngIf="role === 'Bat'" class="mr-1">🏏</span>
+                    <span *ngIf="role === 'Bowl'" class="mr-1">🥎</span>
+                    <span *ngIf="role === 'AR'" class="mr-1">⭐</span>
+                    <span *ngIf="role === 'WK'" class="mr-1">🧤</span>
+                    <span class="chip-label">{{ role }}</span>
+                </button>
+            </div>
+
+            <div class="status-filters">
+                <button *ngFor="let status of ['All', 'SOLD', 'UNSOLD', 'Pending']" (click)="setStatusFilter(status)"
+                    class="chip" [class.chip-active]="statusFilter === status">
+                    <span class="chip-label">{{ status === 'All' ? 'All Status' : status | uppercase }}</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 filters-right">
+            <select (change)="onSort($event)"
+                class="sort-select bg-[#0f172a] text-gray-300 border border-gray-700/50 rounded-lg py-1.5 px-3 focus:outline-none text-xs">
+                <option value="name-asc">Sort: Name A-Z</option>
+                <option value="base-asc">Base Price: Low to High</option>
+                <option value="base-desc">Base Price: High to Low</option>
+                <option value="price-desc">Sold Price: High to Low</option>
+            </select>
+
+            <div class="flex items-center gap-1 bg-[#0f172a] border border-gray-700/50 rounded p-1 viewmode-toggle">
+                <button (click)="setViewMode('grid')" class="p-1 rounded transition-colors viewmode-btn"
+                    [class.active-icon]="viewMode === 'grid'" [class.inactive-icon]="viewMode !== 'grid'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                </button>
+                <button (click)="setViewMode('list')" class="p-1 rounded transition-colors viewmode-btn"
+                    [class.active-icon]="viewMode === 'list'" [class.inactive-icon]="viewMode !== 'list'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area fade-in pb-10">
+        <div [ngClass]="{
+                'players-grid grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5': viewMode === 'grid',
+                'flex flex-col gap-3': viewMode === 'list'
+            }">
+            @for (p of filteredPlayers; track p.id; let i = $index) {
+            <app-player-card [player]="p" [index]="i" [viewMode]="viewMode" [tournament]="tournament"></app-player-card>
             } @empty {
-            <div class="col-span-full py-20 text-center glass-panel">
-                <p class="text-4xl mb-4">🏏</p>
-                <h3 class="text-xl font-bold">Empty Player Pool</h3>
-                <p class="text-muted">Register players or upload a CSV to start.</p>
-                <button (click)="openModal()" class="btn btn-primary mt-4">Register Player</button>
+            <div class="col-span-full py-20 text-center bg-[#1e2330] rounded-xl border border-white/5">
+                <p class="text-5xl mb-4">🏏</p>
+                <h3 class="text-xl font-bold text-white">No Players Found</h3>
+                <p class="text-gray-400 text-sm mt-2">No players match the selected filters.</p>
+                <button (click)="openModal()"
+                    class="btn mt-6 bg-[#ffb700] text-black border-none font-bold px-6">Register Player</button>
             </div>
             }
         </div>
@@ -81,7 +199,8 @@
 
             <form (ngSubmit)="addPlayer()" class="space-y-5">
                 <div class="space-y-2">
-                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Full Name</label>
+                    <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">Full
+                        Name</label>
                     <input type="text" name="pname" [(ngModel)]="newPlayer.name" class="input-field"
                         placeholder="Player Name" required>
                 </div>

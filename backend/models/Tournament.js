@@ -11,11 +11,31 @@ const Tournament = sequelize.define('Tournament', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    startDate: {
+    tournamentStartDate: {
         type: DataTypes.DATEONLY,
         allowNull: true,
     },
-    endDate: {
+    tournamentEndDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+    },
+    matchStartDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+    },
+    matchEndDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+    },
+    regStartDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+    },
+    regEndDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+    },
+    auctionDate: {
         type: DataTypes.DATEONLY,
         allowNull: true,
     },
@@ -42,6 +62,18 @@ const Tournament = sequelize.define('Tournament', {
     baseAuctionPrice: {
         type: DataTypes.FLOAT,
         defaultValue: 500000,
+    },
+    format: {
+        type: DataTypes.STRING,
+        defaultValue: 'T20',
+    },
+    location: {
+        type: DataTypes.STRING,
+        defaultValue: 'Mumbai, India',
+    },
+    category: {
+        type: DataTypes.STRING,
+        defaultValue: 'T20 League',
     }
 }, {
     timestamps: true,

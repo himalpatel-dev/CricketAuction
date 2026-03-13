@@ -1,0 +1,21 @@
+<nav class="top-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <div class="nav-logo">
+                <span class="logo-icon">🏏</span>
+                <span class="logo-text">CrioBid</span>
+            </div>
+            <div class="nav-links">
+                <a routerLink="/admin" routerLinkActive="active" class="nav-link">Dashboard</a>
+                <a routerLink="/tournaments" routerLinkActive="active" class="nav-link">Tournaments</a>
+            </div>
+        </div>
+        <div class="nav-user">
+            <div class="user-pill">
+                <div class="avatar-sm">AD</div>
+                <p class="user-name">{{ adminName }}</p>
+                <button (click)="logout()" class="logout-btn" title="Logout">🚪</button>
+            </div>
+        </div>
+    </div>
+</nav>

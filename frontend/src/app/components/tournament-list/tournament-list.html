@@ -1,0 +1,84 @@
+<div class="dashboard-layout">
+    <app-top-nav></app-top-nav>
+
+    <div class="main-content">
+        <!-- Header -->
+        <div class="actions-row">
+            <div class="search-box">
+                <i class="search-icon">🔍</i>
+                <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()" placeholder="Search tournaments...">
+            </div>
+            <button class="btn btn-primary" routerLink="/add-tournament">+ New Tournament</button>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-box" [class.active]="activeTab === 'All'" (click)="setTab('All')">
+                <span class="label">ALL</span>
+                <span class="value">{{ stats.total }}</span>
+            </div>
+            <div class="stat-box" [class.active]="activeTab === 'Active'" (click)="setTab('Active')">
+                <span class="label">ACTIVE</span>
+                <span class="value text-green">{{ stats.active }}</span>
+            </div>
+            <div class="stat-box" [class.active]="activeTab === 'Upcoming'" (click)="setTab('Upcoming')">
+                <span class="label">UPCOMING</span>
+                <span class="value text-orange">{{ stats.upcoming }}</span>
+            </div>
+            <div class="stat-box" [class.active]="activeTab === 'Completed'" (click)="setTab('Completed')">
+                <span class="label">COMPLETED</span>
+                <span class="value">{{ stats.completed }}</span>
+            </div>
+        </div>
+
+        <!-- content area -->
+        <div class="content-body">
+            @if (loading) {
+            <div class="loading-state">
+                <div class="loader"></div>
+                <p>Loading tournaments...</p>
+            </div>
+            } @else {
+            <div class="tournament-grid">
+                @for (t of filteredTournaments; track t.id) {
+                <div class="tournament-card" [routerLink]="['/tournament-detail', t.id]">
+                    <div class="card-top">
+                        <span class="status-badge" [class]="t.status.toLowerCase()">{{ t.status }}</span>
+                        <span class="format-badge">{{ t.format || 'T20' }}</span>
+                    </div>
+                    <h3 class="name">{{ t.name }}</h3>
+                    <div class="meta">
+                        <span class="meta-item">📍 {{ t.location || 'Mumbai' }}</span>
+                        <span class="meta-item">📅 {{ t.tournamentStartDate | date:'MMM yyyy' }}</span>
+                    </div>
+                    <div class="stats-row">
+                        <div class="mini-stat">
+                            <span class="val">{{ t.teams?.length || 0 }}</span>
+                            <span class="lab">TEAMS</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="val">{{ t.totalPlayers }}</span>
+                            <span class="lab">SLOTS</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="val">₹{{ formatCurrency(t.totalAmount) }}</span>
+                            <span class="lab">CAP</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="action-text">Manage Tournament</span>
+                        <span class="arrow">→</span>
+                    </div>
+                </div>
+                }
+
+                @if (filteredTournaments.length === 0) {
+                <div class="empty-state">
+                    <p>No tournaments found matching your criteria.</p>
+                </div>
+                }
+            </div>
+            }
+        </div>
+    </div>
+</div>

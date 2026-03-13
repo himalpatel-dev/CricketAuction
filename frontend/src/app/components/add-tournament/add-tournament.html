@@ -26,16 +26,47 @@
                     <input type="text" name="name" [(ngModel)]="tournamentData.name" class="input-field"
                         placeholder="e.g. Mega Cricket League 2026" required>
                 </div>
+                <div>
+                    <label>Tournament Start Date</label>
+                    <input type="date" name="tournamentStartDate" [(ngModel)]="tournamentData.tournamentStartDate"
+                        class="input-field" required>
+                </div>
 
                 <div>
-                    <label>Start Date</label>
-                    <input type="date" name="startDate" [(ngModel)]="tournamentData.startDate" class="input-field"
+                    <label>Tournament End Date</label>
+                    <input type="date" name="tournamentEndDate" [(ngModel)]="tournamentData.tournamentEndDate"
+                        class="input-field" required>
+                </div>
+                <div>
+                    <label>Registration Start Date</label>
+                    <input type="date" name="regStartDate" [(ngModel)]="tournamentData.regStartDate" class="input-field"
                         required>
                 </div>
 
                 <div>
-                    <label>End Date</label>
-                    <input type="date" name="endDate" [(ngModel)]="tournamentData.endDate" class="input-field" required>
+                    <label>Registration End Date</label>
+                    <input type="date" name="regEndDate" [(ngModel)]="tournamentData.regEndDate" class="input-field"
+                        required>
+                </div>
+
+                <div>
+                    <label>Auction Date</label>
+                    <input type="date" name="auctionDate" [(ngModel)]="tournamentData.auctionDate" class="input-field"
+                        required>
+                </div>
+
+
+
+                <div>
+                    <label>Match Start Date</label>
+                    <input type="date" name="matchStartDate" [(ngModel)]="tournamentData.matchStartDate"
+                        class="input-field" required>
+                </div>
+
+                <div>
+                    <label>Match End Date</label>
+                    <input type="date" name="matchEndDate" [(ngModel)]="tournamentData.matchEndDate" class="input-field"
+                        required>
                 </div>
 
                 <!-- Auction Configuration -->
@@ -64,6 +95,28 @@
                     <label>Base Auction Price</label>
                     <input type="number" name="baseAuctionPrice" [(ngModel)]="tournamentData.baseAuctionPrice"
                         class="input-field" required>
+                </div>
+
+                <div>
+                    <label>Category</label>
+                    <select name="category" [(ngModel)]="tournamentData.category" class="input-field" required>
+                        <option value="Franchise League">Franchise League</option>
+                        <option value="Corporate League">Corporate League</option>
+                        <option value="Local Premier League">Local Premier League</option>
+                        <option value="District Premier League">District Premier League</option>
+                        <option value="Community League">Community League</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>Format</label>
+                    <select name="format" [(ngModel)]="tournamentData.format" class="input-field" required>
+                        <option value="T10">T10</option>
+                        <option value="T20">T20</option>
+                        <option value="ODI">ODI</option>
+                        <option value="Box Cricket">Box Cricket</option>
+                        <option value="Tennis Ball T20">Tennis Ball T20</option>
+                    </select>
                 </div>
 
                 <div class="full-width">

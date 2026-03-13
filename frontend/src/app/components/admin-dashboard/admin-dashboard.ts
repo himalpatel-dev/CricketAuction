@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { TournamentService } from '../../services/tournament.service';
 import { AuthService } from '../../services/auth.service';
+import { TopNavComponent } from '../top-nav/top-nav';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TopNavComponent],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css'
 })
@@ -31,6 +32,8 @@ export class AdminDashboardComponent implements OnInit {
   topTeams: any[] = [];
   topPlayers: any[] = [];
   liveFeed: any[] = [];
+  rosters: any[] = [];
+  showTournamentsList: boolean = true;
 
   constructor(
     private tournamentService: TournamentService,
@@ -52,12 +55,19 @@ export class AdminDashboardComponent implements OnInit {
   async loadTournaments() {
     this.loading = true;
     try {
-      const data = await this.tournamentService.getAll();
+      const [tournaments, rosters] = await Promise.all([
+        this.tournamentService.getAll(),
+        this.tournamentService.getDashboardRosters()
+      ]);
 
-      if (Array.isArray(data)) {
-        this.tournaments = data;
+      if (Array.isArray(tournaments)) {
+        this.tournaments = tournaments;
         this.filteredTournaments = [...this.tournaments];
-        this.calculateStats(data);
+        this.calculateStats(tournaments);
+      }
+
+      if (Array.isArray(rosters)) {
+        this.rosters = rosters;
       }
     } catch (error: any) {
       console.error('Admin Dashboard: Load failed:', error);
@@ -136,7 +146,8 @@ export class AdminDashboardComponent implements OnInit {
               name: p.name,
               role: p.role,
               soldPrice: p.soldPrice,
-              ownerTeam: p.soldTo ? t.teams?.find((tm: any) => tm.id === p.soldTo)?.code : 'Unknown'
+              ownerTeam: p.soldTo ? t.teams?.find((tm: any) => tm.id === p.soldTo)?.code : 'Unknown',
+              tournamentName: t.name
             });
           }
         });
@@ -171,6 +182,7 @@ export class AdminDashboardComponent implements OnInit {
               playerName: p.name,
               status: p.status,
               teamName: teamName,
+              tournamentName: t.name,
               amount: p.status === 'SOLD' ? p.soldPrice : p.basePrice,
               iconStr: p.status === 'SOLD' ? '✔' : '✕',
               iconClass: p.status === 'SOLD' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500',

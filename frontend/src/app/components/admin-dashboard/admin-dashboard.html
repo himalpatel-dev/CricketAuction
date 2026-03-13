@@ -1,275 +1,261 @@
-<div class="dashboard-container">
-    <!-- Top Navigation Bar -->
-    <header class="top-bar">
-        <div class="title-section">
-            <h1>AUCTION DASHBOARD</h1>
-            <p class="subtitle">Manage tournaments, teams & player auctions — all in one place</p>
-        </div>
-        <div class="action-buttons">
-            <button class="btn-report">📊 Reports</button>
-            <button class="btn-new" routerLink="/add-tournament">New Tournament</button>
-        </div>
-        <div class="flex items-center gap-4 ml-6">
-            <div class="text-right">
-                <p class="text-sm font-bold text-white">{{ adminName }}</p>
-                <p class="text-xs text-green-400">Admin</p>
-            </div>
-            <button (click)="logout()" class="text-gray-400 hover:text-white transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-            </button>
-        </div>
-    </header>
+<div class="dashboard-layout">
+    <app-top-nav></app-top-nav>
 
-    @if (loading) {
-    <div class="flex-center py-40">
-        <div class="text-center">
-            <div class="text-4xl mb-4 animate-bounce">⚡</div>
-            <p class="text-gray-400">Loading Dashboard...</p>
-        </div>
-    </div>
-    } @else {
-    <!-- Stats Cards Row -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-header">
-                <span class="stat-title">Total Tournaments</span>
-                <span class="stat-icon">🏆</span>
-            </div>
-            <div class="stat-value text-gold">{{ stats.totalTournaments }}</div>
-            <div class="stat-trend">↑ {{ stats.activeTournaments }} Active this season</div>
-        </div>
+    <!-- Main Content -->
+    <main class="main-content">
 
-        <div class="stat-card">
-            <div class="stat-header">
-                <span class="stat-title">Registered Teams</span>
-                <span class="stat-icon">🏟️</span>
-            </div>
-            <div class="stat-value text-green">{{ stats.totalTeams }}</div>
-            <div class="stat-trend">Across all events</div>
+        @if (loading) {
+        <div class="loading-overlay">
+            <div class="loader"></div>
+            <p>Syncing Auction Data...</p>
         </div>
-
-        <div class="stat-card">
-            <div class="stat-header">
-                <span class="stat-title">Players in Pool</span>
-                <span class="stat-icon">👥</span>
-            </div>
-            <div class="stat-value text-blue">{{ stats.totalPlayers }}</div>
-            <div class="stat-trend">{{ stats.soldPlayers }} Sold • {{ stats.totalPlayers - stats.soldPlayers }}
-                Remaining</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-header">
-                <span class="stat-title">Total Spent</span>
-                <span class="stat-icon">💰</span>
-            </div>
-            <div class="stat-value money">₹{{ (stats.totalSpent / 10000000).toFixed(1) }}Cr</div>
-            <div class="stat-trend">across all auctions</div>
-        </div>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div class="content-grid">
-        <!-- Tournaments List -->
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Tournaments</span>
-                <div class="tabs">
-                    <button class="tab" [class.active]="currentTab === 'All'" (click)="setTab('All')">All</button>
-                    <button class="tab" [class.active]="currentTab === 'Live'" (click)="setTab('Live')">Live</button>
-                    <button class="tab" [class.active]="currentTab === 'Upcoming'"
-                        (click)="setTab('Upcoming')">Upcoming</button>
-                    <button class="tab" [class.active]="currentTab === 'Done'" (click)="setTab('Done')">Done</button>
+        } @else {
+        <div class="scroll-container">
+            <!-- Hero Banner -->
+            <section class="hero-banner">
+                <div class="hero-content">
+                    <h1 class="hero-title">Auction Dashboard</h1>
+                    <p class="hero-subtitle">Manage tournaments, teams & player auctions — all in one place</p>
                 </div>
-            </div>
+            </section>
 
-            <div class="overflow-x-auto">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>TOURNAMENT</th>
-                            <th>TEAMS</th>
-                            <th>PLAYERS SOLD</th>
-                            <th>BUDGET USED</th>
-                            <th>STATUS</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (filteredTournaments.length === 0) {
-                        <tr>
-                            <td colspan="6" class="text-center text-gray-400 py-8">No tournaments found for this status.
-                            </td>
-                        </tr>
-                        }
-                        @for (t of filteredTournaments; track t.id) {
-                        <tr>
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xl tournament-icon">{{ getTournamentIcon(t.name) }}</span>
-                                    <div>
-                                        <div class="font-bold text-white text-[15px]">{{ t.name }}</div>
-                                        <div class="text-[11px] text-[#64748b]">T20 · {{ t.startDate ? (t.startDate |
-                                            date:'yyyy') : '2026' }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="font-bold text-[13px] tracking-wider text-[#cbd5e1]">{{ t.teams?.length || 0 }} /
-                                {{ t.maxTeams || (t.teams?.length || 0) || 10 }}</td>
-                            <td>
-                                <div class="flex flex-col gap-1.5 w-[140px]">
-                                    <span class="text-[13px] font-bold text-[#f8fafc] tracking-wider">{{
-                                        t.soldPlayersCount || 0 }} / {{ t.totalPlayers || 0 }}</span>
-                                    <div class="progress-bar w-full">
-                                        <div class="progress-fill"
-                                            [class.bg-[#fbbf24]]="(t.soldPlayersCount / t.totalPlayers) > 0 && (t.soldPlayersCount / t.totalPlayers) < 0.8"
-                                            [class.bg-[#22c55e]]="(t.soldPlayersCount / t.totalPlayers) >= 0.8"
-                                            [class.bg-[#ef4444]]="(t.soldPlayersCount / t.totalPlayers) === 0"
-                                            [style.width.%]="(t.soldPlayersCount / t.totalPlayers * 100) || 0"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="text-[13px] font-bold tracking-wider text-[#f8fafc]">
-                                    ₹{{ formatCurrency(t.totalSpent) }} <span
-                                        class="text-[#64748b] font-normal mx-0.5">/</span> ₹{{
-                                    formatCurrency(t.totalBudget) }}
-                                </div>
-                            </td>
-                            <td>
-                                <span class="status-badge" [class.status-live]="t.status === 'ACTIVE'"
-                                    [class.status-upcoming]="t.status === 'UPCOMING'"
-                                    [class.status-done]="t.status === 'COMPLETED'">
-                                    {{ t.status === 'COMPLETED' ? 'DONE' : t.status }}
-                                </span>
-                            </td>
-                            <td>
-                                <button (click)="viewTournament(t.id)" class="btn-action"
-                                    [class.btn-manage]="t.status === 'ACTIVE'">
-                                    {{ t.status === 'ACTIVE' ? 'Manage' : (t.status === 'COMPLETED' ? 'View' : 'Setup')
-                                    }}
-                                </button>
-                            </td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Live Feed -->
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Live Feed</span>
-                <span class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded font-bold animate-pulse">LIVE</span>
-            </div>
-            <div class="live-feed-list">
-                @if (liveFeed.length === 0) {
-                <div class="text-center text-gray-500 py-8 text-sm">No recent activities found</div>
-                }
-                @for (item of liveFeed; track item.id) {
-                <div class="feed-item">
-                    <div class="feed-icon" [ngClass]="item.iconClass">{{ item.iconStr }}</div>
-                    <div class="feed-content">
-                        <h4>
-                            <span class="highlight">{{ item.playerName }}</span>
-                            @if (item.status === 'SOLD') {
-                            <span class="text-[#22c55e]">SOLD</span> to {{ item.teamName }} for ₹{{
-                            formatCurrency(item.amount) }}
-                            } @else {
-                            went <span class="text-[#ef4444]">UNSOLD</span>. Base: ₹{{ formatCurrency(item.amount) }}
-                            }
-                        </h4>
-                        <p>{{ item.timeString }}</p>
-                    </div>
-                </div>
-                }
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom Lists Grid -->
-    <div class="bottom-grid">
-        <!-- Top Teams -->
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Top Budget Teams</span>
-                <button class="text-xs text-gold border border-gold/30 px-2 py-1 rounded hover:bg-gold/10">View
-                    All</button>
-            </div>
-            <div>
-                @for (team of topTeams; track team.id; let i = $index) {
-                <div class="list-item">
-                    <div class="flex items-center">
-                        <div class="rank-circle rank-{{i+1}}">{{i+1}}</div>
+            <!-- Quick Stats -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-main">
                         <div>
-                            <div class="item-name">{{ team.name }}</div>
-                            <div class="item-sub">{{ team.playersCount }} players • {{ team.code }}</div>
+                            <p class="stat-label">TOTAL TOURNAMENTS</p>
+                            <p class="stat-number">{{ stats.totalTournaments }}</p>
+                            <p class="stat-desc"><span class="text-green">{{ stats.activeTournaments }} Active</span>
+                                this session</p>
                         </div>
+                        <div class="stat-icon-bg yellow">🏆</div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-gold font-bold">₹{{ (team.remainingBudget / 100000).toFixed(0) }}L</div>
-                        <div class="item-sub">remaining</div>
-                    </div>
+                    <div class="stat-border yellow"></div>
                 </div>
-                }
-            </div>
-        </div>
 
-        <!-- Highest Sold -->
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Highest Sold Players</span>
-                <button class="text-xs text-gold border border-gold/30 px-2 py-1 rounded hover:bg-gold/10">All
-                    Players</button>
-            </div>
-            <div>
-                @for (p of topPlayers; track p.id; let i = $index) {
-                <div class="list-item">
-                    <div class="flex items-center">
-                        <div
-                            class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs font-bold mr-3">
-                            {{ p.name[0] }}</div>
+                <div class="stat-card">
+                    <div class="stat-main">
                         <div>
-                            <div class="item-name">{{ p.name }}</div>
-                            <div class="item-sub">{{ p.role }} • {{ p.ownerTeam }}</div>
+                            <p class="stat-label">REGISTERED TEAMS</p>
+                            <p class="stat-number">{{ stats.totalTeams }}</p>
+                            <p class="stat-desc">Across all events</p>
                         </div>
+                        <div class="stat-icon-bg teal">🏟️</div>
                     </div>
-                    <div class="text-green-400 font-bold">₹{{ (p.soldPrice / 100000).toFixed(0) }}L</div>
+                    <div class="stat-border teal"></div>
                 </div>
-                }
-            </div>
-        </div>
 
-        <!-- Budget Usage -->
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Budget Usage</span>
-                <span class="text-xs text-gray-500">Sample League</span>
-            </div>
-            <div>
-                @for (team of topTeams.slice(0, 5); track team.id) {
-                <div class="mb-4">
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="font-bold text-gray-300">⚡ {{ team.name }}</span>
-                        <span class="text-blue-400">₹{{ ((team.totalBudget - team.remainingBudget)/10000000).toFixed(2)
-                            }}Cr / ₹{{ (team.totalBudget/10000000).toFixed(0) }}Cr</span>
+                <div class="stat-card">
+                    <div class="stat-main">
+                        <div>
+                            <p class="stat-label">PLAYERS IN POOL</p>
+                            <p class="stat-number">{{ stats.totalPlayers }}</p>
+                            <p class="stat-desc"><span class="text-blue">{{ stats.soldPlayers }} Sold</span> • {{
+                                stats.totalPlayers - stats.soldPlayers }} Remaining</p>
+                        </div>
+                        <div class="stat-icon-bg blue">👥</div>
                     </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" [class.bg-yellow-500]="(team.remainingBudget/team.totalBudget) < 0.2"
-                            [class.bg-green-500]="(team.remainingBudget/team.totalBudget) >= 0.5"
-                            [class.bg-blue-500]="(team.remainingBudget/team.totalBudget) >= 0.2 && (team.remainingBudget/team.totalBudget) < 0.5"
-                            [style.width.%]="((team.totalBudget - team.remainingBudget) / team.totalBudget * 100)">
+                    <div class="stat-border blue"></div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-main">
+                        <div>
+                            <p class="stat-label">TOTAL SPENT</p>
+                            <p class="stat-number">₹{{ (stats.totalSpent / 10000000).toFixed(1) }}Cr</p>
+                            <p class="stat-desc">Across all auctions</p>
+                        </div>
+                        <div class="stat-icon-bg red">💰</div>
+                    </div>
+                    <div class="stat-border red"></div>
+                </div>
+            </div>
+
+            <!-- Tournament Overview & Live Feed -->
+            <div class="grid-content">
+                <section class="card tournament-section">
+                    <div class="card-header justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="dot-green"></span>
+                            <h3>Tournament Overview</h3>
+                        </div>
+                        <div class="filter-tabs">
+                            <button [class.active]="currentTab === 'All'" (click)="setTab('All')">All</button>
+                            <button [class.active]="currentTab === 'Live'" (click)="setTab('Live')">Live</button>
+                            <button [class.active]="currentTab === 'Upcoming'"
+                                (click)="setTab('Upcoming')">Upcoming</button>
+                            <button [class.active]="currentTab === 'Done'" (click)="setTab('Done')">Done</button>
                         </div>
                     </div>
-                </div>
-                }
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>TOURNAMENT</th>
+                                    <th>TEAMS</th>
+                                    <th>PLAYERS SOLD</th>
+                                    <th>BUDGET USED</th>
+                                    <th>STATUS</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (t of filteredTournaments; track t.id) {
+                                <tr>
+                                    <td>
+                                        <div class="item-with-icon">
+                                            <span class="item-icon-small">{{ getTournamentIcon(t.name) }}</span>
+                                            <div>
+                                                <p class="item-bold">{{ t.name }}</p>
+                                                <p class="item-tiny">T20 · 2026 Season</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="text-bold">{{ t.teams?.length || 0 }} / {{ t.maxTeams || 10
+                                            }}</span></td>
+                                    <td>
+                                        <div class="progress-container">
+                                            <p class="progress-label">{{ t.soldPlayersCount || 0 }}/{{ t.totalPlayers ||
+                                                0 }}</p>
+                                            <div class="bar-bg">
+                                                <div class="bar-fill yellow"
+                                                    [style.width.%]="(t.soldPlayersCount/t.totalPlayers*100) || 0">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="progress-container">
+                                            <p class="progress-label">₹{{ formatCurrency(t.totalSpent) }} / ₹{{
+                                                formatCurrency(t.totalBudget) }}</p>
+                                            <div class="bar-bg">
+                                                <div class="bar-fill green"
+                                                    [style.width.%]="(t.totalSpent/t.totalBudget*100) || 0"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="badge-status" [ngClass]="'status-' + t.status.toLowerCase()">{{
+                                            t.status }}</span></td>
+                                    <td><button class="btn-manage" (click)="viewTournament(t.id)">Manage →</button></td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="card feed-section">
+                    <div class="card-header justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="dot-blue"></span>
+                            <h3>Live Feed</h3>
+                        </div>
+                        <span class="live-indicator">● Live</span>
+                    </div>
+                    <div class="feed-list">
+                        @for (item of liveFeed; track item.id) {
+                        <div class="feed-card">
+                            <div class="feed-check">✔</div>
+                            <div class="feed-info">
+                                <p class="feed-text"><b>{{ item.playerName }}</b> {{ item.status === 'SOLD' ? 'SOLD to'
+                                    : 'UNSOLD' }} {{ item.teamName }}</p>
+                                <p class="feed-meta">{{ item.timeString }} <span
+                                        class="text-accent opacity-80 font-bold ml-1">• {{ item.tournamentName }}</span>
+                                </p>
+                            </div>
+                            <p class="feed-price">₹{{ formatCurrency(item.amount) }}</p>
+                        </div>
+                        }
+                    </div>
+                </section>
+            </div>
+
+            <!-- Bottom Sections -->
+            <div class="bottom-grid">
+                <section class="card">
+                    <div class="card-header justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="dot-orange"></span>
+                            <h3>Top Budget Teams</h3>
+                        </div>
+                        <a href="#" class="view-all">View All →</a>
+                    </div>
+                    <div class="ranking-list">
+                        @for (team of topTeams.slice(0,3); track team.id; let i = $index) {
+                        <div class="rank-item">
+                            <span class="rank-num">{{ i + 1 }}</span>
+                            <div class="item-with-icon">
+                                <div class="avatar-sq">{{ team.code[0] }}</div>
+                                <div>
+                                    <p class="item-bold">{{ team.name }}</p>
+                                    <p class="item-tiny">{{ team.playersCount }} players • {{ team.tournamentName }}</p>
+                                </div>
+                            </div>
+                            <div class="rank-price">
+                                <p class="price-bold">₹{{ (team.remainingBudget / 100000).toFixed(0) }}L</p>
+                                <p class="item-tiny">REMAINING</p>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-header justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="dot-green"></span>
+                            <h3>Highest Sold Players</h3>
+                        </div>
+                        <a href="#" class="view-all">All Players →</a>
+                    </div>
+                    <div class="ranking-list">
+                        @for (p of topPlayers.slice(0,5); track p.id; let i = $index) {
+                        <div class="rank-item condensed">
+                            <span class="rank-num-small">0{{ i + 1 }}</span>
+                            <div class="item-with-icon">
+                                <div class="avatar-pill">{{ p.name[0] }}</div>
+                                <div>
+                                    <p class="item-bold">{{ p.name }}</p>
+                                    <p class="item-tiny uppercase">{{ p.role }} • {{ p.ownerTeam }} • {{
+                                        p.tournamentName }}</p>
+                                </div>
+                            </div>
+                            <p class="price-green">₹{{ (p.soldPrice / 100000).toFixed(0) }}L</p>
+                        </div>
+                        }
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-header justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="dot-blue"></span>
+                            <h3>Team Rosters</h3>
+                        </div>
+                    </div>
+                    <div class="usage-list">
+                        @for (r of rosters.slice(0,3); track r.id) {
+                        <div class="usage-item">
+                            <div class="usage-header">
+                                <p class="item-bold">{{ r.name }}</p>
+                                <p class="slots-text">{{ r.slotsFilled }}/{{ r.totalSlots }} slots</p>
+                            </div>
+                            <div class="roster-badges">
+                                <span class="role-badge bat" *ngIf="r.roles.BAT > 0">{{ r.roles.BAT }} BAT</span>
+                                <span class="role-badge bwl" *ngIf="r.roles.BWL > 0">{{ r.roles.BWL }} BWL</span>
+                                <span class="role-badge ar" *ngIf="r.roles.AR > 0">{{ r.roles.AR }} AR</span>
+                                <span class="role-badge wk" *ngIf="r.roles.WK > 0">{{ r.roles.WK }} WK</span>
+                            </div>
+                            <div class="bar-bg">
+                                <div class="bar-fill green" [style.width.%]="(r.slotsFilled/r.totalSlots)*100"></div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </section>
             </div>
         </div>
-    </div>
-    }
+        }
+    </main>
 </div>

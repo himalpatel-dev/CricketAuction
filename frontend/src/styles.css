@@ -3,25 +3,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary: #4ade80;
-  /* Green */
-  --primary-dark: #22c55e;
-  --secondary: #6366f1;
-  /* Indigo */
-  --dark-bg: #111827;
-  /* Gray 900 */
-  --card-bg: #1f2937;
-  /* Gray 800 */
-  --text-main: #f9fafb;
-  --text-muted: #9ca3af;
+  /* Design System Tokens */
+  --primary: #10b981;
+  /* Emerald Green */
+  --primary-dark: #064e3b;
+  /* Dark Emerald */
+  --accent: #ffb700;
+  /* Golden Yellow */
+  --accent-hover: #eab308;
+
+  --bg-sidebar: #133b33;
+  /* Deep Teal/Green sidebar */
+  --bg-main: #f4f6f3;
+  /* Light Off-white background */
+  --card-bg: #ffffff;
+
+  --text-main: #1e293b;
+  /* Slate 800 */
+  --text-muted: #64748b;
+  /* Slate 500 */
+  --text-white: #ffffff;
+
+  --border: rgba(0, 0, 0, 0.06);
   --danger: #ef4444;
-  --glass: rgba(31, 41, 55, 0.7);
-  --border: rgba(255, 255, 255, 0.1);
+
+  --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --radius: 12px;
 }
 
 body {
   font-family: 'Outfit', sans-serif;
-  background-color: var(--dark-bg);
+  background-color: var(--bg-main);
   color: var(--text-main);
   margin: 0;
   padding: 0;
@@ -343,6 +355,10 @@ button {
 
 .text-yellow-500 {
   color: #eab308;
+}
+
+.text-accent {
+  color: var(--accent);
 }
 
 .text-muted {

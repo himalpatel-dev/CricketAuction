@@ -1,0 +1,73 @@
+<div class="team-card">
+    <div class="card-watermark">🦊</div>
+
+    <div class="card-header">
+        <div class="flex-row">
+            <div class="team-avatar">
+                <span *ngIf="!team.code">T</span>
+                <span *ngIf="team.code">🦊</span>
+            </div>
+            <div class="team-identity">
+                <h3>{{ team.name }}</h3>
+                <div class="team-meta">
+                    <span class="text-yellow mr-1">🏆</span> {{ team.tournamentName }}
+                </div>
+                <div class="team-owner">
+                    <span class="dot green inline-block mr-1"></span> {{ team.ownerName }}
+                </div>
+            </div>
+        </div>
+
+        <span class="status-badge"
+            [ngClass]="team.isActive ? 'badge-active' : (team.isLowBudget ? 'badge-low-budget' : 'badge-inactive')">
+            {{ team.isLowBudget ? 'LOW BUDGET' : (team.isActive ? 'ACTIVE' : 'IDLE') }}
+        </span>
+    </div>
+
+    <div class="budget-section mt-5">
+        <div class="budget-labels">
+            <span class="label">Budget Used</span>
+            <span class="value">
+                <span class="used">₹{{ formatPrice(team.budget - team.remainingBudget) }}</span>
+                <span class="slash"> / </span>
+                <span class="total">₹{{ formatPrice(team.budget) }}</span>
+            </span>
+        </div>
+        <div class="progress-track mt-1.5">
+            <div class="progress-fill" [style.width.%]="((team.budget - team.remainingBudget) / team.budget) * 100"
+                [ngClass]="team.isLowBudget ? 'bg-red' : 'bg-yellow'">
+            </div>
+        </div>
+    </div>
+
+    <!-- Squad Stats -->
+    <div class="squad-stats">
+        <div class="stat-col line-right">
+            <div class="val text-yellow">{{ team.playersCount }}</div>
+            <div class="lbl">Players</div>
+        </div>
+        <div class="stat-col line-right">
+            <div class="val text-green">{{ team.batsmenCount }}</div>
+            <div class="lbl">Batsmen</div>
+        </div>
+        <div class="stat-col line-right">
+            <div class="val text-red">{{ team.bowlersCount }}</div>
+            <div class="lbl">Bowlers</div>
+        </div>
+        <div class="stat-col">
+            <div class="val text-blue">{{ team.arWkCount }}</div>
+            <div class="lbl">AR + WK</div>
+        </div>
+    </div>
+
+    <!-- Card Footer -->
+    <div class="card-footer">
+        <div class="remaining-amt">
+            <span class="amt">₹{{ formatPrice(team.remainingBudget) }}</span> <span class="lbl-rem">remaining</span>
+        </div>
+        <div class="footer-actions">
+            <button class="btn-edit" (click)="onEdit()">✏️</button>
+            <button class="btn-view" [routerLink]="['/squads', team.tournamentId]">View Squad</button>
+        </div>
+    </div>
+</div>

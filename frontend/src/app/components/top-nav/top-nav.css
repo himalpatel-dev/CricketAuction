@@ -1,0 +1,115 @@
+:host {
+    display: block;
+    width: 100%;
+}
+
+.top-nav {
+    background-color: var(--bg-sidebar);
+    color: white;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 48px;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-icon {
+    font-size: 24px;
+}
+
+.logo-text {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.nav-links {
+    display: flex;
+    gap: 8px;
+}
+
+.nav-link {
+    padding: 10px 20px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.nav-link:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link.active {
+    background-color: var(--accent);
+    color: var(--text-main);
+}
+
+.user-pill {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    background-color: var(--accent);
+    color: var(--text-main);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 13px;
+}
+
+.user-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+}
+
+.logout-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.logout-btn:hover {
+    opacity: 1;
+}

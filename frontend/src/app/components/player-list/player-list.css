@@ -5,57 +5,8 @@
     padding: 20px;
 }
 
-.top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.gradient-text {
-    background: linear-gradient(90deg, #60a5fa, #a78bfa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
 .content-area {
     padding: 0 10px;
-}
-
-.player-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.item-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 20px;
-    border-radius: 12px;
-    transition: transform 0.2s;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.item-card:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    border: 2px solid #3b82f6;
 }
 
 /* Modal Styles */
@@ -125,6 +76,34 @@
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* Header action buttons: upload and add player */
+.header-actions {
+    align-items: center;
+}
+
+.upload-btn {
+    background: rgba(255, 255, 255, 0.03);
+    color: #e6eef8;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.upload-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.add-player-btn {
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.add-player-btn svg {
+    color: inherit;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -133,4 +112,422 @@
     to {
         opacity: 1;
     }
+}
+
+/* Grid layout: responsive columns so we can display 5 cards per row on wide screens */
+.players-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 18px;
+    align-items: stretch;
+}
+
+.stats-row .stat-desc {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Left and right groups inside filters bar */
+.filters-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    /* allow children to shrink */
+}
+
+.filters-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Make role/status pill buttons consistent height and spacing */
+.role-filters .role-pill-btn,
+.status-filters .status-pill-btn {
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.role-filters .role-pill-btn.active-pill,
+.status-filters .status-pill-btn.active-pill {
+    background: #ffb700;
+    color: #071023;
+    border-color: rgba(255, 183, 25, 0.18);
+}
+
+.role-filters .role-pill-btn.inactive-pill,
+.status-filters .status-pill-btn.inactive-pill {
+    color: #94a3b8;
+}
+
+/* Ensure controls don't overflow the left area: allow search to shrink */
+.filters-left .search-container {
+    flex: 0 1 420px;
+    min-width: 160px;
+}
+
+.filters-left .role-filters,
+.filters-left .status-filters {
+    flex: 0 1 auto;
+}
+
+/* Align select and viewmode to match height */
+.filters-right .sort-select,
+.filters-right .viewmode-toggle {
+    height: 42px;
+}
+
+.viewmode-toggle {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px;
+}
+
+.viewmode-btn {
+    height: 30px;
+    width: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.viewmode-btn.active-icon {
+    background: #ffb700;
+    color: #071023;
+}
+
+.viewmode-btn.inactive-icon {
+    color: #94a3b8;
+    background: transparent;
+}
+
+/* Small screen wrap adjustments */
+@media (max-width: 900px) {
+    .filters-left {
+        flex-wrap: wrap;
+    }
+
+    .filters-right {
+        margin-top: 8px;
+    }
+
+    .filters-bar {
+        align-items: flex-start;
+    }
+}
+
+@media (min-width: 1024px) {
+    .players-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .players-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Header / Stats Row styles to match top UI */
+.top-bar h1 {
+    font-size: 28px;
+    color: #f59e0b;
+    /* vivid yellow/orange */
+    letter-spacing: 0.08em;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.stats-row>div {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.stats-row .w-10 {
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 20px;
+}
+
+.stats-row .text-xl {
+    font-weight: 800;
+    font-size: 20px;
+}
+
+.stats-row .stat-desc {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.search-container {
+    width: 420px;
+}
+
+.search-input {
+    background: #071025;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 10px 14px;
+    border-radius: 10px;
+}
+
+.filters-bar .btn {
+    border-radius: 999px;
+}
+
+/* yellow action button helper class */
+.btn-yellow {
+    background: #ffb700 !important;
+    color: #071023 !important;
+    font-weight: 700;
+}
+
+/* Role & Status filter pills (active/inactive states) */
+.role-filters .role-pill-btn,
+.status-filters .status-pill-btn {
+    background: transparent;
+    color: #cbd5e1;
+    border: none;
+}
+
+.role-filters .role-pill-btn.active-pill,
+.status-filters .status-pill-btn.active-pill {
+    background: #ffb700;
+    color: #071023;
+    font-weight: 700;
+    box-shadow: 0 8px 18px rgba(255, 183, 25, 0.06);
+}
+
+.role-filters .role-pill-btn.inactive-pill,
+.status-filters .status-pill-btn.inactive-pill {
+    color: #94a3b8;
+}
+
+/* Sort select styling */
+.sort-select {
+    min-width: 170px;
+}
+
+/* View mode button styling */
+.viewmode-btn.active-icon {
+    background: #ffb700;
+    color: #071023;
+}
+
+.viewmode-btn.inactive-icon {
+    color: #9ca3af;
+}
+
+/* Make search input larger and match surrounding height */
+.filters-bar .search-input {
+    height: 42px;
+    padding-left: 38px;
+}
+
+.filters-bar .search-container span {
+    left: 12px;
+    top: 10px;
+    color: #94a3b8;
+}
+
+/* New: search + chips unified container */
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-icon {
+    color: #94a3b8;
+    font-size: 16px;
+    margin-right: 6px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: transparent;
+    color: #94a3b8;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.chip .chip-label {
+    font-weight: 700;
+}
+
+.chip.chip-active {
+    background: #ffb700;
+    color: #071023;
+    border-color: rgba(255, 183, 25, 0.18);
+}
+
+/* Role/Status filter groups (separate from search) */
+.role-filters,
+.status-filters {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Differentiate role chips vs status chips visually */
+.role-filters .chip {
+    /* compact dark pills with icons */
+    background: rgba(255, 255, 255, 0.02);
+    color: #e6eef8;
+    padding: 6px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.role-filters .chip .chip-label {
+    font-weight: 700;
+    text-transform: none;
+}
+
+.role-filters .chip.chip-active {
+    background: #ffb700;
+    color: #071023;
+    box-shadow: 0 8px 20px rgba(255, 183, 25, 0.08);
+}
+
+.status-filters .chip {
+    /* subtle outlined pills for status */
+    background: transparent;
+    color: #94a3b8;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.status-filters .chip.chip-active {
+    background: transparent;
+    color: #ffb700;
+    border-color: rgba(255, 183, 25, 0.22);
+}
+
+
+/* Make sure chips are smaller on narrow screens */
+@media (max-width: 900px) {
+    .chip {
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .search-container {
+        width: 220px;
+    }
+}
+
+/* Tournament pills (horizontal selector) */
+.tournament-filter-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tournament-filter-row .pill {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: #cbd5e1;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tournament-filter-row .pill-active {
+    background: transparent;
+    color: #071023;
+    background: linear-gradient(180deg, #ffd965, #ffb700);
+    border: 1px solid rgba(255, 183, 25, 0.15);
+    box-shadow: 0 6px 18px rgba(255, 183, 25, 0.08);
+}
+
+.tournament-filter-row .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dot-red {
+    background: #ef4444;
+}
+
+.dot-green {
+    background: #10b981;
+}
+
+.dot-blue {
+    background: #3b82f6;
+}
+
+.dot-indigo {
+    background: #6366f1;
+}
+
+.dot-orange {
+    background: #fb923c;
+}
+
+/* Hide scrollbar for a cleaner look */
+.tournament-filter-row::-webkit-scrollbar {
+    height: 6px;
+}
+
+.tournament-filter-row::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
 }

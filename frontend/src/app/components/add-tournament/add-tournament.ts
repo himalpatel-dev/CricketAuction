@@ -14,12 +14,19 @@ import { TournamentService } from '../../services/tournament.service';
 export class AddTournamentComponent {
   tournamentData = {
     name: '',
-    startDate: '',
-    endDate: '',
+    tournamentStartDate: '',
+    tournamentEndDate: '',
+    matchStartDate: '',
+    matchEndDate: '',
+    regStartDate: '',
+    regEndDate: '',
+    auctionDate: '',
     totalPlayers: 100,
     totalAmount: 100000000,
     playerReservedAmount: 1000000,
     baseAuctionPrice: 500000,
+    format: 'T20',
+    category: 'Franchise League',
     status: 'UPCOMING'
   };
 

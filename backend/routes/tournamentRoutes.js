@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createTournament, getAllTournaments, getTournamentById, addTeam, addPlayer, registerPlayer, getLatestPublicTournament, getOpenTournaments, uploadPlayers } = require('../controllers/tournamentController');
+const { createTournament, getAllTournaments, getTournamentById, updateTournament, addTeam, addPlayer, registerPlayer, getLatestPublicTournament, getOpenTournaments, uploadPlayers, getDashboardRosters } = require('../controllers/tournamentController');
 const { register } = require('../controllers/authController');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
@@ -11,8 +11,10 @@ router.get('/', getAllTournaments);
 router.post('/register-player', registerPlayer);
 router.get('/latest-public', getLatestPublicTournament);
 router.get('/open-tournaments', getOpenTournaments);
+router.get('/dashboard/rosters', getDashboardRosters);
 
 router.get('/:id', getTournamentById);
+router.put('/:id', updateTournament);
 router.post('/:id/teams', addTeam);
 router.post('/:id/players', addPlayer);
 router.post('/:id/upload-players', upload.single('file'), uploadPlayers);

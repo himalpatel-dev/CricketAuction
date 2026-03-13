@@ -10,8 +10,13 @@ async function seed() {
         // 1. Create Tournament
         const tournament = await Tournament.create({
             name: 'Mega Cricket League 2026',
-            startDate: new Date(),
-            endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+            tournamentStartDate: new Date(),
+            tournamentEndDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+            regStartDate: new Date(),
+            regEndDate: new Date(new Date().setDate(new Date().getDate() + 15)),
+            auctionDate: new Date(new Date().setDate(new Date().getDate() + 20)),
+            matchStartDate: new Date(new Date().setDate(new Date().getDate() + 30)),
+            matchEndDate: new Date(new Date().setMonth(new Date().getMonth() + 2)),
             status: 'ACTIVE',
             totalPlayers: 200,
             totalAmount: 120000000, // 12 Cr
@@ -23,9 +28,9 @@ async function seed() {
 
         // 2. Create Teams
         const teamsData = [
-            { name: 'Royal Challengers', code: 'RCB', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id },
-            { name: 'Chennai Super Kings', code: 'CSK', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id },
-            { name: 'Mumbai Indians', code: 'MI', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id },
+            { name: 'Royal Challengers', code: 'RCB', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, coach: 'Andy Flower' },
+            { name: 'Chennai Super Kings', code: 'CSK', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, coach: 'Stephen Fleming' },
+            { name: 'Mumbai Indians', code: 'MI', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, coach: 'Mark Boucher' },
         ];
 
         const teams = await Team.bulkCreate(teamsData);

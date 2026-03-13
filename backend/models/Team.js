@@ -27,6 +27,10 @@ const Team = sequelize.define('Team', {
         type: DataTypes.STRING,
         allowNull: true,
     },
+    coach: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
     tournamentId: {
         type: DataTypes.INTEGER, // Associated Tournament
         allowNull: true,
