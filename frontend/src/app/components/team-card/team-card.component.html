@@ -66,7 +66,7 @@
             <span class="amt">₹{{ formatPrice(team.remainingBudget) }}</span> <span class="lbl-rem">remaining</span>
         </div>
         <div class="footer-actions">
-            <button class="btn-view" [routerLink]="['/squads', team.tournamentId]">View Team</button>
+            <button class="btn-view" [routerLink]="['/team-dashboard', team.tournamentId, team.id]">View Team</button>
         </div>
     </div>
 </div>

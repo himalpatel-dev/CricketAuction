@@ -39,7 +39,9 @@ export class TournamentDetailComponent implements OnInit {
     arCount: 0,
     wkCount: 0,
     unsoldPlayers: 0,
-    remainingPlayers: 0
+    remainingPlayers: 0,
+    auctionRounds: 2,
+    totalRounds: 5
   };
 
   budgetStats = {
@@ -231,6 +233,7 @@ export class TournamentDetailComponent implements OnInit {
     });
 
     this.stats = {
+      ...this.stats,
       playersSold: soldCount,
       totalSpent: totalSpent,
       registeredTeams: teams.length,
@@ -272,6 +275,24 @@ export class TournamentDetailComponent implements OnInit {
     } else {
       return value.toLocaleString('en-IN');
     }
+  }
+
+  formatInCr(value: number): { val: string, unit: string } {
+    if (!value) return { val: '0', unit: 'Cr' };
+    const cr = value / 10000000;
+    return {
+      val: cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(1),
+      unit: 'Cr'
+    };
+  }
+
+  formatInL(value: number): { val: string, unit: string } {
+    if (!value) return { val: '0', unit: 'L' };
+    const l = value / 100000;
+    return {
+      val: l % 1 === 0 ? l.toFixed(0) : l.toFixed(1),
+      unit: 'L'
+    };
   }
 
   async updateTournamentDetails() {

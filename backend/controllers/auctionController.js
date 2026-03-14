@@ -147,3 +147,64 @@ exports.markUnsold = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.getTeamRecentActivity = async (req, res) => {
+    const { teamId } = req.params;
+    try {
+        // 1. Find all players this team has bid on
+        const players = await Player.findAll({
+            include: [
+                {
+                    model: Bid,
+                    as: 'bids',
+                    required: true,
+                    where: { teamId: teamId }
+                },
+                {
+                    model: Team,
+                    as: 'owner_team'
+                }
+            ]
+        });
+
+        // 2. Map and enrich with lost/won status and competing teams
+        const activity = await Promise.all(players.map(async (player) => {
+            const allBids = await Bid.findAll({
+                where: { playerId: player.id },
+                include: [{ model: Team, as: 'team' }],
+                order: [['amount', 'DESC']]
+            });
+
+            const teamBids = allBids.filter(b => b.teamId == teamId);
+            const highestTeamBid = teamBids[0];
+            const isWon = player.soldTo == teamId && player.status === 'SOLD';
+
+            const competingTeams = [...new Set(allBids
+                .filter(b => b.teamId != teamId)
+                .map(b => b.team?.code || b.team?.name))]
+                .filter(Boolean);
+
+            return {
+                id: player.id,
+                name: player.name,
+                role: player.role,
+                status: isWon ? 'WON' : (player.status === 'SOLD' ? 'LOST' : player.status),
+                bidAmount: highestTeamBid ? highestTeamBid.amount : 0,
+                finalPrice: player.soldPrice,
+                wonBy: isWon ? 'Won' : (player.owner_team?.code || player.owner_team?.name || 'N/A'),
+                competingTeams: competingTeams,
+                timestamp: highestTeamBid ? highestTeamBid.timestamp : player.updatedAt
+            };
+        }));
+
+        // Sort by most recent activity
+        activity.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        console.log(`Activity for team ${teamId}:`, JSON.stringify(activity, null, 2));
+
+        res.json(activity);
+    } catch (error) {
+        console.error("Error in getTeamRecentActivity:", error);
+        res.status(500).json({ error: error.message });
+    }
+};

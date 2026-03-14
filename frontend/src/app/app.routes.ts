@@ -23,5 +23,6 @@ export const routes: Routes = [
     { path: 'players/:id', component: PlayerListComponent },
     { path: 'register', loadComponent: () => import('./components/player-registration/player-registration').then(m => m.PlayerRegistrationComponent) },
     { path: 'team-dashboard', loadComponent: () => import('./components/team-dashboard/team-dashboard').then(m => m.TeamDashboardComponent) },
+    { path: 'team-dashboard/:tournamentId/:teamId', loadComponent: () => import('./components/team-dashboard/team-dashboard').then(m => m.TeamDashboardComponent) },
     { path: '**', redirectTo: 'login' }
 ];

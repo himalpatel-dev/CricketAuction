@@ -47,13 +47,28 @@ export class PlayerCardComponent {
         return team ? team.name : 'Unknown Team';
     }
 
+    getTeamCode(teamId: number): string {
+        if (!this.tournament || !this.tournament.teams || !teamId) return '';
+        const team = this.tournament.teams.find((t: any) => t.id === teamId);
+        if (!team) return '';
+        if (team.code) return team.code;
+        // Fallback: take first 3 letters
+        return team.name.substring(0, 3).toUpperCase();
+    }
+
     getRoleClass(role: string): string {
         switch (role) {
-            case 'Batsman': return 'text-emerald-500 bg-emerald-500/10 px-[6px] py-[2px] rounded font-black';
-            case 'Bowler': return 'text-[#f43f5e] bg-[#f43f5e]/10 px-[6px] py-[2px] rounded font-black';
-            case 'Wicketkeeper': return 'text-sky-500 bg-sky-500/10 px-[6px] py-[2px] rounded font-black';
-            case 'All-Rounder': return 'text-amber-500 bg-amber-500/10 px-[6px] py-[2px] rounded font-black';
-            default: return 'text-gray-400 bg-gray-500/10 px-[6px] py-[2px] rounded font-black';
+            case 'Batsman': return 'role-batsman';
+            case 'Bowler': return 'role-bowler';
+            case 'Wicketkeeper': return 'role-wk';
+            case 'All-Rounder': return 'role-ar';
+            default: return 'role-default';
         }
+    }
+
+    hasAnyStats(): boolean {
+        if (!this.player.stats) return false;
+        const keys = Object.keys(this.player.stats);
+        return keys.length > 0 && keys.some(k => this.player.stats[k] !== undefined && this.player.stats[k] !== null);
     }
 }

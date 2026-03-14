@@ -1,76 +1,470 @@
-<div class="page-container flex-center min-h-screen">
-    <div class="dashboard-card glass-panel fade-in w-full max-w-4xl p-8">
-        <header class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-            <div>
-                <p class="text-sm text-gray-400 uppercase tracking-wider">Welcome Back</p>
-                <h1 class="text-3xl font-bold gradient-text">{{ teamName }}</h1>
-            </div>
-            <button (click)="logout()" class="btn btn-secondary px-4 py-2 text-sm">Sign Out</button>
-        </header>
+<div class="dashboard-layout">
+    <app-top-nav></app-top-nav>
+
+    <div class="tournament-page">
+
 
         @if (loading) {
-        <div class="flex-center py-20">
-            <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div class="loading-state flex-center py-20">
+            <div class="loader"></div>
+            <p>Gathering tactical data...</p>
         </div>
         } @else {
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Tournament Info -->
-            <div class="glass-panel p-6 bg-white/5 hover:bg-white/10 transition-colors">
-                <h2 class="text-xl font-bold mb-2 text-blue-400">Current Tournament</h2>
-                <p class="text-2xl font-bold mb-1">{{ tournamentName }}</p>
-                <span
-                    class="px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30">
-                    {{ tournamentStatus }}
-                </span>
+        <main class="dashboard-content">
+            <!-- Premium Hero Card -->
+            <section class="premium-hero-card">
+                <div class="hero-content">
+                    <div class="hero-header">
+                        <div class="hero-left">
+                            <div class="badge-row">
+                                <span class="badge active">{{ isAdminView ? 'Admin Preview' : 'Official Franchise'
+                                    }}</span>
+                                <span class="badge category">{{ tournamentStatus }}</span>
+                            </div>
+                            <h1 class="tournament-title">{{ teamName }}</h1>
+                            <div class="meta-info">
+                                <span class="meta-item">
+                                    <i class="icon-trophy">🏆</i>
+                                    Competition: {{ tournamentName }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="icon-user">👤</i>
+                                    Status: {{ isAdminView ? 'Viewing as Admin' : 'Franchise Owner' }}
+                                </span>
+                            </div>
+                        </div>
 
-                <div class="mt-6 flex flex-col gap-3">
-                    <button [routerLink]="['/squads', tournamentId]"
-                        class="btn btn-secondary w-full justify-between group">
-                        <span>View My Squad</span>
-                        <span class="group-hover:translate-x-1 transition-transform">→</span>
-                    </button>
-                    @if (tournamentStatus === 'ACTIVE') {
-                    <button [routerLink]="['/auction', tournamentId]"
-                        class="btn btn-primary w-full justify-between group animate-pulse">
-                        <span>Join Live Auction</span>
-                        <span class="group-hover:translate-x-1 transition-transform">⚡</span>
-                    </button>
-                    } @else {
-                    <button disabled class="btn btn-disabled w-full justify-between cursor-not-allowed opacity-50">
-                        <span>Auction Not Live</span>
-                        <span>🔒</span>
-                    </button>
+                        <div class="hero-actions">
+                            <button [routerLink]="['/squads', tournamentId]" class="btn-edit">View Full Squad</button>
+                            @if (tournamentStatus === 'ACTIVE') {
+                            <button [routerLink]="['/auction', tournamentId]" class="btn-continue">
+                                <span class="icon-play">▶</span> Join Live Auction
+                            </button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="hero-stats-panel">
+                        <div class="stat-column players-bought">
+                            <p class="stat-label">PLAYERS BOUGHT</p>
+                            <div class="stat-main">
+                                <span class="stat-value">{{ squadSize }}</span>
+                            </div>
+                            <p class="stat-sub">of {{ stats.totalSlots }} slots</p>
+                        </div>
+
+                        <div class="stat-divider"></div>
+
+                        <div class="stat-column budget-spent">
+                            <p class="stat-label">BUDGET SPENT</p>
+                            <div class="stat-main">
+                                <span class="stat-unit">₹</span>
+                                <span class="stat-value">{{ formatInCr(totalBudget - remainingBudget).val }}</span>
+                                <span class="stat-unit">Cr</span>
+                            </div>
+                            <p class="stat-sub">of ₹{{ formatInCr(totalBudget).val }}Cr cap</p>
+                        </div>
+
+                        <div class="stat-divider"></div>
+
+                        <div class="stat-column remaining">
+                            <p class="stat-label">REMAINING</p>
+                            <div class="stat-main">
+                                <span class="stat-unit">₹</span>
+                                <span class="stat-value">{{ formatInCr(remainingBudget).val }}</span>
+                                <span class="stat-unit">Cr</span>
+                            </div>
+                            <p class="stat-sub">available to bid</p>
+                        </div>
+
+                        <div class="stat-divider"></div>
+
+                        <div class="stat-column budget-used">
+                            <p class="stat-label">BUDGET USED</p>
+                            <div class="stat-main">
+                                <span class="stat-value">{{ stats.usedPercentage.toFixed(0) }}</span>
+                                <span class="stat-unit">%</span>
+                            </div>
+                            <p class="stat-sub">{{ stats.rankSubtext }}</p>
+                        </div>
+
+                        <div class="stat-divider"></div>
+
+                        <div class="stat-column highest-bid">
+                            <p class="stat-label">HIGHEST BID</p>
+                            <div class="stat-main">
+                                <span class="stat-unit">₹</span>
+                                <span class="stat-value">{{ formatInL(stats.highestBid).val }}</span>
+                                <span class="stat-unit">L</span>
+                            </div>
+                            <p class="stat-sub">{{ stats.highestBidder }}</p>
+                        </div>
+
+                        <div class="stat-divider"></div>
+
+                        <div class="stat-column rank">
+                            <p class="stat-label">TOURNAMENT RANK</p>
+                            <div class="stat-main">
+                                <span class="stat-unit">#</span>
+                                <span class="stat-value">{{ stats.rank }}</span>
+                            </div>
+                            <p class="stat-sub">{{ stats.rankSubtext }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="decorative-circles">
+                    <div class="circle circle-1"></div>
+                    <div class="circle circle-2"></div>
+                </div>
+            </section>
+
+            <!-- Navigation Tabs -->
+            <nav class="content-tabs">
+                <button [class.active]="currentTab === 'Overview'" (click)="setTab('Overview')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Overview
+                </button>
+                <button [class.active]="currentTab === 'Squads'" (click)="setTab('Squads')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                    Squads <span class="count">{{ squadPlayers.length }}</span>
+                </button>
+                <button [class.active]="currentTab === 'Settings'" (click)="setTab('Settings')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                    Settings
+                </button>
+            </nav>
+
+            @if (currentTab === 'Overview') {
+            <div class="overview-content">
+                <div class="main-grid">
+                    <!-- 1. Franchise Overview -->
+                    <section class="card detail-card">
+                        <div class="card-header">
+                            <span class="dot-green"></span>
+                            <h3>Franchise Overview</h3>
+                        </div>
+                        <div class="overview-header-combined">
+                            <div class="overview-logo">
+                                @if (logoPreview) {
+                                <img [src]="logoPreview" alt="Logo">
+                                } @else {
+                                <div class="overview-placeholder">
+                                    {{ (teamUpdate.code || teamName.substring(0, 2)).toUpperCase() }}
+                                </div>
+                                }
+                            </div>
+                            <div class="overview-info-text">
+                                <label>FRANCHISE</label>
+                                <h4>{{ teamName }}</h4>
+                            </div>
+                        </div>
+
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>TEAM ID</label>
+                                <p>#{{ teamId }}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>CAPTAIN</label>
+                                <p class="captain-badge">{{ stats.captainName }}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>PHASE</label>
+                                <p>{{ tournamentStatus }}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>AVG COST</label>
+                                <p>₹{{ formatCurrency(squadSize > 0 ? (totalBudget - remainingBudget)/squadSize : 0) }}
+                                </p>
+                            </div>
+                            <div class="detail-item">
+                                <label>MAX BID</label>
+                                <p>₹{{ formatCurrency(remainingBudget) }}</p>
+                            </div>
+                        </div>
+                        <div class="status-box">
+                            <label>AUCTION ELIGIBILITY</label>
+                            <div class="status-pill">
+                                <span class="dot-green"></span>
+                                Verified & Active
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 2. Squad Composition Card -->
+                    <section class="card composition-card">
+                        <div class="card-header">
+                            <span class="dot-purple"></span>
+                            <h3>Squad Composition</h3>
+                        </div>
+
+                        <div class="composition-body">
+                            <div class="radial-container">
+                                <div class="radial-progress">
+                                    <svg viewBox="0 0 36 36" class="circular-chart green">
+                                        <path class="circle-bg"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path class="circle"
+                                            [attr.stroke-dasharray]="(squadSize/stats.totalSlots * 100) + ', 100'"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    </svg>
+                                    <div class="percentage">
+                                        <h3>{{ squadSize }}</h3>
+                                        <p>PLAYERS</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="unified-composition-stats">
+                                <div class="stat-item blue">
+                                    <span class="val">{{ stats.battingCount }}</span>
+                                    <span class="lab">BAT</span>
+                                </div>
+                                <div class="stat-item red">
+                                    <span class="val">{{ stats.bowlingCount }}</span>
+                                    <span class="lab">BWL</span>
+                                </div>
+                                <div class="stat-item green">
+                                    <span class="val">{{ stats.arCount }}</span>
+                                    <span class="lab">AR</span>
+                                </div>
+                                <div class="stat-item orange">
+                                    <span class="val">{{ stats.wkCount }}</span>
+                                    <span class="lab">WK</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 3. Budget Overview Card -->
+                    <section class="card budget-card">
+                        <div class="card-header">
+                            <span class="dot-blue"></span>
+                            <h3>Budget Overview</h3>
+                        </div>
+
+                        <div class="budget-body">
+                            <div class="radial-container">
+                                <div class="radial-progress orange">
+                                    <svg viewBox="0 0 36 36" class="circular-chart orange">
+                                        <path class="circle-bg"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path class="circle" [attr.stroke-dasharray]="stats.usedPercentage + ', 100'"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    </svg>
+                                    <div class="percentage">
+                                        <h3>{{ stats.usedPercentage | number:'1.0-0' }}%</h3>
+                                        <p>USED</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="budget-bars">
+                                <div class="budget-bar-item">
+                                    <label>Total Cap</label>
+                                    <div class="bar-container">
+                                        <div class="bar-fill grey" style="width: 100%"></div>
+                                    </div>
+                                    <span class="value">₹{{ formatInCr(totalBudget).val }}{{
+                                        formatInCr(totalBudget).unit }}</span>
+                                </div>
+                                <div class="budget-bar-item">
+                                    <label>Spent</label>
+                                    <div class="bar-container">
+                                        <div class="bar-fill orange" [style.width.%]="stats.usedPercentage"></div>
+                                    </div>
+                                    <span class="value orange">₹{{ formatInCr(totalBudget - remainingBudget).val }}{{
+                                        formatInCr(totalBudget - remainingBudget).unit }}</span>
+                                </div>
+                                <div class="budget-bar-item">
+                                    <label>Remaining</label>
+                                    <div class="bar-container">
+                                        <div class="bar-fill green" [style.width.%]="100 - stats.usedPercentage"></div>
+                                    </div>
+                                    <span class="value green">₹{{ formatInCr(remainingBudget).val }}{{
+                                        formatInCr(remainingBudget).unit }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 4. Recent Bid Activity -->
+                    <section class="card activity-card">
+                        <div class="card-header">
+                            <span class="dot-green-circle"></span>
+                            <h3>Recent Bid Activity</h3>
+                        </div>
+
+                        <div class="scrollable-activity-container">
+                            <div class="activity-list">
+                                @for (item of bidActivity; track item.id) {
+                                <div class="activity-item" [class.lost]="item.status === 'LOST'">
+                                    <div class="item-left">
+                                        <div class="avatar">{{ item.name[0] }}{{ (item.name.split(' ').length > 1) ?
+                                            item.name.split(' ')[1][0] : '' }}</div>
+                                        <div class="info">
+                                            <p class="name">{{ item.name }}</p>
+                                            <p class="meta">
+                                                <span class="status-label">{{ item.status === 'WON' ? 'Won' : 'Lost bid'
+                                                    }}</span> ·
+                                                <span>{{ item.role }}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="item-right">
+                                        <p class="price">₹{{ formatCurrency(item.bidAmount) }}</p>
+                                        <p class="competitors">
+                                            {{ item.status === 'WON' ? (item.competingTeams.length > 0 ? 'vs ' +
+                                            item.competingTeams.join(', ') : 'No competition') : 'Won by ' + item.wonBy
+                                            }}
+                                        </p>
+                                    </div>
+                                </div>
+                                } @empty {
+                                <div class="empty-activity">
+                                    <p>No bidding activity yet</p>
+                                </div>
+                                }
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            }
+
+            @if (currentTab === 'Squads') {
+            <div class="players-tab-content">
+                <div class="tab-header-row justify-between">
+                    <div class="role-filters">
+                        <button [class.active]="selectedRole === 'All'" (click)="selectedRole = 'All'">All</button>
+                        <button [class.active]="selectedRole === 'Batsman'"
+                            (click)="selectedRole = 'Batsman'">Batsmen</button>
+                        <button [class.active]="selectedRole === 'Bowler'"
+                            (click)="selectedRole = 'Bowler'">Bowlers</button>
+                        <button [class.active]="selectedRole === 'All-Rounder'"
+                            (click)="selectedRole = 'All-Rounder'">All-Rounders</button>
+                        <button [class.active]="selectedRole === 'Wicketkeeper'"
+                            (click)="selectedRole = 'Wicketkeeper'">WK</button>
+                    </div>
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <i class="search-icon">🔍</i>
+                            <input type="text" placeholder="Search squadron..." [(ngModel)]="playerSearchTerm"
+                                (input)="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="players-grid">
+                    @for (player of filteredPlayers; track player.id) {
+                    <app-player-card [player]="player" [tournament]="tournament" [index]="$index"></app-player-card>
+                    } @empty {
+                    <div class="empty-state">
+                        <p>No players in your squad yet.</p>
+                    </div>
                     }
                 </div>
             </div>
+            }
 
-            <!-- Financial Stats -->
-            <div class="glass-panel p-6 bg-white/5">
-                <h2 class="text-xl font-bold mb-4 text-green-400">Financial Overview</h2>
-
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center p-3 rounded bg-black/20">
-                        <span class="text-gray-400 text-sm">Review Budget</span>
-                        <span class="font-mono text-xl font-bold">₹{{ remainingBudget | number }}</span>
+            @if (currentTab === 'Settings') {
+            <div class="settings-tab-content">
+                <div class="settings-card card">
+                    <div class="card-header">
+                        <span class="dot-purple"></span>
+                        <h3>Franchise Profile</h3>
                     </div>
 
-                    <div class="flex justify-between items-center p-3 rounded bg-black/20">
-                        <span class="text-gray-400 text-sm">Squad Size</span>
-                        <span class="font-mono text-xl font-bold">{{ squadSize }} Players</span>
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-white/10">
-                        <div class="w-full bg-gray-700 rounded-full h-2.5 mb-1">
-                            <div class="bg-green-500 h-2.5 rounded-full transition-all duration-1000"
-                                [style.width.%]="(remainingBudget / totalBudget) * 100"></div>
+                    <div class="settings-form">
+                        <!-- Logo Upload Section -->
+                        <div class="logo-upload-section">
+                            <div class="logo-preview-wrapper" (click)="logoInput.click()">
+                                @if (logoPreview) {
+                                <img [src]="logoPreview" alt="Team Logo" class="logo-preview">
+                                } @else {
+                                <div class="logo-placeholder">
+                                    <span class="placeholder-icon">🛡️</span>
+                                    <span class="placeholder-text">{{ teamUpdate.code || teamUpdate.name.substring(0,
+                                        2).toUpperCase() }}</span>
+                                </div>
+                                }
+                                <div class="upload-overlay">
+                                    <i>📸</i>
+                                    <span>Change Logo</span>
+                                </div>
+                            </div>
+                            <input type="file" #logoInput (change)="handleLogoChange($event)" hidden accept="image/*">
+                            <div class="logo-info">
+                                <p class="label">FRANCHISE LOGO</p>
+                                <p class="hint">Recommended: Square SVG or Transparent PNG</p>
+                            </div>
                         </div>
-                        <div class="flex justify-between text-xs text-gray-500">
-                            <span>{{ (remainingBudget / totalBudget * 100).toFixed(0) }}% Budget Remaining</span>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Team Name</label>
+                                <input type="text" [(ngModel)]="teamUpdate.name" placeholder="Enter Team Name">
+                            </div>
+                            <div class="form-group">
+                                <label>Team Code (Short)</label>
+                                <input type="text" [(ngModel)]="teamUpdate.code" placeholder="e.g. MI, RCB">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Owner Name</label>
+                                <input type="text" [(ngModel)]="teamUpdate.ownerName" placeholder="Enter owner name">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Budget (₹)</label>
+                                <input type="number" [(ngModel)]="teamUpdate.budget" placeholder="Enter total budget">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>Squad Captain</label>
+                                <div class="select-wrapper">
+                                    <select [(ngModel)]="teamUpdate.captainId">
+                                        <option [ngValue]="null">Select Franchise Captain</option>
+                                        @for (player of squadPlayers; track player.id) {
+                                        <option [value]="player.id">{{ player.name }} ({{ player.role }})</option>
+                                        }
+                                    </select>
+                                    <i class="select-arrow">▼</i>
+                                </div>
+                                <span class="input-hint">Only players signed to your squad are eligible for
+                                    captaincy.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn-cancel" (click)="setTab('Overview')">Discard Changes</button>
+                            <button class="btn-save" (click)="updateTeamDetails()">Save Franchise Profile</button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+            }
+        </main>
         }
     </div>
 </div>

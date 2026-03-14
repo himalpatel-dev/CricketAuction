@@ -11,65 +11,102 @@
         </div>
         } @else if (tournament) {
         <main class="dashboard-content">
-            <!-- Hero Banner -->
-            <section class="hero-section">
-                <div class="hero-left">
-                    <div class="badge-row">
-                        <span class="badge active">{{ tournament.status }}</span>
-                        <span class="badge category">{{ tournament.category || 'T20 League' }}</span>
-                    </div>
-                    <h1 class="tournament-title">{{ tournament.name }}</h1>
-                    <div class="meta-info">
-                        <span>📅 Tournament: {{ tournament.tournamentStartDate | date:'MMM d' }} - {{
-                            tournament.tournamentEndDate |
-                            date:'MMM d, y' }}</span>
-                        <span>🔨 Auction: {{ tournament.auctionDate | date:'MMM d, y' }}</span>
-                        <span>📍 {{ tournament.location || 'Mumbai, India' }}</span>
-                        <span>👥 {{ tournament.teams?.length || 0 }} Teams • {{ tournament.totalPlayers }} Player
-                            Slots</span>
-                    </div>
-                </div>
+            <!-- Premium Hero Card -->
+            <section class="premium-hero-card">
+                <div class="hero-content">
+                    <div class="hero-header">
+                        <div class="hero-left">
+                            <div class="badge-row">
+                                <span class="badge active">{{ tournament.status }}</span>
+                                <span class="badge category">{{ tournament.category || 'T20 League' }}</span>
+                            </div>
+                            <h1 class="tournament-title">{{ tournament.name }}</h1>
+                            <div class="meta-info">
+                                <span class="meta-item">
+                                    <i class="icon-calendar">📅</i>
+                                    {{ tournament.tournamentStartDate | date:'Jan 15' }} — {{
+                                    tournament.tournamentEndDate | date:'Mar 30, y' }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="icon-location">📍</i>
+                                    {{ tournament.location || 'Mumbai, India' }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="icon-teams">👥</i>
+                                    {{ tournament.teams?.length || 0 }} Teams · {{ tournament.totalPlayers }} Player
+                                    Slots
+                                </span>
+                            </div>
+                        </div>
 
-            </section>
+                        <div class="hero-actions">
+                            <button class="btn-edit" (click)="setTab('Settings')">Edit Tournament</button>
+                            <button class="btn-continue" (click)="startAuction()">
+                                <span class="icon-play">▶</span> Continue Auction
+                            </button>
+                        </div>
+                    </div>
 
-            <!-- Hero Stats -->
-            <div class="hero-stats">
-                <div class="h-stat-card">
-                    <p class="h-stat-label">PLAYERS SOLD</p>
-                    <h2 class="h-stat-value">{{ stats.playersSold }}</h2>
-                    <p class="h-stat-sub">of {{ tournament.totalPlayers }} slots</p>
-                </div>
-                <div class="h-stat-card">
-                    <p class="h-stat-label">TOTAL SPENT</p>
-                    <h2 class="h-stat-value accent">₹{{ formatCurrency(stats.totalSpent) }}</h2>
-                    <p class="h-stat-sub">of ₹{{ formatCurrency(tournament.totalAmount || 100000000) }} cap</p>
-                </div>
-                <div class="h-stat-card">
-                    <p class="h-stat-label">REGISTERED TEAMS</p>
-                    <h2 class="h-stat-value">{{ stats.registeredTeams }}/{{ stats.registeredTeams }}</h2>
-                    <p class="h-stat-sub">All slots filled</p>
-                </div>
-                <div class="h-stat-card">
-                    <p class="h-stat-label">AVG. SOLD PRICE</p>
-                    <h2 class="h-stat-value accent">₹{{ formatCurrency(stats.avgSoldPrice) }}</h2>
-                    <p class="h-stat-sub">per player</p>
-                </div>
-                <div class="h-stat-card h-stat-progress">
-                    <p class="h-stat-label">AUCTION PROGRESS</p>
-                    <div class="radial-progress small">
-                        <svg viewBox="0 0 36 36" class="circular-chart small">
-                            <path class="circle-bg"
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <path class="circle"
-                                [style.stroke-dasharray]="(stats.playersSold/tournament.totalPlayers * 100) + ', 100'"
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        </svg>
-                        <div class="percentage">
-                            <h3>{{ stats.playersSold }}/{{ tournament.totalPlayers }}</h3>
+                    <div class="hero-stats-panel">
+                        <div class="stat-column players-sold">
+                            <p class="stat-label">PLAYERS SOLD</p>
+                            <div class="stat-main">
+                                <span class="stat-value">{{ stats.playersSold }}</span>
+                            </div>
+                            <p class="stat-sub">of {{ tournament.totalPlayers }} slots</p>
+                        </div>
+
+                        <div class="stat-divider"></div>
+
+                        <div class="stat-column total-spent">
+                            <p class="stat-label">TOTAL SPENT</p>
+                            <div class="stat-main">
+                                <span class="stat-unit">₹</span>
+                                <span class="stat-value">{{ formatInCr(stats.totalSpent).val }}</span>
+                                <span class="stat-unit">Cr</span>
+                            </div>
+                            <p class="stat-sub">of ₹{{ formatInCr(tournament.totalAmount || 300000000).val }}Cr cap</p>
+                        </div>
+
+                        <div class="stat-divider"></div>
+
+                        <div class="stat-column reg-teams">
+                            <p class="stat-label">REGISTERED TEAMS</p>
+                            <div class="stat-main">
+                                <span class="stat-value">{{ stats.registeredTeams }}/{{ stats.registeredTeams }}</span>
+                            </div>
+                            <p class="stat-sub">All slots filled</p>
+                        </div>
+
+                        <div class="stat-divider"></div>
+
+                        <div class="stat-column rounds">
+                            <p class="stat-label">AUCTION ROUNDS</p>
+                            <div class="stat-main">
+                                <span class="stat-value">{{ stats.auctionRounds }}</span>
+                            </div>
+                            <p class="stat-sub">of {{ stats.totalRounds }} completed</p>
+                        </div>
+
+                        <div class="stat-divider"></div>
+
+                        <div class="stat-column avg-price">
+                            <p class="stat-label">AVG. SOLD PRICE</p>
+                            <div class="stat-main">
+                                <span class="stat-unit">₹</span>
+                                <span class="stat-value">{{ formatInL(stats.avgSoldPrice).val }}</span>
+                                <span class="stat-unit">L</span>
+                            </div>
+                            <p class="stat-sub">per player</p>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <div class="decorative-circles">
+                    <div class="circle circle-1"></div>
+                    <div class="circle circle-2"></div>
+                </div>
+            </section>
 
             <!-- Navigation Tabs -->
             <nav class="content-tabs">
@@ -348,11 +385,8 @@
             </div>
             } @else if (currentTab === 'Players') {
             <div class="players-tab-content">
-                <div class="tab-header-row">
-                    <div class="header-info">
-                        <h2>Tournament Players</h2>
-                        <p>Managing {{ tournament.players?.length }} registered athletes</p>
-                    </div>
+                <div class="tab-header-row justify-end">
+
                     <div class="header-actions">
                         <div class="search-box">
                             <i class="search-icon">🔍</i>

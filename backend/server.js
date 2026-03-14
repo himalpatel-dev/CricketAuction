@@ -19,6 +19,7 @@ const io = socketIo(server, {
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
 // Pass io to request
 app.use((req, res, next) => {
@@ -30,10 +31,12 @@ app.use((req, res, next) => {
 const authRoutes = require('./routes/authRoutes');
 const auctionRoutes = require('./routes/auctionRoutes');
 const tournamentRoutes = require('./routes/tournamentRoutes');
+const teamRoutes = require('./routes/teamRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auction', auctionRoutes);
 app.use('/api/tournaments', tournamentRoutes);
+app.use('/api/teams', teamRoutes);
 
 // Socket Logic
 io.on('connection', (socket) => {

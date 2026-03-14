@@ -1,114 +1,59 @@
-<div class="player-card bg-[#121822] rounded-xl border overflow-hidden flex relative transition-transform hover:-translate-y-1 hover:shadow-lg"
-    [ngClass]="{
-            'border-emerald-500/30': player.status === 'SOLD',
-            'border-rose-500/30': player.status === 'UNSOLD',
-            'border-white/5': player.status !== 'SOLD' && player.status !== 'UNSOLD',
-            'flex-row': viewMode === 'list',
-            'flex-col': viewMode === 'grid'
-        }">
+<div class="player-card" [style.background-image]="player.image ? 'url(' + player.image + ')' : 'none'">
+    <!-- If no image, show a colored background or fallback -->
+    <div class="card-image-fallback" *ngIf="!player.image" [style.background]="getAvatarColor(player.name)">
+        <span class="fallback-letter">{{ player.name.charAt(0).toUpperCase() }}</span>
+    </div>
 
-    <!-- Top Badges -->
-    <div class="card-top flex justify-between items-start p-3 pb-0" [ngClass]="{'hidden': viewMode === 'list'}">
-        <span class="card-index text-[#64748b] font-mono font-medium">#{{ (index +
-            1).toString().padStart(3, '0') }}</span>
-        <span class="status-pill text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-widest" [ngClass]="{
-                'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20': player.status === 'SOLD',
-                'bg-rose-500/10 text-rose-500 border border-rose-500/20': player.status === 'UNSOLD',
-                'bg-[#334155]/50 text-[#94a3b8] border border-[#475569]/50': player.status === 'UPCOMING'
-            }">
+    <!-- Top Row -->
+    <div class="card-top">
+        <span class="card-index">#{{ (index + 1).toString().padStart(3, '0') }}</span>
+        <span class="status-pill" *ngIf="player.status" [ngClass]="player.status.toLowerCase()">
             {{ player.status === 'UPCOMING' ? 'PENDING' : player.status }}
         </span>
     </div>
 
-    <!-- Avatar & Info -->
-    <div class="flex" [ngClass]="{
-                'flex-row items-center pl-4 py-3 min-w-[250px]': viewMode === 'list',
-                'flex-col items-center pt-3 pb-4': viewMode === 'grid'
-            }">
-        <div class="avatar rounded-full flex items-center justify-center font-bold text-white shrink-0" [ngClass]="{
-                    'w-[60px] h-[60px] text-2xl mb-4': viewMode === 'grid',
-                    'w-12 h-12 text-lg mr-4': viewMode === 'list'
-                }" [style.background]="getAvatarColor(player.name)">
-            {{ player.name.charAt(0).toUpperCase() }}
-        </div>
-
-        <div class="flex flex-col w-full" [ngClass]="{
-                    'items-start text-left': viewMode === 'list',
-                    'items-center text-center': viewMode === 'grid'
-                }">
-            <h3 class="player-name font-black text-white uppercase tracking-wider text-[14px] px-2 truncate w-full"
-                title="{{ player.name }}">{{ player.name }}</h3>
-
-            <div class="mt-1 role-pill" [ngClass]="getRoleClass(player.role)">
-                <span class="text-[9px] uppercase tracking-wider">{{ player.role === 'Wicketkeeper' ?
-                    'WK-BATSMAN' : player.role }}</span>
+    <!-- Bottom Content Overlay -->
+    <div class="content-overlay">
+        <div class="player-header">
+            <div class="name-container">
+                <h3 class="player-name">{{ player.name }}</h3>
+                <span class="gender-icon" [ngClass]="player.gender?.toLowerCase()">
+                    <svg *ngIf="player.gender === 'Male'" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                    <svg *ngIf="player.gender === 'Female'" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                </span>
             </div>
+            <div class="player-role">{{ player.role | uppercase }}</div>
+        </div>
 
-            <div class="meta text-[10px] mt-1.5 font-medium">
-                {{ player.city || 'Any City' }} <span *ngIf="player.dob">· Age {{ getAge(player.dob) || '25' }}</span>
+        <div class="stats-row" *ngIf="player.tShirtSize || player.trouserSize">
+            <div class="stat-group">
+                <span class="stat-label">T-Shirt</span>
+                <span class="stat-value">{{ player.tShirtSize || '-' }}</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-group">
+                <span class="stat-label">Trouser</span>
+                <span class="stat-value">{{ player.trouserSize || '-' }}</span>
             </div>
         </div>
-    </div>
 
-    <!-- Stats Table -->
-    <div class="player-stats grid grid-cols-3 text-center border-white/5 py-3" [ngClass]="{
-                'border-l border-r flex-1 my-3': viewMode === 'list',
-                'border-t border-b mx-4': viewMode === 'grid'
-            }">
-        <div class="flex flex-col justify-center">
-            <span class="stat-value text-white font-bold">{{ player.stats?.runs || (player.role === 'Bowler' ?
-                '22' : '188') }}</span>
-            <span class="stat-label">{{ player.role === 'Bowler' ? 'WKTS' : 'RUNS' }}</span>
-        </div>
-        <div class="flex flex-col justify-center border-l border-r border-white/5 mx-1">
-            <span class="stat-value text-white font-bold">{{ player.stats?.avg || (player.role === 'Bowler' ?
-                '7.5' : '24.1') }}</span>
-            <span class="stat-label">{{ player.role === 'Bowler' ? 'ECONOMY' : 'AVG' }}</span>
-        </div>
-        <div class="flex flex-col justify-center">
-            <span class="stat-value text-white font-bold">{{ player.stats?.sr || (player.role === 'Bowler' ? '12'
-                : '131') }}</span>
-            <span class="stat-label">{{ player.role === 'Bowler' ? 'MATCHES' : 'SR' }}</span>
-        </div>
-    </div>
+        <div class="card-divider"></div>
 
-    <!-- Bottom Price & Team -->
-    <div class="player-bottom flex justify-between items-end p-4 pt-4" [ngClass]="{
-                'min-w-[200px] items-center': viewMode === 'list',
-                'flex-1': viewMode === 'grid'
-            }">
-        @if (player.status === 'SOLD') {
-        <div class="price-left flex flex-col" [ngClass]="{'justify-center': viewMode === 'list'}">
-            <span class="sold-price font-bold text-[15px] leading-none">₹{{ formatPrice(player.soldPrice) || '25L'
-                }}</span>
-            <span class="team-name text-[10px] mt-1.5 truncate max-w-[120px]"
-                title="{{ getTeamName(player.soldTo) }}">{{ getTeamName(player.soldTo) || 'Delhi Dazzlers' }}</span>
-        </div>
-        } @else if (player.status === 'UNSOLD') {
-        <div class="price-left flex flex-col">
-            <span class="unsold-price font-bold text-[15px] leading-none line-through decoration-rose-500/50">₹{{
-                formatPrice(player.basePrice) || '5L' }}</span>
-            <span class="team-name text-[10px] text-[#475569] mt-1.5">{{ tournament?.name }}</span>
-        </div>
-        } @else {
-        <div class="price-left flex flex-col">
-            <span class="unsold-price font-bold text-[15px] leading-none">-</span>
-            <span class="team-name text-[10px] text-[#475569] mt-1.5">{{ tournament?.name }}</span>
-        </div>
-        }
-
-        <div class="text-[10px] text-[#475569] font-medium whitespace-nowrap">Base ₹{{
-            formatPrice(player.basePrice) || '5L' }}</div>
-
-        <!-- Only show status badge on the right in list mode -->
-        <div *ngIf="viewMode === 'list'" class="ml-4">
-            <span class="text-[9px] font-bold px-2 py-1 rounded uppercase tracking-widest" [ngClass]="{
-                    'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20': player.status === 'SOLD',
-                    'bg-rose-500/10 text-rose-500 border border-rose-500/20': player.status === 'UNSOLD',
-                    'bg-[#334155]/50 text-[#94a3b8] border border-[#475569]/50': player.status === 'UPCOMING'
-                }">
-                {{ player.status === 'UPCOMING' ? 'PENDING' : player.status }}
-            </span>
+        <div class="footer-row">
+            <div class="price-info">
+                <span class="price-label">{{ player.status === 'SOLD' ? 'SOLD FOR' : 'BASE PRICE' }}</span>
+                <span class="price-value" [ngClass]="{'sold': player.status === 'SOLD'}">₹{{ formatPrice(player.status
+                    === 'SOLD' ? player.soldPrice : player.basePrice) }}</span>
+            </div>
+            <div class="team-badge" *ngIf="player.status === 'SOLD'">
+                {{ getTeamCode(player.soldTo) }}
+            </div>
         </div>
     </div>
 </div>
