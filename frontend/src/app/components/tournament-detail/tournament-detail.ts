@@ -179,7 +179,7 @@ export class TournamentDetailComponent implements OnInit {
     const term = (this.searchTerm || '').trim().toLowerCase();
     if (!term) return this.processedTeams;
 
-    return this.processedTeams.filter(team => 
+    return this.processedTeams.filter(team =>
       team?.name?.toLowerCase().includes(term)
     );
   }
@@ -248,7 +248,7 @@ export class TournamentDetailComponent implements OnInit {
     this.recentActivity = players
       .filter((p: any) => p.status === 'SOLD')
       .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-      .slice(0, 5)
+      .slice(0, 50)
       .map((p: any) => ({
         name: p.name,
         team: teams.find((t: any) => t.id === p.soldTo)?.name || 'Unknown',

@@ -1703,3 +1703,37 @@
     font-weight: 800;
     color: #10b981;
 }
+
+.main-grid .card {
+    height: 420px;
+}
+
+.scrollable-activity-container {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.scrollable-activity-container::-webkit-scrollbar {
+    width: 3px;
+}
+
+.scrollable-activity-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollable-activity-container::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+.scrollable-activity-container::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}
+
+.activity-card {
+    display: flex;
+    flex-direction: column;
+}

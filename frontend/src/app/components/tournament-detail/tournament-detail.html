@@ -306,8 +306,8 @@
                         <span class="dot-purple"></span>
                         <h3>Auction Activity</h3>
                     </div>
-                    <div class="activity-list">
-                        @for (item of recentActivity; track item.name) {
+                    <div class="activity-list scrollable-activity-container">
+                        @for (item of recentActivity; track item.name + $index) {
                         <div class="activity-item">
                             <div class="item-left">
                                 <div class="avatar">{{ item.code }}</div>
@@ -356,7 +356,8 @@
                     <div class="header-actions">
                         <div class="search-box">
                             <i class="search-icon">🔍</i>
-                            <input type="text" placeholder="Search players..." [(ngModel)]="playerSearchTerm" (input)="0">
+                            <input type="text" placeholder="Search players..." [(ngModel)]="playerSearchTerm"
+                                (input)="0">
                         </div>
                         <button class="btn btn-primary">+ Register Player</button>
                     </div>
