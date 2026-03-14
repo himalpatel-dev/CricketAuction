@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -14,6 +14,8 @@ export class PlayerCardComponent {
     @Input() index: number = 0;
     @Input() viewMode: string = 'grid'; // 'grid' or 'list'
     @Input() tournament: any;
+    @Input() canEdit: boolean = false;
+    @Output() onEdit = new EventEmitter<any>();
 
     formatPrice(amount: number) {
         if (!amount) return '0';

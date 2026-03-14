@@ -67,7 +67,10 @@
                     </div>
                 </div>
                 } @empty {
-                <p class="text-muted text-center py-10">No players available.</p>
+                <div class="empty-state compact">
+                    <div class="empty-icon">🏏</div>
+                    <p>No players available.</p>
+                </div>
                 }
             </div>
         </aside>
@@ -197,7 +200,10 @@
                         <span class="text-[10px] text-muted">{{ h.time | date:'HH:mm:ss' }}</span>
                     </div>
                     } @empty {
-                    <p class="text-center text-muted py-10 text-sm">No bids placed yet.</p>
+                    <div class="empty-state compact">
+                        <div class="empty-icon">⏳</div>
+                        <p>No bids placed yet.</p>
+                    </div>
                     }
                 </div>
             </div>

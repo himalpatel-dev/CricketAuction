@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TournamentService } from '../../services/tournament.service';
+import { TopNavComponent } from '../top-nav/top-nav';
 
 @Component({
   selector: 'app-add-tournament',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TopNavComponent],
   templateUrl: './add-tournament.html',
   styleUrl: './add-tournament.css'
 })
@@ -42,9 +43,22 @@ export class AddTournamentComponent {
     this.loading = true;
     this.error = '';
 
+    // Calculate status based on tournamentStartDate
+    if (this.tournamentData.tournamentStartDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Start of today
+      const startDate = new Date(this.tournamentData.tournamentStartDate);
+      
+      if (startDate > today) {
+        this.tournamentData.status = 'UPCOMING';
+      } else {
+        this.tournamentData.status = 'ACTIVE';
+      }
+    }
+
     try {
       await this.tournamentService.create(this.tournamentData);
-      this.router.navigate(['/admin']);
+      this.router.navigate(['/tournaments']);
     } catch (err: any) {
       console.error('Create Tournament Error:', err);
       this.error = 'Failed to create tournament. Please try again.';
@@ -54,6 +68,6 @@ export class AddTournamentComponent {
   }
 
   cancel() {
-    this.router.navigate(['/admin']);
+    this.router.navigate(['/tournaments']);
   }
 }

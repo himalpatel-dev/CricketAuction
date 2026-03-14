@@ -269,16 +269,6 @@
     }
 }
 
-.empty-state {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 60px;
-    background: white;
-    border-radius: 16px;
-    border: 2px dashed var(--border);
-    color: var(--text-muted);
-}
-
 /* Utilities */
 .btn {
     padding: 10px 24px;

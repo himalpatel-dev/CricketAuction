@@ -60,7 +60,16 @@ exports.updateTournament = async (req, res) => {
 exports.addTeam = async (req, res) => {
     try {
         const { id } = req.params;
-        const team = await Team.create({ ...req.body, tournamentId: id });
+        const teamData = { ...req.body, tournamentId: id };
+        
+        // Ensure remainingBudget is initialized with the total budget
+        if (req.body.budget) {
+            teamData.remainingBudget = req.body.budget;
+        } else {
+            teamData.remainingBudget = 10000000; // Match model default
+        }
+
+        const team = await Team.create(teamData);
         res.status(201).json(team);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -272,3 +281,15 @@ exports.getDashboardRosters = async (req, res) => {
     }
 };
 
+exports.updatePlayer = async (req, res) => {
+    try {
+        const { playerId } = req.params;
+        const player = await Player.findByPk(playerId);
+        if (!player) return res.status(404).json({ message: 'Player not found' });
+
+        await player.update(req.body);
+        res.json(player);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

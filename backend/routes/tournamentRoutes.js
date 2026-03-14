@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createTournament, getAllTournaments, getTournamentById, updateTournament, addTeam, addPlayer, registerPlayer, getLatestPublicTournament, getOpenTournaments, uploadPlayers, getDashboardRosters } = require('../controllers/tournamentController');
+const { createTournament, getAllTournaments, getTournamentById, updateTournament, addTeam, addPlayer, updatePlayer, registerPlayer, getLatestPublicTournament, getOpenTournaments, uploadPlayers, getDashboardRosters } = require('../controllers/tournamentController');
 const { register } = require('../controllers/authController');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
@@ -17,6 +17,7 @@ router.get('/:id', getTournamentById);
 router.put('/:id', updateTournament);
 router.post('/:id/teams', addTeam);
 router.post('/:id/players', addPlayer);
+router.put('/:id/players/:playerId', updatePlayer);
 router.post('/:id/upload-players', upload.single('file'), uploadPlayers);
 
 // Maybe a route to "register a team for a tournament"?

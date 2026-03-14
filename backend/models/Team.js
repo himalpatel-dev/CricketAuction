@@ -24,7 +24,7 @@ const Team = sequelize.define('Team', {
         defaultValue: 10000000,
     },
     logoUrl: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT('long'),
         allowNull: true,
     },
     ownerName: {

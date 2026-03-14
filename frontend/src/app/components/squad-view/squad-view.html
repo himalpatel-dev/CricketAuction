@@ -54,8 +54,10 @@
                         <div class="sold-price">₹{{ formatPrice(player.soldPrice) }}</div>
                     </div>
                     } @empty {
-                    <div class="empty-squad">
-                        <p>No players drafted yet</p>
+                    <div class="empty-state compact" style="margin: 20px;">
+                        <div class="empty-icon">👥</div>
+                        <h3>Empty Squad</h3>
+                        <p>No players drafted yet.</p>
                     </div>
                     }
                 </div>

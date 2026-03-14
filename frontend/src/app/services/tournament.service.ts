@@ -46,6 +46,10 @@ export class TournamentService {
         return firstValueFrom(this.http.post<any>(`${this.apiUrl}/${tournamentId}/players`, data, { headers: this.getHeaders() }));
     }
 
+    async updatePlayer(tournamentId: string | number, playerId: string | number, data: any) {
+        return firstValueFrom(this.http.put<any>(`${this.apiUrl}/${tournamentId}/players/${playerId}`, data, { headers: this.getHeaders() }));
+    }
+
     async registerPlayer(data: any) {
         // Public endpoint for self-registration, no auth headers needed if backend allows
         return firstValueFrom(this.http.post<any>(`${this.apiUrl}/register-player`, data));

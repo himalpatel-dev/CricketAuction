@@ -347,27 +347,6 @@
 
 .empty-state {
     grid-column: 1 / -1;
-    text-align: center;
-    padding: 4rem 0;
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-}
-
-.empty-state .icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-}
-
-.empty-state h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #f8fafc;
-    margin-bottom: 0.5rem;
-}
-
-.empty-state p {
-    font-size: 0.85rem;
-    color: #64748b;
 }
 
 /* Base Modal Reset and Design */

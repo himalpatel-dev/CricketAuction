@@ -42,9 +42,40 @@ const Tournament = sequelize.define('Tournament', {
     status: {
         type: DataTypes.ENUM('UPCOMING', 'ACTIVE', 'COMPLETED'),
         defaultValue: 'UPCOMING',
+        get() {
+            const rawValue = this.getDataValue('status');
+            const now = new Date();
+            now.setHours(0, 0, 0, 0); // Normalized today
+
+            const start = this.getDataValue('tournamentStartDate');
+            const end = this.getDataValue('tournamentEndDate');
+
+            if (!start) return rawValue;
+
+            try {
+                const startDate = new Date(start);
+                startDate.setHours(0, 0, 0, 0);
+
+                // If end date exists, check if it's completed
+                if (end) {
+                    const endDate = new Date(end);
+                    endDate.setHours(0, 0, 0, 0);
+                    if (now > endDate) return 'COMPLETED';
+                }
+
+                // If already marked COMPLETED manually, keep it
+                if (rawValue === 'COMPLETED') return 'COMPLETED';
+
+                // Check for Upcoming vs Active
+                if (startDate > now) return 'UPCOMING';
+                return 'ACTIVE';
+            } catch (err) {
+                return rawValue;
+            }
+        }
     },
     logo: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT('long'),
         allowNull: true,
     },
     totalPlayers: {

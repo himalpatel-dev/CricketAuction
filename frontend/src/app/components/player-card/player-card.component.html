@@ -7,12 +7,17 @@
     <!-- Top Row -->
     <div class="card-top">
         <span class="card-index">#{{ (index + 1).toString().padStart(3, '0') }}</span>
-        <span class="status-pill" *ngIf="player.status" [ngClass]="player.status.toLowerCase()">
-            {{ player.status === 'UPCOMING' ? 'PENDING' : player.status }}
-        </span>
+        <div class="top-actions">
+            <button class="edit-pill" *ngIf="canEdit" (click)="$event.stopPropagation(); onEdit.emit(player)">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                </svg>
+            </button>
+
+        </div>
     </div>
 
-    <!-- Bottom Content Overlay -->
     <div class="content-overlay">
         <div class="player-header">
             <div class="name-container">
@@ -56,4 +61,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Status moved to bottom right -->
+    <span class="status-pill" *ngIf="player.status" [ngClass]="player.status.toLowerCase()">
+        {{ player.status === 'UPCOMING' ? 'PENDING' : player.status }}
+    </span>
 </div>

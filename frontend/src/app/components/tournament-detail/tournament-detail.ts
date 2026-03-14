@@ -26,6 +26,140 @@ export class TournamentDetailComponent implements OnInit {
   searchTerm: string = '';
   playerSearchTerm: string = '';
   saving = false;
+  editingPlayerId: number | null = null;
+
+  showAddTeamForm = false;
+  newTeam = {
+    name: '',
+    code: '',
+    budget: 10000000,
+    ownerName: '',
+    logoUrl: ''
+  };
+
+  showAddPlayerForm = false;
+  newPlayer: any = {
+    name: '',
+    role: 'Batsman',
+    basePrice: 0,
+    mobileNo: '',
+    dob: '',
+    gender: 'Male',
+    tShirtSize: '',
+    trouserSize: '',
+    image: ''
+  };
+
+  onPlayerPhotoSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.newPlayer.image = e.target.result;
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  toggleAddTeamForm() {
+    this.showAddTeamForm = !this.showAddTeamForm;
+    if (this.showAddTeamForm) {
+      this.showAddPlayerForm = false; // Close player form if team form opens
+      this.currentTab = 'Teams';
+      this.searchTerm = '';
+      this.newTeam = {
+        name: '',
+        code: '',
+        budget: this.tournament?.totalAmount / 10 || 10000000,
+        ownerName: '',
+        logoUrl: ''
+      };
+    }
+    this.cdr.detectChanges();
+  }
+
+  toggleAddPlayerForm() {
+    this.showAddPlayerForm = !this.showAddPlayerForm;
+    if (this.showAddPlayerForm) {
+      this.showAddTeamForm = false; // Close team form if player form opens
+      this.currentTab = 'Players';
+      this.playerSearchTerm = '';
+      this.newPlayer = {
+        name: '',
+        role: 'Batsman',
+        basePrice: this.tournament?.baseAuctionPrice || 0,
+        mobileNo: '',
+        dob: '',
+        gender: 'Male',
+        tShirtSize: '',
+        trouserSize: '',
+        image: ''
+      };
+      this.editingPlayerId = null;
+    }
+    this.cdr.detectChanges();
+  }
+
+  onEditPlayer(player: any) {
+    this.editingPlayerId = player.id;
+    this.newPlayer = {
+      name: player.name,
+      role: player.role,
+      basePrice: player.basePrice,
+      mobileNo: player.mobileNo || '',
+      dob: player.dob || '',
+      gender: player.gender || 'Male',
+      tShirtSize: player.tShirtSize || '',
+      trouserSize: player.trouserSize || '',
+      image: player.image || ''
+    };
+    this.showAddPlayerForm = true;
+    this.showAddTeamForm = false;
+    this.currentTab = 'Players';
+    this.cdr.detectChanges();
+  }
+
+  async submitAddTeam() {
+    if (!this.newTeam.name || !this.newTeam.code || this.saving) return;
+
+    this.saving = true;
+    try {
+      await this.tournamentService.addTeam(this.tournament.id, this.newTeam);
+      this.showAddTeamForm = false;
+      this.currentTab = 'Teams'; // Stay on teams tab
+      await this.loadTournament(this.tournament.id.toString(), true); // Silent reload
+    } catch (err: any) {
+      console.error('Error adding team:', err);
+      alert('Failed to add team. Check if team code is unique.');
+    } finally {
+      this.saving = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async submitAddPlayer() {
+    if (!this.newPlayer.name || !this.newPlayer.role || this.saving) return;
+
+    this.saving = true;
+    try {
+      if (this.editingPlayerId) {
+        await this.tournamentService.updatePlayer(this.tournament.id, this.editingPlayerId, this.newPlayer);
+      } else {
+        await this.tournamentService.addPlayer(this.tournament.id, this.newPlayer);
+      }
+      this.showAddPlayerForm = false;
+      this.editingPlayerId = null;
+      this.currentTab = 'Players';
+      await this.loadTournament(this.tournament.id.toString(), true); // Silent reload
+    } catch (err: any) {
+      console.error('Error saving player:', err);
+      alert('Failed to save player. Please try again.');
+    } finally {
+      this.saving = false;
+      this.cdr.detectChanges();
+    }
+  }
 
   stats = {
     playersSold: 0,
@@ -91,8 +225,8 @@ export class TournamentDetailComponent implements OnInit {
     }
   }
 
-  async loadTournament(id: string) {
-    this.loading = true;
+  async loadTournament(id: string, silent: boolean = false) {
+    if (!silent) this.loading = true;
     try {
       const [detail, all] = await Promise.all([
         this.tournamentService.getById(id),
@@ -108,7 +242,7 @@ export class TournamentDetailComponent implements OnInit {
     } catch (err: any) {
       console.error('Error loading tournament:', err);
     } finally {
-      this.loading = false;
+      if (!silent) this.loading = false;
       this.cdr.detectChanges();
     }
   }

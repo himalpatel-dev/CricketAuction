@@ -107,9 +107,9 @@
             <app-team-card *ngFor="let team of filteredTeams" [team]="team" (edit)="openModal($event)"></app-team-card>
 
             <div *ngIf="filteredTeams.length === 0" class="empty-state">
-                <p class="icon">🏟️</p>
+                <div class="empty-icon">🏟️</div>
                 <h3>No Teams Found</h3>
-                <p>Try adjusting your filters or search query.</p>
+                <p>Try adjusting your search query or registering a new team for this tournament.</p>
             </div>
         </div>
     </div>

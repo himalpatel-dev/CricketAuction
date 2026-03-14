@@ -1,6 +1,8 @@
-/* Global Styles */
-
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
 
 :root {
   /* Design System Tokens */
@@ -406,4 +408,78 @@ button {
   max-width: 500px;
   position: relative;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Global Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 2px dashed #e2e8f0;
+  color: var(--text-muted);
+  margin: 20px 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.empty-state:hover {
+  border-color: var(--primary);
+  background: #fafcfb;
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state .empty-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  filter: grayscale(0.5);
+  transition: all 0.3s ease;
+  line-height: 1;
+}
+
+.empty-state:hover .empty-icon {
+  transform: scale(1.15) rotate(5deg);
+  filter: grayscale(0);
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text-main);
+}
+
+.empty-state p {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 300px;
+}
+
+/* Compact Variation */
+.empty-state.compact {
+  padding: 30px 20px;
+  border-radius: 12px;
+  margin: 10px 0;
+}
+
+.empty-state.compact .empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.empty-state.compact h3 {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.empty-state.compact p {
+  font-size: 13px;
 }

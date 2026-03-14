@@ -114,14 +114,6 @@
     font-size: 0.9rem;
 }
 
-.empty-squad {
-    padding: 3rem;
-    text-align: center;
-    color: #4b5563;
-    font-style: italic;
-    font-size: 0.9rem;
-}
-
 .stats-footer {
     padding: 1rem 1.5rem;
     background: rgba(0, 0, 0, 0.2);

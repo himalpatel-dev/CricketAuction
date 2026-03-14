@@ -1,139 +1,216 @@
-<div class="page-container">
-    <div class="form-card glass-panel fade-in relative">
-        <div *ngIf="loading" class="loading-overlay">
-            <div class="text-center">
-                <div class="text-3xl mb-2">⌛</div>
-                <p>Creating Tournament...</p>
-            </div>
-        </div>
+<div class="dashboard-layout">
+    <app-top-nav></app-top-nav>
 
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold gradient-text">Add New Tournament</h1>
-            <p class="text-muted">Configure the auction rules and tournament details</p>
-        </div>
-
-        <div *ngIf="error" class="error-msg mb-6">
-            {{ error }}
-        </div>
-
-        <form (ngSubmit)="onSubmit()" #tForm="ngForm">
-            <div class="form-grid">
-                <!-- Basic Info -->
-                <div class="section-title">Basic Information</div>
-
-                <div class="full-width">
-                    <label>Tournament Name</label>
-                    <input type="text" name="name" [(ngModel)]="tournamentData.name" class="input-field"
-                        placeholder="e.g. Mega Cricket League 2026" required>
-                </div>
-                <div>
-                    <label>Tournament Start Date</label>
-                    <input type="date" name="tournamentStartDate" [(ngModel)]="tournamentData.tournamentStartDate"
-                        class="input-field" required>
-                </div>
-
-                <div>
-                    <label>Tournament End Date</label>
-                    <input type="date" name="tournamentEndDate" [(ngModel)]="tournamentData.tournamentEndDate"
-                        class="input-field" required>
-                </div>
-                <div>
-                    <label>Registration Start Date</label>
-                    <input type="date" name="regStartDate" [(ngModel)]="tournamentData.regStartDate" class="input-field"
-                        required>
-                </div>
-
-                <div>
-                    <label>Registration End Date</label>
-                    <input type="date" name="regEndDate" [(ngModel)]="tournamentData.regEndDate" class="input-field"
-                        required>
-                </div>
-
-                <div>
-                    <label>Auction Date</label>
-                    <input type="date" name="auctionDate" [(ngModel)]="tournamentData.auctionDate" class="input-field"
-                        required>
-                </div>
-
-
-
-                <div>
-                    <label>Match Start Date</label>
-                    <input type="date" name="matchStartDate" [(ngModel)]="tournamentData.matchStartDate"
-                        class="input-field" required>
-                </div>
-
-                <div>
-                    <label>Match End Date</label>
-                    <input type="date" name="matchEndDate" [(ngModel)]="tournamentData.matchEndDate" class="input-field"
-                        required>
-                </div>
-
-                <!-- Auction Configuration -->
-                <div class="section-title">Auction configuration</div>
-
-                <div>
-                    <label>Total Available Players</label>
-                    <input type="number" name="totalPlayers" [(ngModel)]="tournamentData.totalPlayers"
-                        class="input-field" required>
-                </div>
-
-                <div>
-                    <label>Total Budget (INR)</label>
-                    <input type="number" name="totalAmount" [(ngModel)]="tournamentData.totalAmount" class="input-field"
-                        required>
-                    <p class="text-xs text-muted mt-1">Example: 100000000 for 10 Cr</p>
-                </div>
-
-                <div>
-                    <label>Player Reserved Amount (Min)</label>
-                    <input type="number" name="playerReservedAmount" [(ngModel)]="tournamentData.playerReservedAmount"
-                        class="input-field" required>
-                </div>
-
-                <div>
-                    <label>Base Auction Price</label>
-                    <input type="number" name="baseAuctionPrice" [(ngModel)]="tournamentData.baseAuctionPrice"
-                        class="input-field" required>
-                </div>
-
-                <div>
-                    <label>Category</label>
-                    <select name="category" [(ngModel)]="tournamentData.category" class="input-field" required>
-                        <option value="Franchise League">Franchise League</option>
-                        <option value="Corporate League">Corporate League</option>
-                        <option value="Local Premier League">Local Premier League</option>
-                        <option value="District Premier League">District Premier League</option>
-                        <option value="Community League">Community League</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label>Format</label>
-                    <select name="format" [(ngModel)]="tournamentData.format" class="input-field" required>
-                        <option value="T10">T10</option>
-                        <option value="T20">T20</option>
-                        <option value="ODI">ODI</option>
-                        <option value="Box Cricket">Box Cricket</option>
-                        <option value="Tennis Ball T20">Tennis Ball T20</option>
-                    </select>
-                </div>
-
-                <div class="full-width">
-                    <label>Initial Status</label>
-                    <select name="status" [(ngModel)]="tournamentData.status" class="input-field">
-                        <option value="UPCOMING">Upcoming</option>
-                        <option value="ACTIVE">Active</option>
-                    </select>
+    <div class="main-content-wrapper">
+        <div class="form-card fade-in relative">
+            <!-- Loading State -->
+            <div *ngIf="loading" class="loading-overlay">
+                <div class="text-center">
+                    <div class="text-5xl mb-4 animate-bounce">⚡</div>
+                    <p class="font-bold text-lg">Creating your tournament...</p>
+                    <p class="text-muted text-sm">Synchronizing with auction server</p>
                 </div>
             </div>
 
-            <div class="btn-group">
-                <button type="button" (click)="cancel()" class="btn btn-secondary">Cancel</button>
-                <button type="submit" class="btn btn-primary" [disabled]="!tForm.valid || loading">
-                    Create Tournament
-                </button>
+            <!-- Header Section -->
+            <div class="card-header">
+                <div class="header-info">
+                    <h1>Add New Tournament</h1>
+                    <p>Setup your auction parameters and tournament schedule</p>
+                </div>
+                <button (click)="cancel()" class="breadcrumb-back">← Back to List</button>
             </div>
-        </form>
+
+            <!-- Error Message -->
+            <div *ngIf="error" class="error-msg alert-danger m-8">
+                <span class="icon">⚠️</span>
+                {{ error }}
+            </div>
+
+            <form (ngSubmit)="onSubmit()" #tForm="ngForm">
+                <div class="form-body">
+                    <div class="form-grid">
+                        <!-- Section: Core Details -->
+                        <div class="section-title">🏆 Tournament Core Details</div>
+
+                        <div class="form-group full-width">
+                            <label>Tournament Name</label>
+                            <input type="text" name="name" [(ngModel)]="tournamentData.name"
+                                placeholder="e.g. Mega Cricket League 2026" required>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="section-subtitle">TOURNAMENT CATEGORY *</label>
+                            <div class="selection-grid">
+                                <div class="selection-card" [class.selected]="tournamentData.category === 'Franchise League'" (click)="tournamentData.category = 'Franchise League'">
+                                    <div class="card-radio"></div>
+                                    <div class="card-content">
+                                        <span class="card-icon">🏟️</span>
+                                        <div class="card-text">
+                                            <p class="card-title">Franchise League</p>
+                                            <p class="card-desc">Team-based franchise system</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="selection-card" [class.selected]="tournamentData.category === 'Corporate League'" (click)="tournamentData.category = 'Corporate League'">
+                                    <div class="card-radio"></div>
+                                    <div class="card-content">
+                                        <span class="card-icon">🌍</span>
+                                        <div class="card-text">
+                                            <p class="card-title">Corporate League</p>
+                                            <p class="card-desc">Professional corporate format</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="selection-card" [class.selected]="tournamentData.category === 'Community League'" (click)="tournamentData.category = 'Community League'">
+                                    <div class="card-radio"></div>
+                                    <div class="card-content">
+                                        <span class="card-icon">🎓</span>
+                                        <div class="card-text">
+                                            <p class="card-title">Club / Amateur</p>
+                                            <p class="card-desc">Local or community league</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="section-subtitle">TOURNAMENT FORMAT *</label>
+                            <div class="selection-grid">
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'T20'" (click)="tournamentData.format = 'T20'">
+                                    <div class="card-radio"></div>
+                                    <div class="card-content">
+                                        <span class="card-icon">🏏</span>
+                                        <div class="card-text">
+                                            <p class="card-title">T20 Format</p>
+                                            <p class="card-desc">Standard 20-over matches</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'T10'" (click)="tournamentData.format = 'T10'">
+                                    <div class="card-radio"></div>
+                                    <div class="card-content">
+                                        <span class="card-icon">⚡</span>
+                                        <div class="card-text">
+                                            <p class="card-title">T10 Format</p>
+                                            <p class="card-desc">Fast 10-over explosions</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'ODI'" (click)="tournamentData.format = 'ODI'">
+                                    <div class="card-radio"></div>
+                                    <div class="card-content">
+                                        <span class="card-icon">👕</span>
+                                        <div class="card-text">
+                                            <p class="card-title">ODI Format</p>
+                                            <p class="card-desc">Standard 50-over strategy</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'Box Cricket'" (click)="tournamentData.format = 'Box Cricket'">
+                                    <div class="card-radio"></div>
+                                    <div class="card-content">
+                                        <span class="card-icon">📦</span>
+                                        <div class="card-text">
+                                            <p class="card-title">Box / Tennis</p>
+                                            <p class="card-desc">Small field or indoor play</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'Other'" (click)="tournamentData.format = 'Other'">
+                                    <div class="card-radio"></div>
+                                    <div class="card-content">
+                                        <span class="card-icon">📝</span>
+                                        <div class="card-text">
+                                            <p class="card-title">Other</p>
+                                            <p class="card-desc">Custom tournament format</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <!-- Section: Financials -->
+                        <div class="section-title">💰 Auction Financials</div>
+
+                        <div class="form-group">
+                            <label>Total Budget Pool (INR)</label>
+                            <input type="number" name="totalAmount" [(ngModel)]="tournamentData.totalAmount"
+                                placeholder="e.g. 100000000" required>
+                            <span class="input-hint">Total budget available across all teams.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Base Auction Price (INR)</label>
+                            <input type="number" name="baseAuctionPrice" [(ngModel)]="tournamentData.baseAuctionPrice"
+                                placeholder="e.g. 200000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Total Players to Auction</label>
+                            <input type="number" name="totalPlayers" [(ngModel)]="tournamentData.totalPlayers"
+                                placeholder="e.g. 120" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Min. Player Reserved (Reserved Price)</label>
+                            <input type="number" name="playerReservedAmount"
+                                [(ngModel)]="tournamentData.playerReservedAmount" placeholder="e.g. 100000" required>
+                        </div>
+
+                        <!-- Section: Scheduling -->
+                        <div class="section-title">📅 Scheduling & Dates</div>
+
+                        <div class="form-group">
+                            <label>Registration Starts</label>
+                            <input type="date" name="regStartDate" [(ngModel)]="tournamentData.regStartDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Registration Ends</label>
+                            <input type="date" name="regEndDate" [(ngModel)]="tournamentData.regEndDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tournament Starts</label>
+                            <input type="date" name="tournamentStartDate"
+                                [(ngModel)]="tournamentData.tournamentStartDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tournament Ends</label>
+                            <input type="date" name="tournamentEndDate" [(ngModel)]="tournamentData.tournamentEndDate"
+                                required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Matches Start</label>
+                            <input type="date" name="matchStartDate" [(ngModel)]="tournamentData.matchStartDate"
+                                required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Matches End</label>
+                            <input type="date" name="matchEndDate" [(ngModel)]="tournamentData.matchEndDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Live Auction Date</label>
+                            <input type="date" name="auctionDate" [(ngModel)]="tournamentData.auctionDate" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="settings-actions">
+                    <button type="submit" class="btn btn-primary" [disabled]="!tForm.valid || loading">
+                        Create Tournament
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>

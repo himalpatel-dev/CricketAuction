@@ -20,7 +20,7 @@ const Player = sequelize.define('Player', {
         allowNull: false,
     },
     image: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT('long'),
         allowNull: true,
     },
     stats: {

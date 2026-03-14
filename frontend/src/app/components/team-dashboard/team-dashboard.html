@@ -35,7 +35,7 @@
                         </div>
 
                         <div class="hero-actions">
-                            <button [routerLink]="['/squads', tournamentId]" class="btn-edit">View Full Squad</button>
+
                             @if (tournamentStatus === 'ACTIVE') {
                             <button [routerLink]="['/auction', tournamentId]" class="btn-continue">
                                 <span class="icon-play">▶</span> Join Live Auction
@@ -377,6 +377,7 @@
                     <app-player-card [player]="player" [tournament]="tournament" [index]="$index"></app-player-card>
                     } @empty {
                     <div class="empty-state">
+                        <div class="empty-icon" style="font-size: 48px; margin-bottom: 16px;">👤</div>
                         <p>No players in your squad yet.</p>
                     </div>
                     }
@@ -456,9 +457,8 @@
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button class="btn-cancel" (click)="setTab('Overview')">Discard Changes</button>
-                            <button class="btn-save" (click)="updateTeamDetails()">Save Franchise Profile</button>
+                        <div class="settings-actions">
+                            <button class="btn btn-primary" (click)="updateTeamDetails()">Save Changes</button>
                         </div>
                     </div>
                 </div>
