@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { TournamentService } from '../../services/tournament.service';
 
 @Component({
@@ -13,24 +12,21 @@ import { TournamentService } from '../../services/tournament.service';
   styleUrls: ['./player-registration.css']
 })
 export class PlayerRegistrationComponent {
-  player = {
+  player: any = {
     name: '',
     role: 'Batsman',
-    basePrice: 200000,
+    basePrice: 0,
     mobileNo: '',
-    dob: null,
+    dob: '',
     gender: 'Male',
     tShirtSize: '',
-    trouserSize: ''
+    trouserSize: '',
+    city: ''
   };
 
   loading = false;
   message = '';
   success = false;
-
-  // URL to backend registration endpoint (without authentication)
-  private registerUrl = 'http://127.0.0.1:5001/api/tournaments/register-player';
-  private openTournamentsUrl = 'http://127.0.0.1:5001/api/tournaments/open-tournaments';
 
   tournaments: any[] = [];
   selectedTournamentId: any = '';
@@ -38,26 +34,24 @@ export class PlayerRegistrationComponent {
 
   constructor(
     private router: Router,
-    private http: HttpClient
+    private tournamentService: TournamentService
   ) {
     this.fetchOpenTournaments();
   }
 
-  fetchOpenTournaments() {
-    this.http.get<any[]>(this.openTournamentsUrl).subscribe({
-      next: (res: any[]) => {
-        this.tournaments = res;
-        if (this.tournaments.length > 0) {
-          // Select first one by default
-          this.selectedTournamentId = this.tournaments[0].id;
-          this.updateBasePrice();
-        }
-      },
-      error: (err) => {
-        console.error('Error fetching tournaments:', err);
-        this.message = 'Error loading tournaments.';
+  async fetchOpenTournaments() {
+    try {
+      const res = await this.tournamentService.getOpenTournaments();
+      this.tournaments = res;
+      if (this.tournaments.length > 0) {
+        // Select first one by default
+        this.selectedTournamentId = this.tournaments[0].id;
+        this.updateBasePrice();
       }
-    });
+    } catch (err) {
+      console.error('Error fetching tournaments:', err);
+      this.message = 'Error loading tournaments. Please refresh.';
+    }
   }
 
   onTournamentChange() {
@@ -65,14 +59,16 @@ export class PlayerRegistrationComponent {
   }
 
   updateBasePrice() {
-    const selected = this.tournaments.find(t => t.id == this.selectedTournamentId);
+    const selected = this.tournaments.find(t => String(t.id) === String(this.selectedTournamentId));
     if (selected) {
       this.basePrice = selected.baseAuctionPrice;
       this.player.basePrice = this.basePrice;
     }
   }
 
-  register() {
+  async register() {
+    if (this.loading) return;
+
     this.loading = true;
     this.message = '';
 
@@ -82,25 +78,20 @@ export class PlayerRegistrationComponent {
       return;
     }
 
-    // Ensure base price is sent correctly (though backend logic handles it too)
-    this.player.basePrice = this.basePrice;
+    try {
+      this.player.basePrice = this.basePrice;
+      const payload = { ...this.player, tournamentId: this.selectedTournamentId };
 
-    // Add tournament ID to payload
-    const payload = { ...this.player, tournamentId: this.selectedTournamentId };
+      await this.tournamentService.registerPlayer(payload);
 
-    // Call backend
-    this.http.post(this.registerUrl, payload)
-      .subscribe({
-        next: (res: any) => {
-          this.success = true;
-          this.message = 'Registration successful! Redirecting to login...';
-          setTimeout(() => this.router.navigate(['/login']), 2000);
-        },
-        error: (err: any) => {
-          this.success = false;
-          this.message = err.error?.message || 'Registration failed. Please try again.';
-          this.loading = false;
-        }
-      });
+      this.success = true;
+      this.message = 'Registration successful! Redirecting to login...';
+      setTimeout(() => this.router.navigate(['/login']), 2000);
+    } catch (err: any) {
+      console.error('Registration Error:', err);
+      this.success = false;
+      this.message = err.error?.message || 'Registration failed. Please try again.';
+      this.loading = false;
+    }
   }
 }

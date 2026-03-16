@@ -56,14 +56,16 @@
                 <span class="price-value" [ngClass]="{'sold': player.status === 'SOLD'}">₹{{ formatPrice(player.status
                     === 'SOLD' ? player.soldPrice : player.basePrice) }}</span>
             </div>
-            <div class="team-badge" *ngIf="player.status === 'SOLD'">
-                {{ getTeamCode(player.soldTo) }}
+            <div class="footer-actions">
+                <div class="team-badge" *ngIf="player.status === 'SOLD'">
+                    {{ getTeamCode(player.soldTo) }}
+                </div>
+                <!-- Status pill moved inside footer-actions -->
+                <span class="status-pill" *ngIf="player.status" [ngClass]="player.status.toLowerCase()">
+                    {{ player.status === 'UPCOMING' ? 'PENDING' : player.status }}
+                </span>
             </div>
         </div>
     </div>
 
-    <!-- Status moved to bottom right -->
-    <span class="status-pill" *ngIf="player.status" [ngClass]="player.status.toLowerCase()">
-        {{ player.status === 'UPCOMING' ? 'PENDING' : player.status }}
-    </span>
 </div>

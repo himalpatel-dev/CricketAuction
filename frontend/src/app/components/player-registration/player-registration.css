@@ -1,27 +1,344 @@
-.registration-card {
+.registration-page {
+    min-height: 100vh;
+    background-color: #133b33;
+    background: linear-gradient(135deg, #133b33 0%, #0a1f1b 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 80px 20px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Background Decorations */
+.background-decor {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+}
+
+.c1 {
+    width: 600px;
+    height: 600px;
+    background: rgba(255, 255, 255, 0.05);
+    top: -200px;
+    left: -200px;
+}
+
+.c2 {
+    width: 400px;
+    height: 400px;
+    background: rgba(16, 185, 129, 0.1);
+    bottom: -100px;
+    right: -100px;
+}
+
+.registration-container {
     width: 100%;
-    max-width: 800px;
-    padding: 2.5rem;
-    margin: 2rem;
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-width: 900px;
+    position: relative;
+    z-index: 10;
 }
 
-.input-field {
-    background-color: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
+.glass-card {
+    background: #ffffff;
+    border-radius: 32px;
+    padding: 56px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
 }
 
-.input-field:focus {
-    background-color: rgba(0, 0, 0, 0.5);
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+/* Card Header */
+.card-header {
+    text-align: center;
+    margin-bottom: 48px;
 }
 
-/* Custom Scrollbar for selects */
-select option {
-    background-color: #1f2937;
+.badge-row {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: center;
+}
+
+.badge {
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.badge.yellow {
+    background: #f0fdf4;
+    color: #10b981;
+    border: 1px solid #dcfce7;
+}
+
+.gradient-text {
+    font-size: 42px;
+    font-weight: 800;
+    color: #133b33;
+    margin: 0 0 12px 0;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+}
+
+.subtitle {
+    color: #64748b;
+    font-size: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Form Styles */
+.registration-form {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.form-section {
+    background: #f8fafc;
+    border-radius: 24px;
+    padding: 32px;
+    border: 1px solid #f1f5f9;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.section-header .icon {
+    font-size: 20px;
+    font-style: normal;
+}
+
+.section-header h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #133b33;
+    margin: 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #133b33;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding-left: 2px;
+}
+
+/* Inputs & Tooling */
+input,
+select {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px 18px;
+    color: #1e293b;
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #10b981;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.select-wrapper::after {
+    content: '▼';
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+select {
+    appearance: none;
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Tournament Specific */
+.base-price-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #133b33;
+    padding: 14px 20px;
+    border-radius: 16px;
+    margin-top: 12px;
+    color: #ffffff;
+}
+
+.base-price-info .label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.base-price-info .value {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+/* Feedback Area */
+.feedback-area {
+    margin-top: 12px;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.alert.success {
+    background: #f0fdf4;
+    color: #10b981;
+    border: 1px solid #dcfce7;
+}
+
+.alert.error {
+    background: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+/* Actions */
+.form-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.btn {
+    padding: 18px 32px;
+    border-radius: 18px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: none;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: #133b33;
     color: white;
-    padding: 10px;
+    flex: 2;
+    box-shadow: 0 10px 15px rgba(19, 59, 51, 0.2);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #1a4d43;
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(19, 59, 51, 0.3);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #64748b;
+}
+
+.btn-outline {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #133b33;
+    flex: 1;
+}
+
+.btn-outline:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 850px) {
+    .glass-card {
+        padding: 40px 24px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gradient-text {
+        font-size: 32px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .btn {
+        width: 100%;
+    }
 }

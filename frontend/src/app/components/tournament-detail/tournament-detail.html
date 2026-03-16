@@ -372,7 +372,7 @@
                         @if (!showAddTeamForm) {
                         <div class="search-box">
                             <i class="search-icon">🔍</i>
-                            <input type="text" placeholder="Search teams..." [(ngModel)]="searchTerm" (input)="0">
+                            <input type="text" placeholder="Search teams..." [(ngModel)]="searchTerm" (input)="onSearch()">
                         </div>
                         }
                         <button class="btn btn-primary" (click)="toggleAddTeamForm()">
@@ -449,7 +449,7 @@
                         <div class="search-box">
                             <i class="search-icon">🔍</i>
                             <input type="text" placeholder="Search players..." [(ngModel)]="playerSearchTerm"
-                                (input)="0">
+                                (input)="onSearch()">
                         </div>
                         }
                         <button class="btn btn-primary" (click)="toggleAddPlayerForm()">

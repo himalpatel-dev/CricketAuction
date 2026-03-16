@@ -312,23 +312,32 @@ export class TournamentDetailComponent implements OnInit {
 
   get filteredTeams() {
     if (!this.processedTeams) return [];
-    const term = (this.searchTerm || '').trim().toLowerCase();
+    const term = (this.searchTerm || '').toLowerCase().trim();
     if (!term) return this.processedTeams;
 
     return this.processedTeams.filter(team =>
-      team?.name?.toLowerCase().includes(term)
+      String(team?.name || '').toLowerCase().includes(term) ||
+      String(team?.code || '').toLowerCase().includes(term) ||
+      String(team?.ownerName || '').toLowerCase().includes(term)
     );
   }
 
   get filteredPlayers() {
     if (!this.tournament?.players) return [];
-    if (!this.playerSearchTerm.trim()) return this.tournament.players;
-    const term = this.playerSearchTerm.toLowerCase();
+    const term = (this.playerSearchTerm || '').toLowerCase().trim();
+    if (!term) return this.tournament.players;
+
     return this.tournament.players.filter((player: any) =>
-      player.name.toLowerCase().includes(term) ||
-      player.role?.toLowerCase().includes(term) ||
-      player.city?.toLowerCase().includes(term)
+      String(player.name || '').toLowerCase().includes(term) ||
+      String(player.role || '').toLowerCase().includes(term) ||
+      String(player.city || '').toLowerCase().includes(term) ||
+      String(player.mobileNo || '').toLowerCase().includes(term)
     );
+  }
+
+  onSearch() {
+    // This exists to provide a target for (input) events and force change detection if needed
+    this.cdr.detectChanges();
   }
 
   calculateLocalStats() {
