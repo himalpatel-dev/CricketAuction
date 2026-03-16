@@ -1865,7 +1865,7 @@
 .photo-preview {
     width: 120px;
     height: 120px;
-    border-radius: 50%;
+    border-radius: 20px;
     background: #ffffff;
     border: 3px solid #ffffff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -1874,6 +1874,12 @@
     justify-content: center;
     overflow: hidden;
     flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.photo-preview.has-image {
+    border-color: #10b981;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2);
 }
 
 .photo-preview img {
@@ -1926,3 +1932,100 @@
     border-color: var(--primary);
     color: var(--primary);
 }
+
+/* Image Cropper Overlay */
+.cropper-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.9); /* Deeper, more premium backdrop */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(12px);
+    padding: 20px;
+}
+
+.cropper-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 550px;
+    max-height: 95vh;
+    border-radius: 28px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow-y: auto; /* Handle smaller screens */
+}
+
+.cropper-header {
+    text-align: center;
+}
+
+.cropper-header h3 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 8px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.cropper-header p {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.cropper-wrapper {
+    width: 100%;
+    height: 400px; /* Fixed height for consistency */
+    border-radius: 16px;
+    overflow: hidden;
+    background: #0f172a; /* Dark background for the cropper area */
+    border: 1px solid #e2e8f0;
+    position: relative;
+}
+
+.cropper-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    color: white;
+    gap: 16px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.cropper-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.cropper-actions button {
+    min-width: 160px;
+    padding: 14px 24px;
+}

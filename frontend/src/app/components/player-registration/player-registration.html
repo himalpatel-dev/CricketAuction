@@ -16,6 +16,64 @@
             </div>
 
             <form (ngSubmit)="register()" #regForm="ngForm" class="registration-form">
+                <!-- Photo Upload Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <i class="icon">📸</i>
+                        <h3>Profile Photo</h3>
+                    </div>
+                    
+                    <div class="player-photo-upload">
+                        <div class="photo-preview" [class.has-image]="player.image">
+                            <img *ngIf="player.image" [src]="playerImageUrl" alt="Player Preview">
+                            <div *ngIf="!player.image" class="photo-placeholder">
+                                <i>👤</i>
+                                <span>No Photo</span>
+                            </div>
+                        </div>
+                        <div class="upload-controls">
+                            <label for="playerPhoto" class="btn btn-outline small">Upload Photo</label>
+                            <input type="file" id="playerPhoto" #photoInput hidden (change)="onPlayerPhotoSelected($event)" accept="image/*">
+                            <p class="input-hint">JPG, PNG or WEBP (Max 2MB)</p>
+                        </div>
+
+                        <!-- Image Cropper Overlay -->
+                        <div class="cropper-overlay" *ngIf="showCropper">
+                            <div class="cropper-card">
+                                <div class="cropper-header">
+                                    <h3>Crop Your Profile Photo</h3>
+                                    <p>Adjust the square box to frame your face perfectly</p>
+                                </div>
+                                <div class="cropper-wrapper">
+                                    <div class="cropper-loading-overlay" *ngIf="isCropperLoading && !croppedImage">
+                                        <div class="spinner"></div>
+                                        <p>{{ croppedImage ? 'Finalizing...' : 'Loading Image...' }}</p>
+                                    </div>
+                                    <image-cropper
+                                        [imageChangedEvent]="imageChangedEvent"
+                                        [maintainAspectRatio]="true"
+                                        [aspectRatio]="1 / 1"
+                                        [resizeToWidth]="400"
+                                        [autoCrop]="true"
+                                        [onlyScaleDown]="true"
+                                        format="webp"
+                                        (imageCropped)="imageCropped($event)"
+                                        (imageLoaded)="imageLoaded()"
+                                        (cropperReady)="cropperReady()"
+                                        (loadImageFailed)="loadImageFailed()"
+                                    ></image-cropper>
+                                </div>
+                                <div class="cropper-actions">
+                                    <button type="button" class="btn-cancel" (click)="cancelCrop()">Cancel</button>
+                                    <button type="button" class="btn btn-primary" (click)="confirmCrop()" [disabled]="isCropperLoading && !croppedImage">
+                                        Apply Crop
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tournament Selector Section -->
                 <div class="form-section">
                     <div class="section-header">
@@ -131,9 +189,6 @@
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="button" class="btn btn-outline" routerLink="/login">
-                        Cancel
-                    </button>
                     <button type="submit" class="btn btn-primary" [disabled]="loading || !regForm.valid">
                         {{ loading ? 'Registering...' : 'Complete Registration' }}
                         <span class="icon-arrow">→</span>

@@ -146,6 +146,15 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     });
   }
 
+  async startRandomAuction() {
+    if (!this.tournamentId) return;
+    try {
+      await this.auctionService.startPlayerAuction(this.tournamentId, null as any);
+    } catch (err) {
+      console.error('Error starting random auction:', err);
+    }
+  }
+
   async startAuction(playerId: number) {
     if (!this.tournamentId) return;
     try {

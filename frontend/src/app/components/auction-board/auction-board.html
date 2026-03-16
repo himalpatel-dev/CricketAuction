@@ -7,15 +7,14 @@
     <header class="auction-header">
         <div class="header-left">
             <button class="back-btn" [routerLink]="backLink">
-                <span class="icon">←</span>
-                {{ isAdmin ? 'Admin Terminal' : 'Dashboard' }}
+                {{ isAdmin ? '← Admin Terminal' : '← Dashboard' }}
             </button>
-            <div class="tournament-info" *ngIf="tournament">
-                <h1>{{ tournament.name }}</h1>
-                <span class="live-indicator">
-                    <span class="dot"></span> LIVE AUCTION
-                </span>
-            </div>
+        </div>
+
+        <div class="tournament-info" *ngIf="tournament" style="text-align: center;">
+            <span class="live-indicator" style="justify-content: center;">
+                <span class="dot"></span> LIVE AUCTION
+            </span>
         </div>
 
         <div class="header-right">
@@ -37,39 +36,37 @@
     </div>
     } @else {
     <div class="auction-grid fade-in">
-        <!-- Left Panel: Players Pool -->
-        <aside class="side-panel left">
-            <div class="panel-card white-card">
+        <!-- Left Panel: Bidding History -->
+        <aside class="side-panel">
+            <div class="panel-card secondary-panel">
                 <div class="panel-header">
-                    <h3>Available Players</h3>
-                    <span class="count">{{ availablePlayers.length }}</span>
+                    <h3>Bidding History</h3>
+                    <span class="icon">⌛</span>
                 </div>
-
-                @if (!tournament?.teams?.length && isAdmin) {
-                <div class="warning-box">
-                    <p>⚠️ No teams registered! Add teams to start bidding.</p>
-                </div>
-                }
-
                 <div class="scroll-list">
-                    @for (p of availablePlayers; track p.id) {
-                    <div class="player-item" [class.active]="auctionState?.currentPlayer?.id === p.id">
-                        <div class="p-details">
-                            <span class="p-name">{{ p.name }}</span>
-                            <span class="p-meta">{{ p.role }} • ₹{{ (p.basePrice / 100000).toFixed(1) }}L</span>
-                        </div>
-                        @if (isAdmin && auctionState?.status !== 'BIDDING') {
-                        <button (click)="startAuction(p.id)" class="action-btn" [disabled]="!tournament?.teams?.length">
-                            START
-                        </button>
-                        }
+                    @for (h of history; track h.time) {
+                    <!-- @for (h of (history || []).slice(-7).reverse(); track $index) { -->
+                    <div class="history-pill">
+                        <span class="h-team-code">{{ h.teamCode }}</span>
+                        <span class="h-bid-amount">₹{{ formatPrice(h.amount) }}</span>
                     </div>
                     } @empty {
                     <div class="empty-state">
-                        <div class="icon">🏏</div>
-                        <p>No players in pool</p>
+                        <p>No bids recorded yet</p>
                     </div>
                     }
+                </div>
+            </div>
+
+            <!-- Moved Bid Display here -->
+            <div class="current-bid-display-left" *ngIf="auctionState?.currentPlayer">
+                <div class="bid-label">CURRENT HIGHEST BID</div>
+                <h1 class="bid-amount-sidebar">₹ {{ formatPrice(auctionState.currentBid ||
+                    auctionState.currentPlayer.basePrice) }}</h1>
+
+                <div class="leading-chip-sidebar" *ngIf="auctionState.leadingTeam">
+                    <span class="leading-team-avatar">{{ auctionState.leadingTeam.code }}</span>
+                    <span class="leading-text">Leading Bid: <strong>{{ auctionState.leadingTeam.name }}</strong></span>
                 </div>
             </div>
         </aside>
@@ -77,9 +74,8 @@
         <!-- Center Panel: The Main Board -->
         <main class="auction-main">
             @if (auctionState?.currentPlayer) {
-            <div class="main-bidding-area">
-                <!-- Player Card High Impact -->
-                <div class="current-player-marquee white-card">
+            <div class="main-display-area">
+                <div class="player-showcase">
                     @if (auctionState.status === 'SOLD') {
                     <div class="status-overlay sold">
                         <span class="stamp">SOLD</span>
@@ -90,151 +86,98 @@
                     </div>
                     }
 
-                    <div class="avatar-circle">
-                        {{ auctionState.currentPlayer.name.charAt(0) }}
-                    </div>
-                    <div class="player-text">
-                        <span class="role">{{ auctionState.currentPlayer.role }}</span>
-                        <h2 class="name">{{ auctionState.currentPlayer.name }}</h2>
-                        <p class="base">BASE PRICE: ₹{{ formatPrice(auctionState.currentPlayer.basePrice) }}</p>
-                    </div>
-                </div>
-
-                <!-- Bid Display -->
-                <div class="bid-display-card white-card">
-                    <div class="bid-header">
-                        <span class="label">CURRENT HIGHEST BID</span>
-                    </div>
-                    <div class="amount-row">
-                        <span class="currency">₹</span>
-                        <h1 class="amount">{{ formatPrice(auctionState.currentBid ||
-                            auctionState.currentPlayer.basePrice) }}</h1>
-                    </div>
-
-                    <div class="leading-team-box" *ngIf="auctionState.leadingTeam">
-                        <div class="team-badge">{{ auctionState.leadingTeam.code }}</div>
-                        <p>Leading Bid: <strong>{{ auctionState.leadingTeam.name }}</strong></p>
-                    </div>
-                    <div class="waiting-box" *ngIf="!auctionState.leadingTeam">
-                        <span class="pulse"></span> Waiting for first bid...
-                    </div>
-                </div>
-
-                <!-- Controls -->
-                <div class="control-section white-card">
-                    @if (isAdmin) {
-                    <div class="admin-controls">
-                        <div class="ctrl-group">
-                            <label>SET INCREMENT</label>
-                            <div class="increment-row">
-                                <button *ngFor="let inc of [200000, 500000, 1000000, 2000000]" class="inc-pill"
-                                    [class.active]="currentIncrement === inc" (click)="setIncrement(inc)">
-                                    +{{ inc / 100000 }}L
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="ctrl-group">
-                            <label>PLACE BID FOR TEAM</label>
-                            <div class="teams-quick-grid">
-                                @for (team of tournament?.teams; track team.id) {
-                                <button (click)="placeBid(team.id)"
-                                    [disabled]="auctionState.status !== 'BIDDING' || auctionState.leadingTeam?.id === team.id"
-                                    class="team-btn">
-                                    <span class="code">{{ team.code }}</span>
-                                    <span class="budget">₹{{ (team.remainingBudget / 10000000).toFixed(2) }} Cr</span>
-                                </button>
-                                }
-                            </div>
-                        </div>
-
-                        <div class="final-actions">
-                            <button (click)="sellPlayer()" class="btn sell-btn"
-                                [disabled]="!auctionState.currentBid || auctionState.status !== 'BIDDING'">
-                                🔨 CONFIRM SALE
-                            </button>
-                            <button (click)="markUnsold()" class="btn unsold-btn"
-                                [disabled]="auctionState.status !== 'BIDDING'">
-                                🚫 MARK UNSOLD
-                            </button>
-                        </div>
-                    </div>
-                    } @else if (userTeamId) {
-                    <div class="owner-controls">
-                        <div class="wallet-info">
-                            <span class="label">YOUR REMAINING BUDGET</span>
-                            <h3 class="value">₹{{ formatPrice(getTeamBudget(userTeamId!)) }}</h3>
-                        </div>
-
-                        <button (click)="placeBid(userTeamId!)"
-                            [disabled]="auctionState.status !== 'BIDDING' || auctionState.leadingTeam?.id === userTeamId"
-                            class="major-bid-btn">
-                            @if (auctionState.leadingTeam?.id === userTeamId) {
-                            <span class="status">👑 YOU ARE LEADING</span>
+                    <div class="avatar-container">
+                        <div class="avatar-circle">
+                            @if (auctionState.currentPlayer.image) {
+                            <img [src]="auctionState.currentPlayer.image" class="avatar-img"
+                                [alt]="auctionState.currentPlayer.name">
                             } @else {
-                            <span class="action">PLACE BID</span>
-                            <span class="val">₹{{ formatPrice((auctionState.currentBid ||
-                                auctionState.currentPlayer.basePrice) + 200000) }}</span>
+                            <span>{{ auctionState.currentPlayer.name ? auctionState.currentPlayer.name.charAt(0) : 'P' }}</span>
                             }
-                        </button>
+                        </div>
                     </div>
-                    }
+
+                    <div class="player-info">
+                        <h2>{{ auctionState.currentPlayer.name }}</h2>
+                        <span class="player-role-label">{{ auctionState.currentPlayer.role }}</span>
+                    </div>
                 </div>
             </div>
             } @else {
-            <div class="empty-marquee white-card">
-                <div class="icon">📢</div>
+            <div class="empty-state-center">
                 <h2>Auction Paused</h2>
-                <p>{{ isAdmin ? 'Select a player from the left panel to begin bidding.' : 'The administrator will start
-                    the next auction soon.' }}</p>
+                <p>Waiting for the administrator to start the next auction.</p>
+                
+                <div *ngIf="isAdmin" class="admin-start-action">
+                    <button class="btn-sidebar confirm" (click)="startRandomAuction()" style="max-width: 300px; margin: 20px auto;">
+                        <span class="icon">✨</span> CALL NEXT RANDOM PLAYER
+                    </button>
+                    <p style="font-size: 11px; opacity: 0.6; margin-top: 10px;">The system will pick a random player from the pool</p>
+                </div>
             </div>
             }
         </main>
 
-        <!-- Right Panel: History & Finance -->
-        <aside class="side-panel right">
-            <div class="panel-card white-card history-panel">
-                <div class="panel-header">
-                    <h3>Bidding War</h3>
-                    <i class="icon">⌛</i>
-                </div>
-                <div class="scroll-list">
-                    @for (h of history; track h.time) {
-                    <div class="history-card">
-                        <div class="h-left">
-                            <span class="h-team">{{ h.teamCode }}</span>
-                            <span class="h-amount">₹{{ formatPrice(h.amount) }}</span>
-                        </div>
-                        <span class="h-time">{{ h.time | date:'HH:mm:ss' }}</span>
-                    </div>
-                    } @empty {
-                    <div class="empty-state">
-                        <p>Waiting for bids...</p>
-                    </div>
-                    }
-                </div>
-            </div>
+        <!-- Right Panel: Bidding War & Controls -->
+        <aside class="side-panel right-column">
 
-            <div class="panel-card white-card financial-panel">
-                <div class="panel-header">
-                    <h3>Team Purses</h3>
-                    <i class="icon">💰</i>
-                </div>
-                <div class="scroll-list">
-                    @for (team of tournament?.teams; track team.id) {
-                    <div class="team-purse-item" [class.highlight]="auctionState?.leadingTeam?.id === team.id">
-                        <div class="purse-header">
-                            <span class="t-name">{{ team.code }}</span>
-                            <span class="t-val">₹{{ (team.remainingBudget / 10000000).toFixed(2) }}Cr</span>
-                        </div>
-                        <div class="purse-bar">
-                            <div class="fill" [style.width]="(team.remainingBudget / team.budget * 100) + '%'"></div>
+            <!-- Controls Section -->
+            <div class="control-panel-sidebar" *ngIf="auctionState?.currentPlayer">
+                @if (isAdmin) {
+                <div class="admin-controls-wrapper">
+                    <div class="control-group-box">
+                        <label>SET INCREMENT</label>
+                        <div class="increment-grid">
+                            @for (inc of [200000, 500000, 1000000, 2000000]; track inc) {
+                            <button class="inc-pill-sidebar" [class.active]="currentIncrement === inc"
+                                (click)="setIncrement(inc)">
+                                +{{ inc / 100000 }}L
+                            </button>
+                            }
                         </div>
                     </div>
-                    }
+
+                    <div class="control-group-box">
+                        <label>PLACE BID FOR TEAM</label>
+                        <div class="teams-grid-sidebar">
+                            @for (team of tournament?.teams; track team.id) {
+                            <button (click)="placeBid(team.id)"
+                                [disabled]="auctionState.status !== 'BIDDING' || auctionState.leadingTeam?.id === team.id"
+                                class="team-bid-btn-sidebar">
+                                <span class="code">{{ team.code }}</span>
+                                <span class="purse">₹{{ (team.remainingBudget / 10000000).toFixed(2) }} Cr</span>
+                            </button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="action-buttons-stack">
+                        <button (click)="sellPlayer()" class="btn-sidebar confirm"
+                            [disabled]="!auctionState.currentBid || auctionState.status !== 'BIDDING'">
+                            <span class="icon">🔨</span> CONFIRM SALE
+                        </button>
+                        <button (click)="markUnsold()" class="btn-sidebar negative"
+                            [disabled]="auctionState.status !== 'BIDDING'">
+                            <span class="icon">🚫</span> MARK UNSOLD
+                        </button>
+                    </div>
                 </div>
+                } @else if (userTeamId) {
+                <div class="owner-controls-wrapper">
+                    <div class="wallet-info-sidebar">
+                        <label>YOUR REMAINING PURSE</label>
+                        <h3>₹{{ formatPrice(getTeamBudget(userTeamId!)) }}</h3>
+                    </div>
+                    <button (click)="placeBid(userTeamId!)"
+                        [disabled]="auctionState.status !== 'BIDDING' || auctionState.leadingTeam?.id === userTeamId"
+                        class="btn-sidebar confirm major">
+                        {{ auctionState.leadingTeam?.id === userTeamId ? '👑 YOU ARE LEADING' : 'PLACE BID' }}
+                    </button>
+                </div>
+                }
             </div>
         </aside>
     </div>
     }
+    <div class="sparkle">✨</div>
 </div>

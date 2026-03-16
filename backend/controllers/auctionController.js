@@ -1,4 +1,33 @@
-const { Player, Team, Bid, Tournament } = require('../models');
+const { Player, Team, Bid, Tournament, sequelize } = require('../models');
+
+const pickNextRandomPlayer = async (tournamentId, io) => {
+    // Wait for 5 seconds to show SOLD/UNSOLD status before auto-starting next
+    setTimeout(async () => {
+        try {
+            const nextPlayer = await Player.findOne({
+                where: { tournamentId, status: 'UPCOMING' },
+                order: sequelize.random()
+            });
+
+            if (nextPlayer) {
+                // Clear any stuck 'IN_AUCTION' players
+                await Player.update(
+                    { status: 'UNSOLD' },
+                    { where: { status: 'IN_AUCTION', tournamentId } }
+                );
+
+                nextPlayer.status = 'IN_AUCTION';
+                await nextPlayer.save();
+
+                io.to(`tournament_${tournamentId}`).emit('auction_started', {
+                    player: nextPlayer
+                });
+            }
+        } catch (error) {
+            console.error('Error auto-picking next player:', error);
+        }
+    }, 5000);
+};
 
 // Fetch current auction status for a tournament
 exports.getAuctionState = async (req, res) => {
@@ -39,13 +68,17 @@ exports.getAuctionState = async (req, res) => {
 exports.startPlayerAuction = async (req, res) => {
     const { playerId, tournamentId } = req.body;
     try {
-        await Player.update(
-            { status: 'UNSOLD' },
-            { where: { status: 'IN_AUCTION', tournamentId } }
-        );
+        let player;
+        if (playerId) {
+            player = await Player.findByPk(playerId);
+        } else {
+            player = await Player.findOne({
+                where: { tournamentId, status: 'UPCOMING' },
+                order: sequelize.random()
+            });
+        }
 
-        const player = await Player.findByPk(playerId);
-        if (!player) return res.status(404).json({ message: 'Player not found' });
+        if (!player) return res.status(404).json({ message: 'No more upcoming players found' });
 
         player.status = 'IN_AUCTION';
         await player.save();
@@ -124,6 +157,9 @@ exports.sellPlayer = async (req, res) => {
         });
 
         res.json({ player, team });
+
+        // Auto Pick Next Random Player
+        pickNextRandomPlayer(tournamentId, req.io);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -143,6 +179,9 @@ exports.markUnsold = async (req, res) => {
         });
 
         res.json(player);
+
+        // Auto Pick Next Random Player
+        pickNextRandomPlayer(tournamentId, req.io);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

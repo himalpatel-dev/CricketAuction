@@ -1,17 +1,19 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { TournamentService } from '../../services/tournament.service';
 import { AuthService } from '../../services/auth.service';
 import { TopNavComponent } from '../top-nav/top-nav';
 import { TeamCardComponent } from '../team-card/team-card.component';
 import { PlayerCardComponent } from '../player-card/player-card.component';
+import { ImageCropperComponent, ImageCroppedEvent, LoadedImage, CropperPosition } from 'ngx-image-cropper';
 
 @Component({
   selector: 'app-tournament-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TopNavComponent, TeamCardComponent, PlayerCardComponent],
+  imports: [CommonModule, RouterModule, FormsModule, TopNavComponent, TeamCardComponent, PlayerCardComponent, ImageCropperComponent],
   templateUrl: './tournament-detail.html',
   styleUrl: './tournament-detail.css'
 })
@@ -27,6 +29,8 @@ export class TournamentDetailComponent implements OnInit {
   playerSearchTerm: string = '';
   saving = false;
   editingPlayerId: number | null = null;
+
+  @ViewChild('photoInput') photoInput!: ElementRef;
 
   showAddTeamForm = false;
   newTeam = {
@@ -50,16 +54,119 @@ export class TournamentDetailComponent implements OnInit {
     image: ''
   };
 
-  onPlayerPhotoSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.newPlayer.image = e.target.result;
-        this.cdr.detectChanges();
-      };
-      reader.readAsDataURL(file);
+  // Image Cropper State
+  imageChangedEvent: any = '';
+  croppedImage: any = '';
+  showCropper = false;
+  isCropperLoading = false;
+  
+  @ViewChild(ImageCropperComponent) cropper!: ImageCropperComponent;
+
+  get playerImageUrl(): any {
+    if (!this.newPlayer.image) return null;
+    if (this.newPlayer.image.startsWith('data:')) {
+      return this.sanitizer.bypassSecurityTrustUrl(this.newPlayer.image);
     }
+    return this.newPlayer.image;
+  }
+
+  onPlayerPhotoSelected(event: any) {
+    if (event.target.files && event.target.files.length > 0) {
+      this.isCropperLoading = true;
+      this.imageChangedEvent = event;
+      this.showCropper = true;
+      this.croppedImage = ''; 
+      
+      // Safety timeout: if cropper doesn't respond in 8 seconds, clear loading
+      setTimeout(() => {
+        if (this.isCropperLoading) {
+          this.isCropperLoading = false;
+          this.cdr.detectChanges();
+        }
+      }, 8000);
+      
+      this.cdr.detectChanges();
+    }
+  }
+
+  imageCropped(event: any) {
+    console.log('imageCropped event fired', { 
+      hasBase64: !!event.base64, 
+      hasBlob: !!event.blob,
+      hasObjectUrl: !!event.objectUrl 
+    });
+    
+    if (event.base64) {
+      this.croppedImage = event.base64;
+    } else if (event.objectUrl) {
+      // Fallback if base64 is missing but objectUrl is present
+      this.croppedImage = event.objectUrl;
+    }
+    
+    this.isCropperLoading = false;
+    this.cdr.detectChanges();
+  }
+
+  imageLoaded() {
+    this.isCropperLoading = false;
+    this.cdr.detectChanges();
+  }
+
+  cropperReady() {
+    this.isCropperLoading = false;
+    this.cdr.detectChanges();
+  }
+
+  loadImageFailed() {
+    alert('Failed to load image. Please try another file.');
+    this.showCropper = false;
+    this.isCropperLoading = false;
+    this.cdr.detectChanges();
+  }
+
+  cancelCrop() {
+    this.showCropper = false;
+    this.imageChangedEvent = '';
+    this.croppedImage = '';
+    if (this.photoInput) this.photoInput.nativeElement.value = '';
+  }
+
+  confirmCrop() {
+    console.log('--- CROPPING DEBUG START ---');
+    console.log('1. Current croppedImage length:', this.croppedImage?.length || 0);
+    
+    // If we have data, use it
+    if (this.croppedImage) {
+      console.log('2. Image data found, assigning...');
+      this.newPlayer.image = this.croppedImage;
+      this.showCropper = false;
+      this.imageChangedEvent = '';
+      if (this.photoInput) {
+        this.photoInput.nativeElement.value = '';
+      }
+      this.cdr.detectChanges();
+      console.log('3. Success');
+    } else {
+      console.log('2. No data, trying manual component crop...');
+      // Final attempt: trigger manual crop if possible
+      try {
+        const manual = this.cropper.crop();
+        if (manual && manual.base64) {
+          this.newPlayer.image = manual.base64;
+          this.showCropper = false;
+          this.imageChangedEvent = '';
+          if (this.photoInput) this.photoInput.nativeElement.value = '';
+          this.cdr.detectChanges();
+          console.log('3. Manual success');
+          return;
+        }
+      } catch (e) {
+        console.error('Manual crop failed', e);
+      }
+      
+      alert('The cropped image is not ready yet. Please try moving the crop box slightly or wait a second.');
+    }
+    console.log('--- CROPPING DEBUG END ---');
   }
 
   toggleAddTeamForm() {
@@ -195,7 +302,8 @@ export class TournamentDetailComponent implements OnInit {
     private router: Router,
     private tournamentService: TournamentService,
     private authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer
   ) { }
 
   ngOnInit() {

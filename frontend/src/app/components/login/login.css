@@ -26,7 +26,7 @@
 .login-card {
     width: 100%;
     max-width: 480px;
-    padding: 56px;
+    padding: 50px;
     position: relative;
     z-index: 10;
     background: #ffffff;
@@ -157,7 +157,6 @@ label {
 }
 
 .registration-area {
-    margin-top: 40px;
     padding-top: 32px;
     border-top: 1px solid #f1f5f9;
     text-align: center;
