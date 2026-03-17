@@ -203,7 +203,6 @@ export class PlayerListComponent implements OnInit {
       const payload = { ...this.newPlayer };
       // Sanitize payload
       if (!payload.mobileNo) payload.mobileNo = null;
-      if (!payload.dob) payload.dob = null;
       if (!payload.tShirtSize) payload.tShirtSize = null;
       if (!payload.trouserSize) payload.trouserSize = null;
 

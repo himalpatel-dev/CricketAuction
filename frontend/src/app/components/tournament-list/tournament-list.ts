@@ -66,19 +66,26 @@ export class TournamentListComponent implements OnInit {
   calculateStats() {
     this.stats = {
       total: this.tournaments.length,
-      active: this.tournaments.filter(t => t.status === 'ACTIVE').length,
-      upcoming: this.tournaments.filter(t => t.status === 'UPCOMING').length,
-      completed: this.tournaments.filter(t => t.status === 'COMPLETED').length
+      active: this.tournaments.filter(t => t.status && t.status.toUpperCase() === 'ACTIVE').length,
+      upcoming: this.tournaments.filter(t => t.status && t.status.toUpperCase() === 'UPCOMING').length,
+      completed: this.tournaments.filter(t => t.status && t.status.toUpperCase() === 'COMPLETED').length
     };
   }
 
   applyFilters() {
+    const term = (this.searchTerm || '').toLowerCase().trim();
+
     this.filteredTournaments = this.tournaments.filter(t => {
-      const matchesSearch = t.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        (t.location && t.location.toLowerCase().includes(this.searchTerm.toLowerCase()));
-      const matchesTab = this.activeTab === 'All' || t.status === this.activeTab.toUpperCase();
+      const matchesSearch = !term ||
+        t.name.toLowerCase().includes(term) ||
+        (t.location && t.location.toLowerCase().includes(term));
+
+      const matchesTab = this.activeTab === 'All' ||
+        (t.status && t.status.toUpperCase() === this.activeTab.toUpperCase());
+
       return matchesSearch && matchesTab;
     });
+    this.cdr.detectChanges();
   }
 
   setTab(tab: string) {

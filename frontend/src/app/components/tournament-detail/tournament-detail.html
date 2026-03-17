@@ -62,10 +62,13 @@
                             <p class="stat-label">TOTAL SPENT</p>
                             <div class="stat-main">
                                 <span class="stat-unit">₹</span>
-                                <span class="stat-value">{{ formatInUnit(stats.totalSpent, getBestUnit(budgetStats.totalPool)).val }}</span>
-                                <span class="stat-unit">{{ formatInUnit(stats.totalSpent, getBestUnit(budgetStats.totalPool)).unit }}</span>
+                                <span class="stat-value">{{ formatInUnit(stats.totalSpent,
+                                    getBestUnit(budgetStats.totalPool)).val }}</span>
+                                <span class="stat-unit">{{ formatInUnit(stats.totalSpent,
+                                    getBestUnit(budgetStats.totalPool)).unit }}</span>
                             </div>
-                            <p class="stat-sub">of ₹{{ formatAuto(budgetStats.totalPool).val }}{{ formatAuto(budgetStats.totalPool).unit }} cap</p>
+                            <p class="stat-sub">of ₹{{ formatAuto(budgetStats.totalPool).val }}{{
+                                formatAuto(budgetStats.totalPool).unit }} cap</p>
                         </div>
 
                         <div class="stat-divider"></div>
@@ -171,7 +174,8 @@
                             <!-- Top Content Section -->
                             <div class="node-content top">
                                 <ng-container *ngIf="item.position === 'top'">
-                                    <div class="status-top" *ngIf="item.type !== 'tournament' && item.type !== 'tournament-end'">
+                                    <div class="status-top"
+                                        *ngIf="item.type !== 'tournament' && item.type !== 'tournament-end'">
                                         <span class="status-badge">{{ item.status }}</span>
                                     </div>
                                     <div class="node-info">
@@ -201,7 +205,8 @@
                                             <span class="node-date">{{ item.date }}</span>
                                         </div>
                                     </div>
-                                    <div class="status-bottom" *ngIf="item.type !== 'tournament' && item.type !== 'tournament-end'">
+                                    <div class="status-bottom"
+                                        *ngIf="item.type !== 'tournament' && item.type !== 'tournament-end'">
                                         <span class="status-badge">{{ item.status }}</span>
                                     </div>
                                 </ng-container>
@@ -372,7 +377,8 @@
                         @if (!showAddTeamForm) {
                         <div class="search-box">
                             <i class="search-icon">🔍</i>
-                            <input type="text" placeholder="Search teams..." [(ngModel)]="searchTerm" (input)="onSearch()">
+                            <input type="text" placeholder="Search teams..." [(ngModel)]="searchTerm"
+                                (input)="onSearch()">
                         </div>
                         }
                         <button class="btn btn-primary" (click)="toggleAddTeamForm()">
@@ -418,7 +424,8 @@
                             <div class="form-group full">
                                 <label>Budget (₹)</label>
                                 <div class="calculated-value-small">
-                                    ₹{{ (tournament.playersPerTeam * tournament.minimumPlayerBasePrice * tournament.competitionFactor) | number }}
+                                    ₹{{ (tournament.playersPerTeam * tournament.minimumPlayerBasePrice *
+                                    tournament.competitionFactor) | number }}
                                 </div>
                                 <p class="input-hint">Automatically calculated based on tournament settings.</p>
                             </div>
@@ -462,8 +469,8 @@
                 @if (!showAddPlayerForm) {
                 <div class="players-grid">
                     @for (player of filteredPlayers; track player.id) {
-                    <app-player-card [player]="player" [tournament]="tournament" [index]="$index"
-                        [canEdit]="true" (onEdit)="onEditPlayer($event)"></app-player-card>
+                    <app-player-card [player]="player" [tournament]="tournament" [index]="$index" [canEdit]="true"
+                        (onEdit)="onEditPlayer($event)"></app-player-card>
                     }
                 </div>
                 } @else {
@@ -471,7 +478,8 @@
                 <div class="settings-card">
                     <div class="settings-header">
                         <h2>{{ editingPlayerId ? 'Edit Player' : 'Register New Player' }}</h2>
-                        <p>{{ editingPlayerId ? 'Update details for ' + newPlayer.name : 'Manually add a player to ' + tournament?.name }}</p>
+                        <p>{{ editingPlayerId ? 'Update details for ' + newPlayer.name : 'Manually add a player to ' +
+                            tournament?.name }}</p>
                     </div>
 
                     <form (ngSubmit)="submitAddPlayer()" #playerForm="ngForm">
@@ -485,7 +493,8 @@
                             </div>
                             <div class="upload-controls">
                                 <label for="playerPhoto" class="btn btn-outline small">Upload Photo</label>
-                                <input type="file" id="playerPhoto" #photoInput hidden (change)="onPlayerPhotoSelected($event)" accept="image/*">
+                                <input type="file" id="playerPhoto" #photoInput hidden
+                                    (change)="onPlayerPhotoSelected($event)" accept="image/*">
                                 <p class="input-hint">JPG, PNG or WEBP (Max 2MB)</p>
                             </div>
 
@@ -501,23 +510,17 @@
                                             <div class="spinner"></div>
                                             <p>{{ croppedImage ? 'Finalizing...' : 'Loading Image...' }}</p>
                                         </div>
-                                        <image-cropper
-                                            [imageChangedEvent]="imageChangedEvent"
-                                            [maintainAspectRatio]="true"
-                                            [aspectRatio]="1 / 1"
-                                            [resizeToWidth]="400"
-                                            [autoCrop]="true"
-                                            [onlyScaleDown]="true"
-                                            format="webp"
-                                            (imageCropped)="imageCropped($event)"
-                                            (imageLoaded)="imageLoaded()"
+                                        <image-cropper [imageChangedEvent]="imageChangedEvent"
+                                            [maintainAspectRatio]="true" [aspectRatio]="1 / 1" [resizeToWidth]="400"
+                                            [autoCrop]="true" [onlyScaleDown]="true" format="webp"
+                                            (imageCropped)="imageCropped($event)" (imageLoaded)="imageLoaded()"
                                             (cropperReady)="cropperReady()"
-                                            (loadImageFailed)="loadImageFailed()"
-                                        ></image-cropper>
+                                            (loadImageFailed)="loadImageFailed()"></image-cropper>
                                     </div>
                                     <div class="cropper-actions">
                                         <button type="button" class="btn-cancel" (click)="cancelCrop()">Cancel</button>
-                                        <button type="button" class="btn btn-primary" (click)="confirmCrop()" [disabled]="isCropperLoading && !croppedImage">
+                                        <button type="button" class="btn btn-primary" (click)="confirmCrop()"
+                                            [disabled]="isCropperLoading && !croppedImage">
                                             Apply Crop
                                         </button>
                                     </div>
@@ -551,8 +554,8 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Date of Birth</label>
-                                <input type="date" [(ngModel)]="newPlayer.dob" name="dob">
+                                <label>Date of Birth *</label>
+                                <input type="date" [(ngModel)]="newPlayer.dob" name="dob" required>
                             </div>
 
                             <div class="form-group">
@@ -578,11 +581,13 @@
                         </div>
 
                         <div class="settings-actions">
-                            <button type="button" class="btn-cancel" (click)="toggleAddPlayerForm()" [disabled]="saving">
+                            <button type="button" class="btn-cancel" (click)="toggleAddPlayerForm()"
+                                [disabled]="saving">
                                 Cancel
                             </button>
                             <button type="submit" class="btn btn-primary" [disabled]="!playerForm.valid || saving">
-                                {{ saving ? (editingPlayerId ? 'Updating...' : 'Registering...') : (editingPlayerId ? 'Update Player' : 'Register Player') }}
+                                {{ saving ? (editingPlayerId ? 'Updating...' : 'Registering...') : (editingPlayerId ?
+                                'Update Player' : 'Register Player') }}
                             </button>
                         </div>
                     </form>
@@ -773,17 +778,20 @@
 
                             <div class="form-group">
                                 <label>Players Per Team</label>
-                                <input type="number" [(ngModel)]="tournament.playersPerTeam" name="playersPerTeam" (ngModelChange)="onBudgetParamChange()">
+                                <input type="number" [(ngModel)]="tournament.playersPerTeam" name="playersPerTeam"
+                                    (ngModelChange)="onBudgetParamChange()">
                             </div>
 
                             <div class="form-group">
                                 <label>Min. Player Base Price (₹)</label>
-                                <input type="number" [(ngModel)]="tournament.minimumPlayerBasePrice" name="minimumPlayerBasePrice" (ngModelChange)="onBudgetParamChange()">
+                                <input type="number" [(ngModel)]="tournament.minimumPlayerBasePrice"
+                                    name="minimumPlayerBasePrice" (ngModelChange)="onBudgetParamChange()">
                             </div>
 
                             <div class="form-group">
                                 <label>Competition Factor</label>
-                                <input type="number" step="0.1" [(ngModel)]="tournament.competitionFactor" name="competitionFactor" (ngModelChange)="onBudgetParamChange()">
+                                <input type="number" step="0.1" [(ngModel)]="tournament.competitionFactor"
+                                    name="competitionFactor" (ngModelChange)="onBudgetParamChange()">
                             </div>
 
                             <div class="form-group full">
@@ -791,7 +799,8 @@
                                 <div class="calculated-value-small">
                                     ₹{{ getProjectedBudget() | number }}
                                 </div>
-                                <p class="input-hint">Formula: Players × Base Price × Factor. Changing these will update all teams.</p>
+                                <p class="input-hint">Formula: Players × Base Price × Factor. Changing these will update
+                                    all teams.</p>
                             </div>
 
                             <div class="form-group">
