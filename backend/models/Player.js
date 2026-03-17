@@ -46,7 +46,7 @@ const Player = sequelize.define('Player', {
     },
     dob: {
         type: DataTypes.DATEONLY,
-        allowNull: true,
+        allowNull: false,
     },
     gender: {
         type: DataTypes.ENUM('Male', 'Female', 'Other'),

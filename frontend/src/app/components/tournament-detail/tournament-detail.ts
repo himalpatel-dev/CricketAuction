@@ -59,7 +59,7 @@ export class TournamentDetailComponent implements OnInit {
   croppedImage: any = '';
   showCropper = false;
   isCropperLoading = false;
-  
+
   @ViewChild(ImageCropperComponent) cropper!: ImageCropperComponent;
 
   get playerImageUrl(): any {
@@ -75,8 +75,8 @@ export class TournamentDetailComponent implements OnInit {
       this.isCropperLoading = true;
       this.imageChangedEvent = event;
       this.showCropper = true;
-      this.croppedImage = ''; 
-      
+      this.croppedImage = '';
+
       // Safety timeout: if cropper doesn't respond in 8 seconds, clear loading
       setTimeout(() => {
         if (this.isCropperLoading) {
@@ -84,25 +84,25 @@ export class TournamentDetailComponent implements OnInit {
           this.cdr.detectChanges();
         }
       }, 8000);
-      
+
       this.cdr.detectChanges();
     }
   }
 
   imageCropped(event: any) {
-    console.log('imageCropped event fired', { 
-      hasBase64: !!event.base64, 
+    console.log('imageCropped event fired', {
+      hasBase64: !!event.base64,
       hasBlob: !!event.blob,
-      hasObjectUrl: !!event.objectUrl 
+      hasObjectUrl: !!event.objectUrl
     });
-    
+
     if (event.base64) {
       this.croppedImage = event.base64;
     } else if (event.objectUrl) {
       // Fallback if base64 is missing but objectUrl is present
       this.croppedImage = event.objectUrl;
     }
-    
+
     this.isCropperLoading = false;
     this.cdr.detectChanges();
   }
@@ -134,7 +134,7 @@ export class TournamentDetailComponent implements OnInit {
   confirmCrop() {
     console.log('--- CROPPING DEBUG START ---');
     console.log('1. Current croppedImage length:', this.croppedImage?.length || 0);
-    
+
     // If we have data, use it
     if (this.croppedImage) {
       console.log('2. Image data found, assigning...');
@@ -163,7 +163,7 @@ export class TournamentDetailComponent implements OnInit {
       } catch (e) {
         console.error('Manual crop failed', e);
       }
-      
+
       alert('The cropped image is not ready yet. Please try moving the crop box slightly or wait a second.');
     }
     console.log('--- CROPPING DEBUG END ---');
@@ -246,7 +246,7 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   async submitAddPlayer() {
-    if (!this.newPlayer.name || !this.newPlayer.role || this.saving) return;
+    if (!this.newPlayer.name || !this.newPlayer.role || !this.newPlayer.dob || this.saving) return;
 
     this.saving = true;
     try {

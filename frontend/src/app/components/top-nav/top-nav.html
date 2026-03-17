@@ -5,14 +5,14 @@
                 <span class="logo-icon">🏏</span>
                 <span class="logo-text">CrioBid</span>
             </div>
-            <div class="nav-links">
+            <div class="nav-links" *ngIf="isAdmin">
                 <a routerLink="/admin" routerLinkActive="active" class="nav-link">Dashboard</a>
                 <a routerLink="/tournaments" routerLinkActive="active" class="nav-link">Tournaments</a>
             </div>
         </div>
         <div class="nav-user">
             <div class="user-pill">
-                <div class="avatar-sm">AD</div>
+                <div class="avatar-sm">{{ userInitials }}</div>
                 <p class="user-name">{{ adminName }}</p>
                 <button (click)="logout()" class="logout-btn" title="Logout">🚪</button>
             </div>

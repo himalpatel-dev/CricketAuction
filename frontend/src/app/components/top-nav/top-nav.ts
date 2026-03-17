@@ -12,6 +12,8 @@ import { AuthService } from '../../services/auth.service';
 })
 export class TopNavComponent implements OnInit {
     adminName: string = 'Admin';
+    isAdmin: boolean = false;
+    userInitials: string = 'AD';
 
     constructor(
         private authService: AuthService,
@@ -19,9 +21,11 @@ export class TopNavComponent implements OnInit {
     ) { }
 
     ngOnInit() {
-        const user = this.authService.getCurrentUser();
+        const user = this.authService.getUser();
         if (user) {
-            this.adminName = user.name || 'Admin';
+            this.adminName = user.username || 'Admin';
+            this.isAdmin = user.role === 'ADMIN';
+            this.userInitials = this.adminName.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2);
         }
     }
 

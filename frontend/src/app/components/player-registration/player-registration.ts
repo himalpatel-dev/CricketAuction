@@ -66,8 +66,8 @@ export class PlayerRegistrationComponent {
       this.isCropperLoading = true;
       this.imageChangedEvent = event;
       this.showCropper = true;
-      this.croppedImage = ''; 
-      
+      this.croppedImage = '';
+
       // Safety timeout
       setTimeout(() => {
         if (this.isCropperLoading) {
@@ -75,7 +75,7 @@ export class PlayerRegistrationComponent {
           this.cdr.detectChanges();
         }
       }, 8000);
-      
+
       this.cdr.detectChanges();
     }
   }
@@ -169,6 +169,12 @@ export class PlayerRegistrationComponent {
 
     if (!this.selectedTournamentId) {
       this.message = 'Please select a tournament.';
+      this.loading = false;
+      return;
+    }
+
+    if (!this.player.name || !this.player.dob || !this.player.mobileNo) {
+      this.message = 'Please fill in all required fields (Name, Mobile No, Date of Birth).';
       this.loading = false;
       return;
     }
