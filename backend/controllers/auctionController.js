@@ -104,6 +104,23 @@ exports.placeBid = async (req, res) => {
         const team = await Team.findByPk(teamId);
         if (!team) return res.status(404).json({ message: 'Team not found' });
 
+        // Calculate MaxAllowedBid
+        const tournament = await Tournament.findByPk(tournamentId);
+        if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+
+        const remainingSlots = tournament.playersPerTeam - (team.playersBought || 0);
+        
+        // Ensure team can afford remaining slots at base price
+        const reserveAmount = (remainingSlots - 1) * tournament.minimumPlayerBasePrice;
+        const maxAllowedBid = team.remainingBudget - reserveAmount;
+
+        if (amount > maxAllowedBid) {
+            return res.status(100).json({ 
+                message: `Bid exceeds maximum allowed bid for this team. Max Allowed: ${maxAllowedBid}`,
+                maxAllowedBid 
+            });
+        }
+
         const newBid = await Bid.create({
             playerId,
             teamId,
@@ -147,7 +164,9 @@ exports.sellPlayer = async (req, res) => {
         await player.save();
 
         const team = finalBid.team;
+        team.spentAmount += finalBid.amount;
         team.remainingBudget -= finalBid.amount;
+        team.playersBought += 1;
         await team.save();
 
         req.io.to(`tournament_${tournamentId}`).emit('player_sold', {
@@ -171,7 +190,19 @@ exports.markUnsold = async (req, res) => {
         const player = await Player.findByPk(playerId);
         if (!player) return res.status(404).json({ message: 'Player not found' });
 
+        if (player.status === 'SOLD' && player.soldTo) {
+            const team = await Team.findByPk(player.soldTo);
+            if (team) {
+                team.spentAmount -= player.soldPrice;
+                team.remainingBudget += player.soldPrice;
+                team.playersBought -= 1;
+                await team.save();
+            }
+        }
+
         player.status = 'UNSOLD';
+        player.soldPrice = 0;
+        player.soldTo = null;
         await player.save();
 
         req.io.to(`tournament_${tournamentId}`).emit('player_unsold', {

@@ -66,6 +66,22 @@ const Player = sequelize.define('Player', {
     },
 }, {
     timestamps: true,
+    hooks: {
+        beforeCreate: async (player) => {
+            if (player.tournamentId) {
+                const Tournament = sequelize.models.Tournament;
+                const tournament = await Tournament.findByPk(player.tournamentId, { attributes: ['minimumPlayerBasePrice'] });
+                if (tournament) player.basePrice = tournament.minimumPlayerBasePrice;
+            }
+        },
+        beforeUpdate: async (player) => {
+            if (player.changed('tournamentId') || player.changed('basePrice')) {
+                const Tournament = sequelize.models.Tournament;
+                const tournament = await Tournament.findByPk(player.tournamentId, { attributes: ['minimumPlayerBasePrice'] });
+                if (tournament) player.basePrice = tournament.minimumPlayerBasePrice;
+            }
+        }
+    }
 });
 
 module.exports = Player;

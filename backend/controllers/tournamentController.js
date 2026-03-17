@@ -1,4 +1,4 @@
-const { Tournament, Team, Player } = require('../models');
+const { Tournament, Team, Player, sequelize } = require('../models');
 
 exports.createTournament = async (req, res) => {
     try {
@@ -50,7 +50,69 @@ exports.updateTournament = async (req, res) => {
     try {
         const tournament = await Tournament.findByPk(req.params.id);
         if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
-        await tournament.update(req.body);
+        
+        const { playersPerTeam, minimumPlayerBasePrice, competitionFactor } = req.body;
+
+        await sequelize.transaction(async (t) => {
+            await tournament.update(req.body, { transaction: t });
+            
+            // Reload inside transaction to ensure we have the absolute latest data from DB
+            await tournament.reload({ transaction: t });
+
+            // Check if any of the three key fields were provided in the request
+            const hasBudgetChanges = 
+                playersPerTeam !== undefined || 
+                minimumPlayerBasePrice !== undefined || 
+                competitionFactor !== undefined;
+
+            if (hasBudgetChanges) {
+                console.log(`[RECALC] Change detected. Params: P:${playersPerTeam}, M:${minimumPlayerBasePrice}, C:${competitionFactor}`);
+                const pPT = parseInt(tournament.playersPerTeam) || 0;
+                const mPBP = parseFloat(tournament.minimumPlayerBasePrice) || 0;
+                const cF = parseFloat(tournament.competitionFactor) || 0;
+                
+                const newBudget = Math.round(pPT * mPBP * cF);
+                
+                console.log(`[RECALC] Recalculating with: ${pPT} * ${mPBP} * ${cF} = ${newBudget}`);
+
+                if (newBudget > 0) {
+                    const teams = await Team.findAll({ where: { tournamentId: tournament.id }, transaction: t });
+                    
+                    // Also update tournament totalAmount for display consistency
+                    tournament.totalAmount = newBudget * teams.length;
+                    await tournament.save({ transaction: t });
+
+                    for (const team of teams) {
+                        team.budget = newBudget;
+                        team.remainingBudget = newBudget - (team.spentAmount || 0);
+                        await team.save({ transaction: t });
+                    }
+
+                    // If base price changed, update all upcoming players in this tournament
+                    if (minimumPlayerBasePrice !== undefined) {
+                        await Player.update(
+                            { basePrice: mPBP },
+                            { 
+                                where: { 
+                                    tournamentId: tournament.id,
+                                    status: 'UPCOMING' // Only update those not yet sold
+                                },
+                                transaction: t 
+                            }
+                        );
+                        console.log(`[RECALC] Updated basePrice for all upcoming players to ${mPBP}`);
+                    }
+
+                    console.log(`[RECALC] Successfully updated ${teams.length} teams.`);
+                } else {
+                    console.warn(`[RECALC] Budget calculated as 0 or NaN, skipping team updates.`);
+                }
+            }
+        });
+
+        // Final reload after transaction commit for the response
+        await tournament.reload();
+
         res.json(tournament);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -60,14 +122,19 @@ exports.updateTournament = async (req, res) => {
 exports.addTeam = async (req, res) => {
     try {
         const { id } = req.params;
-        const teamData = { ...req.body, tournamentId: id };
-        
-        // Ensure remainingBudget is initialized with the total budget
-        if (req.body.budget) {
-            teamData.remainingBudget = req.body.budget;
-        } else {
-            teamData.remainingBudget = 10000000; // Match model default
-        }
+        const tournament = await Tournament.findByPk(id);
+        if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+
+        const calculatedBudget = tournament.playersPerTeam * tournament.minimumPlayerBasePrice * tournament.competitionFactor;
+
+        const teamData = { 
+            ...req.body, 
+            tournamentId: id,
+            budget: calculatedBudget,
+            remainingBudget: calculatedBudget,
+            spentAmount: 0,
+            playersBought: 0
+        };
 
         const team = await Team.create(teamData);
         res.status(201).json(team);
@@ -79,9 +146,14 @@ exports.addTeam = async (req, res) => {
 exports.addPlayer = async (req, res) => {
     try {
         const { id } = req.params;
-        const player = await Player.create({ ...req.body, tournamentId: id });
+        const player = await Player.create({ 
+            ...req.body, 
+            tournamentId: id,
+            status: 'UPCOMING'
+        });
         res.status(201).json(player);
     } catch (error) {
+        console.error('addPlayer Error:', error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -90,31 +162,12 @@ const { Op } = require('sequelize');
 
 exports.registerPlayer = async (req, res) => {
     try {
-        let tournamentId = req.body.tournamentId;
-        let basePrice = 200000; // Default fallback
-
-        if (tournamentId) {
-            const tournament = await Tournament.findByPk(tournamentId);
-            if (tournament) {
-                basePrice = tournament.baseAuctionPrice;
-            } else {
-                return res.status(404).json({ message: "Selected tournament not found" });
-            }
-        } else {
-            // Fallback to latest if no ID provided (legacy support)
-            const latestTournament = await Tournament.findOne({
-                order: [['createdAt', 'DESC']]
-            });
-            if (latestTournament) {
-                tournamentId = latestTournament.id;
-                basePrice = latestTournament.baseAuctionPrice;
-            }
-        }
+        const tournamentId = req.body.tournamentId;
+        if (!tournamentId) return res.status(400).json({ message: "Tournament ID required" });
 
         const player = await Player.create({
             ...req.body,
             tournamentId: tournamentId,
-            basePrice: basePrice, // Ensure correct base price from tournament
             status: 'UPCOMING'
         });
 
@@ -201,12 +254,10 @@ exports.uploadPlayers = async (req, res) => {
         };
 
         const players = data.map(row => {
-            // Map excel columns to DB fields loosely matching names
             return {
                 name: row['Name'] || row['name'] || row['Full Name'],
-                role: row['Role'] || row['role'] || 'Batsman', // Default if missing
+                role: row['Role'] || row['role'] || 'Batsman',
                 mobileNo: row['Mobile'] || row['mobile'] || row['Mobile No'] || null,
-                basePrice: tournament.baseAuctionPrice, // Enforce tournament base price
                 tournamentId: id,
                 status: 'UPCOMING',
                 gender: row['Gender'] || row['gender'] || 'Male',
@@ -214,7 +265,7 @@ exports.uploadPlayers = async (req, res) => {
                 tShirtSize: row['T-Shirt'] || row['tshirt'] || null,
                 trouserSize: row['Trouser'] || row['trouser'] || null
             };
-        }).filter(p => p.name); // Basic validation: must have name
+        }).filter(p => p.name);
 
         if (players.length === 0) {
             return res.status(400).json({ message: 'No valid players found in file' });
@@ -242,7 +293,7 @@ exports.getDashboardRosters = async (req, res) => {
                 {
                     model: Tournament,
                     as: 'tournament',
-                    attributes: ['id', 'name']
+                    attributes: ['id', 'name', 'playersPerTeam']
                 }
             ]
         });
@@ -268,7 +319,7 @@ exports.getDashboardRosters = async (req, res) => {
                 name: team.name,
                 code: team.code,
                 slotsFilled: players.length,
-                totalSlots: 11, // Standard cricket
+                totalSlots: team.tournament ? team.tournament.playersPerTeam : 15,
                 roles: roleCount,
                 tournamentName: team.tournament ? team.tournament.name : 'Unknown'
             };

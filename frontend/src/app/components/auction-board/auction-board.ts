@@ -181,6 +181,13 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     const nextBid = (this.auctionState.currentBid || this.auctionState.currentPlayer.basePrice) + this.currentIncrement;
     const team = this.tournament.teams.find((t: any) => t.id === teamId);
 
+    // Frontend Check
+    const maxAllowed = this.getMaxAllowedBid(teamId);
+    if (nextBid > maxAllowed) {
+        alert(`Bid exceeds maximum allowed bid for this team. \nMax Allowed: ₹${this.formatPrice(maxAllowed)} \n(Reserved for squad completion)`);
+        return;
+    }
+
     try {
       // 1. Call API
       await this.auctionService.placeBid(this.tournamentId, this.auctionState.currentPlayer.id, nextBid, teamId);
@@ -232,11 +239,39 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     return team ? team.remainingBudget : 0;
   }
 
+  getRemainingSlots(teamId: number): number {
+    const team = this.tournament?.teams?.find((t: any) => t.id === teamId);
+    if (!this.tournament || !team) return 0;
+    return this.tournament.playersPerTeam - (team.playersBought || 0);
+  }
+
+  getMaxAllowedBid(teamId: number): number {
+    const team = this.tournament?.teams?.find((t: any) => t.id === teamId);
+    if (!this.tournament || !team) return 0;
+    
+    // RemainingSlots * MinimumPlayerBasePrice is our reserve amount
+    // But one slot is the one we are bidding for right now!
+    const remainingSlots = this.getRemainingSlots(teamId);
+    const reserveAmount = (remainingSlots - 1) * this.tournament.minimumPlayerBasePrice;
+    
+    return team.remainingBudget - reserveAmount;
+  }
+
   formatPrice(amount: number) {
-    if (!amount) return '0';
-    if (amount >= 10000000) return (amount / 10000000).toFixed(2) + ' Cr';
-    if (amount >= 100000) return (amount / 100000).toFixed(2) + ' L';
-    return amount.toLocaleString();
+    if (!amount && amount !== 0) return '0';
+    if (amount >= 10000000) {
+      const cr = amount / 10000000;
+      return (cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(2)) + 'Cr';
+    }
+    if (amount >= 100000) {
+      const l = amount / 100000;
+      return (l % 1 === 0 ? l.toFixed(0) : l.toFixed(1)) + 'L';
+    }
+    if (amount >= 1000) {
+      const k = amount / 1000;
+      return (k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)) + 'K';
+    }
+    return amount.toLocaleString('en-IN');
   }
 
   logout() {

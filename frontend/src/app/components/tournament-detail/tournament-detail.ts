@@ -36,7 +36,6 @@ export class TournamentDetailComponent implements OnInit {
   newTeam = {
     name: '',
     code: '',
-    budget: 10000000,
     ownerName: '',
     logoUrl: ''
   };
@@ -178,7 +177,6 @@ export class TournamentDetailComponent implements OnInit {
       this.newTeam = {
         name: '',
         code: '',
-        budget: this.tournament?.totalAmount / 10 || 10000000,
         ownerName: '',
         logoUrl: ''
       };
@@ -195,7 +193,6 @@ export class TournamentDetailComponent implements OnInit {
       this.newPlayer = {
         name: '',
         role: 'Batsman',
-        basePrice: this.tournament?.baseAuctionPrice || 0,
         mobileNo: '',
         dob: '',
         gender: 'Male',
@@ -213,7 +210,6 @@ export class TournamentDetailComponent implements OnInit {
     this.newPlayer = {
       name: player.name,
       role: player.role,
-      basePrice: player.basePrice,
       mobileNo: player.mobileNo || '',
       dob: player.dob || '',
       gender: player.gender || 'Male',
@@ -522,19 +518,14 @@ export class TournamentDetailComponent implements OnInit {
       const cr = value / 10000000;
       return cr % 1 === 0 ? cr.toFixed(0) + 'Cr' : cr.toFixed(2) + 'Cr';
     } else if (value >= 100000) {
-      return (value / 100000).toFixed(0) + 'L';
+      const l = value / 100000;
+      return l % 1 === 0 ? l.toFixed(0) + 'L' : l.toFixed(1) + 'L';
+    } else if (value >= 1000) {
+      const k = value / 1000;
+      return k % 1 === 0 ? k.toFixed(0) + 'K' : k.toFixed(1) + 'K';
     } else {
       return value.toLocaleString('en-IN');
     }
-  }
-
-  formatInCr(value: number): { val: string, unit: string } {
-    if (!value) return { val: '0', unit: 'Cr' };
-    const cr = value / 10000000;
-    return {
-      val: cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(1),
-      unit: 'Cr'
-    };
   }
 
   formatInL(value: number): { val: string, unit: string } {
@@ -544,6 +535,37 @@ export class TournamentDetailComponent implements OnInit {
       val: l % 1 === 0 ? l.toFixed(0) : l.toFixed(1),
       unit: 'L'
     };
+  }
+
+  getBestUnit(value: number): string {
+    if (value >= 10000000) return 'Cr';
+    if (value >= 100000) return 'L';
+    if (value >= 1000) return 'K';
+    return '';
+  }
+
+  formatInUnit(value: number, unit: string): { val: string, unit: string } {
+    if (!value && value !== 0) return { val: '0', unit };
+    
+    let valStr = '0';
+    if (unit === 'Cr') {
+      const cr = value / 10000000;
+      valStr = cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(2);
+    } else if (unit === 'L') {
+      const l = value / 100000;
+      valStr = l % 1 === 0 ? l.toFixed(0) : l.toFixed(1);
+    } else if (unit === 'K') {
+      const k = value / 1000;
+      valStr = k % 1 === 0 ? k.toFixed(0) : k.toFixed(1);
+    } else {
+      valStr = value.toLocaleString('en-IN');
+    }
+    return { val: valStr, unit };
+  }
+
+  formatAuto(value: number): { val: string, unit: string } {
+    const unit = this.getBestUnit(value);
+    return this.formatInUnit(value, unit);
   }
 
   async updateTournamentDetails() {
@@ -582,6 +604,19 @@ export class TournamentDetailComponent implements OnInit {
     }
 
     this.tournament.status = status;
+  }
+
+  getProjectedBudget(): number {
+    if (!this.tournament) return 0;
+    const p = Number(this.tournament.playersPerTeam || 0);
+    const m = Number(this.tournament.minimumPlayerBasePrice || 0);
+    const c = Number(this.tournament.competitionFactor || 0);
+    const budget = Math.round(p * m * c);
+    return isNaN(budget) ? 0 : budget;
+  }
+
+  onBudgetParamChange() {
+    this.cdr.detectChanges();
   }
 
   private formatDateLabel(date: Date | null) {

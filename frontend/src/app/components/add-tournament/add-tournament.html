@@ -137,28 +137,38 @@
                         <div class="section-title">💰 Auction Financials</div>
 
                         <div class="form-group">
-                            <label>Total Budget Pool (INR)</label>
-                            <input type="number" name="totalAmount" [(ngModel)]="tournamentData.totalAmount"
-                                placeholder="e.g. 100000000" required>
-                            <span class="input-hint">Total budget available across all teams.</span>
+                            <label>Players Per Team</label>
+                            <input type="number" name="playersPerTeam" [(ngModel)]="tournamentData.playersPerTeam"
+                                placeholder="e.g. 15" required>
+                            <span class="input-hint">Required number of players in each team squad.</span>
                         </div>
 
                         <div class="form-group">
-                            <label>Base Auction Price (INR)</label>
-                            <input type="number" name="baseAuctionPrice" [(ngModel)]="tournamentData.baseAuctionPrice"
-                                placeholder="e.g. 200000" required>
+                            <label>Minimum Player Base Price (INR)</label>
+                            <input type="number" name="minimumPlayerBasePrice" [(ngModel)]="tournamentData.minimumPlayerBasePrice"
+                                placeholder="e.g. 500000" required>
+                            <span class="input-hint">Uniform base price for all players in this tournament.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Competition Factor</label>
+                            <input type="number" step="0.1" name="competitionFactor" [(ngModel)]="tournamentData.competitionFactor"
+                                placeholder="e.g. 1.5" required>
+                            <span class="input-hint">Multiplier to ensure competitive bidding (e.g., 1.5).</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Calculated Team Budget (INR)</label>
+                            <div class="calculated-value">
+                                ₹{{ getProjectedBudget() | number }}
+                            </div>
+                            <span class="input-hint">Formula: Players × Base Price × Factor</span>
                         </div>
 
                         <div class="form-group">
                             <label>Total Players to Auction</label>
                             <input type="number" name="totalPlayers" [(ngModel)]="tournamentData.totalPlayers"
                                 placeholder="e.g. 120" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Min. Player Reserved (Reserved Price)</label>
-                            <input type="number" name="playerReservedAmount"
-                                [(ngModel)]="tournamentData.playerReservedAmount" placeholder="e.g. 100000" required>
                         </div>
 
                         <!-- Section: Scheduling -->

@@ -86,14 +86,6 @@ const Tournament = sequelize.define('Tournament', {
         type: DataTypes.FLOAT,
         defaultValue: 100000000, // 10 Cr default
     },
-    playerReservedAmount: {
-        type: DataTypes.FLOAT,
-        defaultValue: 1000000,
-    },
-    baseAuctionPrice: {
-        type: DataTypes.FLOAT,
-        defaultValue: 500000,
-    },
     format: {
         type: DataTypes.STRING,
         defaultValue: 'T20',
@@ -105,6 +97,18 @@ const Tournament = sequelize.define('Tournament', {
     category: {
         type: DataTypes.STRING,
         defaultValue: 'T20 League',
+    },
+    playersPerTeam: {
+        type: DataTypes.INTEGER,
+        defaultValue: 15,
+    },
+    minimumPlayerBasePrice: {
+        type: DataTypes.FLOAT,
+        defaultValue: 500000,
+    },
+    competitionFactor: {
+        type: DataTypes.FLOAT,
+        defaultValue: 5,
     }
 }, {
     timestamps: true,

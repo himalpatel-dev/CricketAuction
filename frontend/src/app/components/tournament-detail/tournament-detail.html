@@ -62,10 +62,10 @@
                             <p class="stat-label">TOTAL SPENT</p>
                             <div class="stat-main">
                                 <span class="stat-unit">₹</span>
-                                <span class="stat-value">{{ formatInCr(stats.totalSpent).val }}</span>
-                                <span class="stat-unit">Cr</span>
+                                <span class="stat-value">{{ formatInUnit(stats.totalSpent, getBestUnit(budgetStats.totalPool)).val }}</span>
+                                <span class="stat-unit">{{ formatInUnit(stats.totalSpent, getBestUnit(budgetStats.totalPool)).unit }}</span>
                             </div>
-                            <p class="stat-sub">of ₹{{ formatInCr(tournament.totalAmount || 300000000).val }}Cr cap</p>
+                            <p class="stat-sub">of ₹{{ formatAuto(budgetStats.totalPool).val }}{{ formatAuto(budgetStats.totalPool).unit }} cap</p>
                         </div>
 
                         <div class="stat-divider"></div>
@@ -94,8 +94,8 @@
                             <p class="stat-label">AVG. SOLD PRICE</p>
                             <div class="stat-main">
                                 <span class="stat-unit">₹</span>
-                                <span class="stat-value">{{ formatInL(stats.avgSoldPrice).val }}</span>
-                                <span class="stat-unit">L</span>
+                                <span class="stat-value">{{ formatAuto(stats.avgSoldPrice).val }}</span>
+                                <span class="stat-unit">{{ formatAuto(stats.avgSoldPrice).unit }}</span>
                             </div>
                             <p class="stat-sub">per player</p>
                         </div>
@@ -415,11 +415,12 @@
                                     placeholder="e.g. Ambani">
                             </div>
 
-                            <div class="form-group">
-                                <label>Budget (₹) *</label>
-                                <input type="number" [(ngModel)]="newTeam.budget" name="teamBudget" required
-                                    placeholder="e.g. 100000000">
-                                <p class="input-hint">Suggested: ₹{{ formatCurrency(tournament?.totalAmount / 10) }} (10% of total pool)</p>
+                            <div class="form-group full">
+                                <label>Budget (₹)</label>
+                                <div class="calculated-value-small">
+                                    ₹{{ (tournament.playersPerTeam * tournament.minimumPlayerBasePrice * tournament.competitionFactor) | number }}
+                                </div>
+                                <p class="input-hint">Automatically calculated based on tournament settings.</p>
                             </div>
 
                             <div class="form-group full">
@@ -541,11 +542,7 @@
                                 </select>
                             </div>
 
-                            <div class="form-group">
-                                <label>Base Price (₹) *</label>
-                                <input type="number" [(ngModel)]="newPlayer.basePrice" name="basePrice" required>
-                                <p class="input-hint">Default: ₹{{ formatCurrency(tournament?.baseAuctionPrice) }}</p>
-                            </div>
+                            <!-- Individual base price removed - managed centrally by Tournament Settings -->
 
                             <div class="form-group">
                                 <label>Mobile Number</label>
@@ -775,13 +772,26 @@
 
 
                             <div class="form-group">
-                                <label>Total Budget Pool (₹)</label>
-                                <input type="number" [(ngModel)]="tournament.totalAmount" name="totalAmount">
+                                <label>Players Per Team</label>
+                                <input type="number" [(ngModel)]="tournament.playersPerTeam" name="playersPerTeam" (ngModelChange)="onBudgetParamChange()">
                             </div>
 
                             <div class="form-group">
-                                <label>Base Auction Price (₹)</label>
-                                <input type="number" [(ngModel)]="tournament.baseAuctionPrice" name="baseAuctionPrice">
+                                <label>Min. Player Base Price (₹)</label>
+                                <input type="number" [(ngModel)]="tournament.minimumPlayerBasePrice" name="minimumPlayerBasePrice" (ngModelChange)="onBudgetParamChange()">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Competition Factor</label>
+                                <input type="number" step="0.1" [(ngModel)]="tournament.competitionFactor" name="competitionFactor" (ngModelChange)="onBudgetParamChange()">
+                            </div>
+
+                            <div class="form-group full">
+                                <label>Calculated Team Budget (₹)</label>
+                                <div class="calculated-value-small">
+                                    ₹{{ getProjectedBudget() | number }}
+                                </div>
+                                <p class="input-hint">Formula: Players × Base Price × Factor. Changing these will update all teams.</p>
                             </div>
 
                             <div class="form-group">

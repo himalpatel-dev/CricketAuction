@@ -28,13 +28,13 @@
         <div class="budget-labels">
             <span class="label">Budget Used</span>
             <span class="value">
-                <span class="used">₹{{ formatPrice(team.budget - team.remainingBudget) }}</span>
+                <span class="used">₹{{ formatPrice(team.spentAmount !== undefined ? team.spentAmount : (team.budget - team.remainingBudget)) }}</span>
                 <span class="slash"> / </span>
                 <span class="total">₹{{ formatPrice(team.budget) }}</span>
             </span>
         </div>
         <div class="progress-track mt-1.5">
-            <div class="progress-fill" [style.width.%]="((team.budget - team.remainingBudget) / team.budget) * 100"
+            <div class="progress-fill" [style.width.%]="((team.spentAmount !== undefined ? team.spentAmount : (team.budget - team.remainingBudget)) / team.budget) * 100"
                 [ngClass]="team.isLowBudget ? 'bg-red' : 'bg-yellow'">
             </div>
         </div>

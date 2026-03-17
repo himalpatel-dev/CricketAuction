@@ -7,30 +7,63 @@ async function seed() {
     try {
         await sequelize.sync({ force: true }); // Reset Database
 
-        // 1. Create Tournament
+        // 1. Create Tournament with new budget fields
         const tournament = await Tournament.create({
             name: 'Mega Cricket League 2026',
             tournamentStartDate: new Date(),
-            tournamentEndDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+            tournamentEndDate: new Date(new Date().setMonth(new Date().getMonth() + 2)),
             regStartDate: new Date(),
             regEndDate: new Date(new Date().setDate(new Date().getDate() + 15)),
             auctionDate: new Date(new Date().setDate(new Date().getDate() + 20)),
             matchStartDate: new Date(new Date().setDate(new Date().getDate() + 30)),
-            matchEndDate: new Date(new Date().setMonth(new Date().getMonth() + 2)),
+            matchEndDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
             status: 'ACTIVE',
             totalPlayers: 200,
-            totalAmount: 120000000, // 12 Cr
-            playerReservedAmount: 2000000,
-            baseAuctionPrice: 1000000
+            playersPerTeam: 15,
+            minimumPlayerBasePrice: 500000,
+            competitionFactor: 1.5,
+            format: 'T20',
+            category: 'Franchise League'
         });
 
         console.log('Tournament Created:', tournament.name);
 
-        // 2. Create Teams
+        // Budget calculation logic matches backend
+        const calculatedBudget = tournament.playersPerTeam * tournament.minimumPlayerBasePrice * tournament.competitionFactor;
+        console.log(`Initial Calculated Budget for Teams: ₹${calculatedBudget}`);
+
+        // 2. Create Teams (Budget will be auto-calculated)
         const teamsData = [
-            { name: 'Royal Challengers', code: 'RCB', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, ownerName: 'Andy Flower' },
-            { name: 'Chennai Super Kings', code: 'CSK', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, ownerName: 'Stephen Fleming' },
-            { name: 'Mumbai Indians', code: 'MI', budget: 100000000, remainingBudget: 100000000, tournamentId: tournament.id, ownerName: 'Mark Boucher' },
+            { 
+                name: 'Royal Challengers', 
+                code: 'RCB', 
+                budget: calculatedBudget, 
+                remainingBudget: calculatedBudget, 
+                tournamentId: tournament.id, 
+                ownerName: 'Andy Flower',
+                spentAmount: 0,
+                playersBought: 0
+            },
+            { 
+                name: 'Chennai Super Kings', 
+                code: 'CSK', 
+                budget: calculatedBudget, 
+                remainingBudget: calculatedBudget, 
+                tournamentId: tournament.id, 
+                ownerName: 'Stephen Fleming',
+                spentAmount: 0,
+                playersBought: 0
+            },
+            { 
+                name: 'Mumbai Indians', 
+                code: 'MI', 
+                budget: calculatedBudget, 
+                remainingBudget: calculatedBudget, 
+                tournamentId: tournament.id, 
+                ownerName: 'Mark Boucher',
+                spentAmount: 0,
+                playersBought: 0
+            },
         ];
 
         const teams = await Team.bulkCreate(teamsData);
@@ -65,15 +98,13 @@ async function seed() {
         });
         console.log('Tournament Admin Created: tournament_admin');
 
-        console.log('Users Created');
-
-        // 4. Create Players
+        // 5. Create Players
         const playersData = [
-            { name: 'Virat Kohli', role: 'Batsman', basePrice: 2000000, tournamentId: tournament.id, mobileNo: '9876543210', dob: '1988-11-05', gender: 'Male', tShirtSize: 'L', trouserSize: 'M' },
-            { name: 'MS Dhoni', role: 'Wicketkeeper', basePrice: 1500000, tournamentId: tournament.id, mobileNo: '9876543211', dob: '1981-07-07', gender: 'Male', tShirtSize: 'L', trouserSize: 'L' },
-            { name: 'Rohit Sharma', role: 'Batsman', basePrice: 2000000, tournamentId: tournament.id, mobileNo: '9876543212', dob: '1987-04-30', gender: 'Male', tShirtSize: 'XL', trouserSize: 'L' },
-            { name: 'Jasprit Bumrah', role: 'Bowler', basePrice: 1800000, tournamentId: tournament.id, mobileNo: '9876543213', dob: '1993-12-06', gender: 'Male', tShirtSize: 'M', trouserSize: 'M' },
-            { name: 'Hardik Pandya', role: 'All-Rounder', basePrice: 1800000, tournamentId: tournament.id, mobileNo: '9876543214', dob: '1993-10-11', gender: 'Male', tShirtSize: 'L', trouserSize: 'M' },
+            { name: 'Virat Kohli', role: 'Batsman', basePrice: 500000, tournamentId: tournament.id, status: 'UPCOMING' },
+            { name: 'MS Dhoni', role: 'Wicketkeeper', basePrice: 500000, tournamentId: tournament.id, status: 'UPCOMING' },
+            { name: 'Rohit Sharma', role: 'Batsman', basePrice: 500000, tournamentId: tournament.id, status: 'UPCOMING' },
+            { name: 'Jasprit Bumrah', role: 'Bowler', basePrice: 500000, tournamentId: tournament.id, status: 'UPCOMING' },
+            { name: 'Hardik Pandya', role: 'All-Rounder', basePrice: 500000, tournamentId: tournament.id, status: 'UPCOMING' },
         ];
 
         await Player.bulkCreate(playersData);

@@ -18,10 +18,20 @@ export class PlayerCardComponent {
     @Output() onEdit = new EventEmitter<any>();
 
     formatPrice(amount: number) {
-        if (!amount) return '0';
-        if (amount >= 10000000) return (amount / 10000000).toFixed(0).replace(/\.0$/, '') + 'Cr';
-        if (amount >= 100000) return (amount / 100000).toFixed(0).replace(/\.0$/, '') + 'L';
-        return amount.toLocaleString();
+        if (!amount && amount !== 0) return '0';
+        if (amount >= 10000000) {
+            const cr = amount / 10000000;
+            return (cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(2)) + 'Cr';
+        }
+        if (amount >= 100000) {
+            const l = amount / 100000;
+            return (l % 1 === 0 ? l.toFixed(0) : l.toFixed(1)) + 'L';
+        }
+        if (amount >= 1000) {
+            const k = amount / 1000;
+            return (k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)) + 'K';
+        }
+        return amount.toLocaleString('en-IN');
     }
 
     getAvatarColor(name: string): string {

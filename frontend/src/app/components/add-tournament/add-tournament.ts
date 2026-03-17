@@ -23,9 +23,9 @@ export class AddTournamentComponent {
     regEndDate: '',
     auctionDate: '',
     totalPlayers: 100,
-    totalAmount: 100000000,
-    playerReservedAmount: 1000000,
-    baseAuctionPrice: 500000,
+    playersPerTeam: 15,
+    minimumPlayerBasePrice: 500000,
+    competitionFactor: 1.5,
     format: 'T20',
     category: 'Franchise League',
     status: 'UPCOMING'
@@ -65,6 +65,15 @@ export class AddTournamentComponent {
     } finally {
       this.loading = false;
     }
+  }
+
+  getProjectedBudget(): number {
+    if (!this.tournamentData) return 0;
+    const p = Number(this.tournamentData.playersPerTeam || 0);
+    const m = Number(this.tournamentData.minimumPlayerBasePrice || 0);
+    const c = Number(this.tournamentData.competitionFactor || 0);
+    const budget = Math.round(p * m * c);
+    return isNaN(budget) ? 0 : budget;
   }
 
   cancel() {

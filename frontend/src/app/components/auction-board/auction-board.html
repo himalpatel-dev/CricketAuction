@@ -143,9 +143,16 @@
                             @for (team of tournament?.teams; track team.id) {
                             <button (click)="placeBid(team.id)"
                                 [disabled]="auctionState.status !== 'BIDDING' || auctionState.leadingTeam?.id === team.id"
-                                class="team-bid-btn-sidebar">
-                                <span class="code">{{ team.code }}</span>
-                                <span class="purse">₹{{ (team.remainingBudget / 10000000).toFixed(2) }} Cr</span>
+                                class="team-bid-btn-sidebar"
+                                [attr.title]="'Max Allowed: ₹' + formatPrice(getMaxAllowedBid(team.id))">
+                                <div class="btn-top">
+                                    <span class="code">{{ team.code }}</span>
+                                    <span class="slots">Slots: {{ getRemainingSlots(team.id) }}</span>
+                                </div>
+                                <div class="btn-bottom">
+                                    <span class="purse">Purse: ₹{{ (team.remainingBudget / 10000000).toFixed(2) }} Cr</span>
+                                    <span class="max-bid">Max: ₹{{ formatPrice(getMaxAllowedBid(team.id)) }}</span>
+                                </div>
                             </button>
                             }
                         </div>
@@ -167,6 +174,17 @@
                     <div class="wallet-info-sidebar">
                         <label>YOUR REMAINING PURSE</label>
                         <h3>₹{{ formatPrice(getTeamBudget(userTeamId!)) }}</h3>
+                        
+                        <div class="wallet-sub-info">
+                            <div class="sub-item">
+                                <label>SLOTS LEFT</label>
+                                <span>{{ getRemainingSlots(userTeamId!) }}</span>
+                            </div>
+                            <div class="sub-item">
+                                <label>MAX BID</label>
+                                <span class="max-value">₹{{ formatPrice(getMaxAllowedBid(userTeamId!)) }}</span>
+                            </div>
+                        </div>
                     </div>
                     <button (click)="placeBid(userTeamId!)"
                         [disabled]="auctionState.status !== 'BIDDING' || auctionState.leadingTeam?.id === userTeamId"

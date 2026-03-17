@@ -23,6 +23,14 @@ const Team = sequelize.define('Team', {
         type: DataTypes.FLOAT,
         defaultValue: 10000000,
     },
+    spentAmount: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0,
+    },
+    playersBought: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+    },
     logoUrl: {
         type: DataTypes.TEXT('long'),
         allowNull: true,

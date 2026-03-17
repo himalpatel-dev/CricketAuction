@@ -156,7 +156,7 @@ export class PlayerRegistrationComponent {
   updateBasePrice() {
     const selected = this.tournaments.find(t => String(t.id) === String(this.selectedTournamentId));
     if (selected) {
-      this.basePrice = selected.baseAuctionPrice;
+      this.basePrice = selected.minimumPlayerBasePrice;
       this.player.basePrice = this.basePrice;
     }
   }

@@ -292,7 +292,6 @@
     width: min(70vh, 100%);
     aspect-ratio: 1 / 1;
     border-radius: 24px;
-    border: 4px solid #d4af37;
     padding: 12px;
     background: transparent;
     display: flex;
@@ -438,15 +437,23 @@
 }
 
 .team-bid-btn-sidebar {
-    padding: 12px;
+    padding: 10px;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     background: #ffffff;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
+    gap: 6px;
     cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.team-bid-btn-sidebar .btn-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 .team-bid-btn-sidebar .code {
@@ -455,15 +462,69 @@
     color: #062a1e;
 }
 
+.team-bid-btn-sidebar .slots {
+    font-size: 9px;
+    font-weight: 700;
+    color: #059669;
+    background: #ecfdf5;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.team-bid-btn-sidebar .btn-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .team-bid-btn-sidebar .purse {
     font-size: 9px;
     color: #64748b;
     font-weight: 600;
 }
 
+.team-bid-btn-sidebar .max-bid {
+    font-size: 9px;
+    color: #ef4444;
+    font-weight: 700;
+}
+
 .team-bid-btn-sidebar:hover:not(:disabled) {
     border-color: #062a1e;
     background: #f1f5f9;
+}
+
+.wallet-sub-info {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.wallet-sub-info .sub-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+}
+
+.wallet-sub-info label {
+    font-size: 9px;
+    font-weight: 800;
+    color: #94a3b8;
+    margin-bottom: 0;
+}
+
+.wallet-sub-info span {
+    font-weight: 800;
+    font-size: 14px;
+    color: #1e293b;
+}
+
+.wallet-sub-info .max-value {
+    color: #ef4444;
 }
 
 .action-buttons-stack {
