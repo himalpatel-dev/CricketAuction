@@ -106,6 +106,14 @@ const Tournament = sequelize.define('Tournament', {
         type: DataTypes.FLOAT,
         defaultValue: 500000,
     },
+    currentPlayerId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    lastPoolMode: {
+        type: DataTypes.ENUM('UPCOMING', 'UNSOLD'),
+        defaultValue: 'UPCOMING',
+    },
     competitionFactor: {
         type: DataTypes.FLOAT,
         defaultValue: 5,

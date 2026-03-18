@@ -23,11 +23,13 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
   };
   tournament: any = null;
   history: any[] = [];
+  auctionMode: 'normal' | 'unsold' = 'normal';
 
   loading = true;
   isAdmin = false;
   currentUserId: string | null = null;
   userTeamId: number | null = null;
+  private initialAutoStartDone = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -40,7 +42,16 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
   ) { }
 
   get availablePlayers() {
-    return this.tournament?.players?.filter((p: any) => p.status === 'UPCOMING') || [];
+    const status = this.auctionMode === 'unsold' ? 'UNSOLD' : 'UPCOMING';
+    return this.tournament?.players?.filter((p: any) => p.status === status) || [];
+  }
+
+  get nextBidPreview(): number {
+    if (!this.auctionState?.currentPlayer) return 0;
+    if (!this.auctionState.leadingTeam) {
+      return this.auctionState.currentPlayer.basePrice;
+    }
+    return (this.auctionState.currentBid || this.auctionState.currentPlayer.basePrice) + this.currentIncrement;
   }
 
   backLink = '/admin';
@@ -68,25 +79,52 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     this.currentUserId = user?.id;
     this.userTeamId = user?.teamId || null;
 
+    // Set auctionMode immediately from snapshot to avoid timing issues with subscription
+    this.auctionMode = this.route.snapshot.queryParamMap.get('mode') === 'unsold' ? 'unsold' : 'normal';
+
+    this.route.queryParamMap.subscribe(params => {
+      this.auctionMode = params.get('mode') === 'unsold' ? 'unsold' : 'normal';
+    });
+
     if (this.tournamentId) {
-      await this.loadInitialData();
       this.setupSocket();
+      await this.loadInitialData();
     }
   }
 
-  async loadInitialData() {
+  async loadInitialData(showLoading = true) {
     if (!this.tournamentId) return;
+    
+    // Prevent the loading overlay from showing if we are just refreshing state
+    if (showLoading) this.loading = true;
 
     try {
-      this.loading = true;
       this.tournament = await this.tournamentService.getById(this.tournamentId);
+      
+      // Sort teams alphabetically by name
+      if (this.tournament?.teams) {
+        this.tournament.teams.sort((a: any, b: any) => a.name.localeCompare(b.name));
+      }
 
       const state: any = await this.auctionService.getAuctionState(this.tournamentId);
+      
+      // Strict Check: If we are in Unsold mode, only show player if they were originally UNSOLD
+      // or if they are already IN_AUCTION.
+      // But if they are still UPCOMING, and we are in unsold mode, hide them.
+      let validPlayer = state.player;
+      if (this.auctionMode === 'unsold' && state.player && state.player.status === 'UPCOMING') {
+          validPlayer = null;
+      }
+      // Conversely, if we are in normal mode and the player is UNSOLD (re-auction), hide them.
+      if (this.auctionMode === 'normal' && state.player && state.player.status === 'UNSOLD') {
+          validPlayer = null;
+      }
+
       this.auctionState = {
-        currentPlayer: state.player,
+        currentPlayer: validPlayer,
         currentBid: state.currentBid,
         leadingTeam: state.highestBidderTeam,
-        status: state.player ? 'BIDDING' : 'IDLE'
+        status: validPlayer ? 'BIDDING' : 'IDLE'
       };
 
       if (state.bids) {
@@ -100,6 +138,21 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
       console.error('Error loading auction data:', err);
     } finally {
       this.loading = false;
+      
+      // Auto-set initial increment if needed
+      if (this.currentIncrement === 0 && this.tournament) {
+        this.currentIncrement = this.incrementOptions[0];
+      }
+
+      // Proactive: Auto-start first auction if board is idle and user is admin
+      if (this.isAdmin && !this.auctionState.currentPlayer && !this.initialAutoStartDone) {
+        this.initialAutoStartDone = true;
+        if (this.availablePlayers.length > 0) {
+          console.log('Auto-starting first random auction...');
+          this.startRandomAuction();
+        }
+      }
+
       this.cdr.detectChanges();
     }
   }
@@ -136,20 +189,21 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     this.socketService.on('player_sold', (data: any) => {
       console.log('Sold:', data);
       this.auctionState.status = 'SOLD';
-      setTimeout(() => this.loadInitialData(), 3000); // Reload after 3s to show next
+      setTimeout(() => this.loadInitialData(false), 3000); // Reload after 3s to show next (background sync)
     });
 
     this.socketService.on('player_unsold', (data: any) => {
       console.log('Unsold:', data);
       this.auctionState.status = 'UNSOLD';
-      setTimeout(() => this.loadInitialData(), 3000);
+      setTimeout(() => this.loadInitialData(false), 3000);
     });
   }
 
   async startRandomAuction() {
     if (!this.tournamentId) return;
     try {
-      await this.auctionService.startPlayerAuction(this.tournamentId, null as any);
+      const status = this.auctionMode === 'unsold' ? 'UNSOLD' : 'UPCOMING';
+      await this.auctionService.startPlayerAuction(this.tournamentId, null, status);
     } catch (err) {
       console.error('Error starting random auction:', err);
     }
@@ -165,9 +219,19 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
   }
 
   // Offline Mode State
-  currentIncrement = 200000; // Default 2 Lakhs
+  currentIncrement = 0; // Will be set dynamically
 
-  // ...
+  get incrementOptions(): number[] {
+    const base = this.tournament?.minimumPlayerBasePrice || 500000;
+    // Multipliers: x1, x2, x5, x10 of base price
+    return [
+      Math.floor(base * 1.0),
+      Math.floor(base * 2.0),
+      Math.floor(base * 5.0),
+      Math.floor(base * 10.0)
+    ];
+  }
+
 
   setIncrement(amount: number) {
     this.currentIncrement = amount;
@@ -177,8 +241,15 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
   async placeBid(teamId: number) {
     if (!this.tournamentId || !this.auctionState?.currentPlayer) return;
 
-    // Optimistic calculation
-    const nextBid = (this.auctionState.currentBid || this.auctionState.currentPlayer.basePrice) + this.currentIncrement;
+    // Calculate next bid: 
+    // If no bids yet, the opening bid is the base price.
+    // If there is already a leader, we add the increment.
+    let nextBid = 0;
+    if (!this.auctionState.leadingTeam) {
+      nextBid = this.auctionState.currentPlayer.basePrice;
+    } else {
+      nextBid = (this.auctionState.currentBid || this.auctionState.currentPlayer.basePrice) + this.currentIncrement;
+    }
     const team = this.tournament.teams.find((t: any) => t.id === teamId);
 
     // Frontend Check
@@ -212,7 +283,7 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
       // Optimistic Update
       this.auctionState.status = 'SOLD';
       this.cdr.detectChanges();
-      setTimeout(() => this.loadInitialData(), 3000);
+      setTimeout(() => this.loadInitialData(false), 3000);
 
     } catch (err: any) {
       console.error('Sell failed:', err);
@@ -227,7 +298,7 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
       // Optimistic Update
       this.auctionState.status = 'UNSOLD';
       this.cdr.detectChanges();
-      setTimeout(() => this.loadInitialData(), 3000); // Reload to get next player
+      setTimeout(() => this.loadInitialData(false), 3000); // Reload to get next player
 
     } catch (err: any) {
       console.error('Unsold failed:', err);

@@ -26,8 +26,8 @@ export class AuctionService {
         return firstValueFrom(this.http.get(`${this.apiUrl}/state/${tournamentId}`, { headers: this.getHeaders() }));
     }
 
-    async startPlayerAuction(tournamentId: string | number, playerId: string | number) {
-        return firstValueFrom(this.http.post(`${this.apiUrl}/start`, { tournamentId, playerId }, { headers: this.getHeaders() }));
+    async startPlayerAuction(tournamentId: string | number, playerId: string | number | null, status?: string) {
+        return firstValueFrom(this.http.post(`${this.apiUrl}/start`, { tournamentId, playerId, status }, { headers: this.getHeaders() }));
     }
 
     async placeBid(tournamentId: string | number, playerId: string | number, amount: number, teamId: string | number) {

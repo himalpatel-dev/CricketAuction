@@ -206,6 +206,26 @@
     box-shadow: 0 4px 15px rgba(255, 183, 0, 0.3);
 }
 
+.btn-unsold {
+    background: rgba(255, 78, 80, 0.1);
+    color: #ff4e50;
+    border: 1px solid rgba(255, 78, 80, 0.3);
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-unsold:hover {
+    background: rgba(255, 78, 80, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 78, 80, 0.2);
+}
+
 .hero-stats-panel {
     display: flex;
     align-items: center;

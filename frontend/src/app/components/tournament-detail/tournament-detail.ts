@@ -721,6 +721,10 @@ export class TournamentDetailComponent implements OnInit {
     this.router.navigate(['/auction', this.tournament.id]);
   }
 
+  startUnsoldAuction() {
+    this.router.navigate(['/auction', this.tournament.id], { queryParams: { mode: 'unsold' } });
+  }
+
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);

@@ -24,12 +24,12 @@
                             <div class="meta-info">
                                 <span class="meta-item">
                                     <i class="icon-calendar">📅</i>
-                                    {{ tournament.tournamentStartDate | date:'Jan 15' }} — {{
-                                    tournament.tournamentEndDate | date:'Mar 30, y' }}
+                                    {{ tournament.tournamentStartDate | date:'dd-MMM-yyyy' }} &nbsp; to &nbsp; {{
+                                    tournament.tournamentEndDate | date:'dd-MMM-yyyy' }}
                                 </span>
                                 <span class="meta-item">
                                     <i class="icon-location">📍</i>
-                                    {{ tournament.location || 'Mumbai, India' }}
+                                    {{ tournament.location || 'India' }}
                                 </span>
                                 <span class="meta-item">
                                     <i class="icon-teams">👥</i>
@@ -41,6 +41,9 @@
 
                         <div class="hero-actions">
                             <button class="btn-edit" (click)="setTab('Settings')">Edit Tournament</button>
+                            <button *ngIf="stats.unsoldPlayers > 0" class="btn-unsold" (click)="startUnsoldAuction()">
+                                <span class="icon-refresh">🔄</span> Unsold Auction
+                            </button>
                             <button class="btn-continue" (click)="startAuction()">
                                 <span class="icon-play">▶</span> Continue Auction
                             </button>
@@ -83,15 +86,6 @@
 
                         <div class="stat-divider"></div>
 
-                        <div class="stat-column rounds">
-                            <p class="stat-label">AUCTION ROUNDS</p>
-                            <div class="stat-main">
-                                <span class="stat-value">{{ stats.auctionRounds }}</span>
-                            </div>
-                            <p class="stat-sub">of {{ stats.totalRounds }} completed</p>
-                        </div>
-
-                        <div class="stat-divider"></div>
 
                         <div class="stat-column avg-price">
                             <p class="stat-label">AVG. SOLD PRICE</p>

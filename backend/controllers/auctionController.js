@@ -4,20 +4,28 @@ const pickNextRandomPlayer = async (tournamentId, io) => {
     // Wait for 5 seconds to show SOLD/UNSOLD status before auto-starting next
     setTimeout(async () => {
         try {
+            const tournament = await Tournament.findByPk(tournamentId);
+            if (!tournament) return;
+
             const nextPlayer = await Player.findOne({
-                where: { tournamentId, status: 'UPCOMING' },
+                where: { 
+                    tournamentId, 
+                    status: tournament.lastPoolMode || 'UPCOMING'
+                },
                 order: sequelize.random()
             });
 
             if (nextPlayer) {
-                // Clear any stuck 'IN_AUCTION' players
-                await Player.update(
-                    { status: 'UNSOLD' },
-                    { where: { status: 'IN_AUCTION', tournamentId } }
-                );
+                // BUG FIX: Check if an auction was already started manually 
+                // while we were waiting
+                if (tournament.currentPlayerId) {
+                    console.log('Auction already in progress, skipping auto-pick.');
+                    return;
+                }
 
-                nextPlayer.status = 'IN_AUCTION';
-                await nextPlayer.save();
+                // Update tournament to point to the current player without changing their status yet
+                tournament.currentPlayerId = nextPlayer.id;
+                await tournament.save();
 
                 io.to(`tournament_${tournamentId}`).emit('auction_started', {
                     player: nextPlayer
@@ -33,9 +41,19 @@ const pickNextRandomPlayer = async (tournamentId, io) => {
 exports.getAuctionState = async (req, res) => {
     const { tournamentId } = req.params;
     try {
-        const currentPlayer = await Player.findOne({
-            where: { status: 'IN_AUCTION', tournamentId },
-        });
+        const tournament = await Tournament.findByPk(tournamentId);
+        let currentPlayer = null;
+
+        if (tournament && tournament.currentPlayerId) {
+            currentPlayer = await Player.findByPk(tournament.currentPlayerId);
+        }
+
+        // Fallback or override: check if anyone is explicitly IN_AUCTION
+        if (!currentPlayer) {
+            currentPlayer = await Player.findOne({
+                where: { status: 'IN_AUCTION', tournamentId },
+            });
+        }
 
         let bids = [];
         let highestBidderTeam = null;
@@ -66,22 +84,34 @@ exports.getAuctionState = async (req, res) => {
 
 // Admin: Start auction for a player
 exports.startPlayerAuction = async (req, res) => {
-    const { playerId, tournamentId } = req.body;
+    const { playerId, tournamentId, status } = req.body;
     try {
+        const tournament = await Tournament.findByPk(tournamentId);
+        if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+
         let player;
         if (playerId) {
             player = await Player.findByPk(playerId);
         } else {
             player = await Player.findOne({
-                where: { tournamentId, status: 'UPCOMING' },
+                where: { tournamentId, status: status || 'UPCOMING' },
                 order: sequelize.random()
             });
         }
 
         if (!player) return res.status(404).json({ message: 'No more upcoming players found' });
 
-        player.status = 'IN_AUCTION';
-        await player.save();
+        // Ensure no other player is stuck 'IN_AUCTION' - move them back to UPCOMING
+        await Player.update(
+            { status: 'UPCOMING' },
+            { where: { status: 'IN_AUCTION', tournamentId } }
+        );
+
+        // Track only current player ID, don't change status to IN_AUCTION yet
+        tournament.currentPlayerId = player.id;
+        // Correctly update lastPoolMode so auto-pick follows the same pool
+        tournament.lastPoolMode = status || 'UPCOMING';
+        await tournament.save();
 
         // Broadcast to tournament namespace
         req.io.to(`tournament_${tournamentId}`).emit('auction_started', {
@@ -127,6 +157,12 @@ exports.placeBid = async (req, res) => {
             amount
         });
 
+        // Mark player as IN_AUCTION only when first bid is processed
+        if (player.status !== 'IN_AUCTION') {
+            player.status = 'IN_AUCTION';
+            await player.save();
+        }
+
         const bidWithTeam = await Bid.findByPk(newBid.id, {
             include: [{ model: Team, as: 'team' }]
         });
@@ -162,6 +198,13 @@ exports.sellPlayer = async (req, res) => {
         player.soldPrice = finalBid.amount;
         player.soldTo = finalBid.teamId;
         await player.save();
+
+        // Clear current player tracking
+        const tournament = await Tournament.findByPk(tournamentId);
+        if (tournament) {
+            tournament.currentPlayerId = null;
+            await tournament.save();
+        }
 
         const team = finalBid.team;
         team.spentAmount += finalBid.amount;
@@ -204,6 +247,13 @@ exports.markUnsold = async (req, res) => {
         player.soldPrice = 0;
         player.soldTo = null;
         await player.save();
+
+        // Clear current player tracking
+        const tournament = await Tournament.findByPk(tournamentId);
+        if (tournament) {
+            tournament.currentPlayerId = null;
+            await tournament.save();
+        }
 
         req.io.to(`tournament_${tournamentId}`).emit('player_unsold', {
             player

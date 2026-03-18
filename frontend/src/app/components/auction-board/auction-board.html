@@ -1,4 +1,4 @@
-<div class="auction-page">
+<div class="auction-page" [class.unsold-mode]="auctionMode === 'unsold'">
     <div class="background-decor">
         <div class="circle c1"></div>
         <div class="circle c2"></div>
@@ -7,13 +7,14 @@
     <header class="auction-header">
         <div class="header-left">
             <button class="back-btn" [routerLink]="backLink">
-                {{ isAdmin ? '← Admin Terminal' : '← Dashboard' }}
+                {{ '← Dashboard' }}
             </button>
         </div>
 
         <div class="tournament-info" *ngIf="tournament" style="text-align: center;">
-            <span class="live-indicator" style="justify-content: center;">
-                <span class="dot"></span> LIVE AUCTION
+            <span class="live-indicator" style="justify-content: center;"
+                [class.unsold-mode]="auctionMode === 'unsold'">
+                <span class="dot"></span> {{ auctionMode === 'unsold' ? 'UNSOLD PLAYER AUCTION' : 'LIVE AUCTION' }}
             </span>
         </div>
 
@@ -92,7 +93,8 @@
                             <img [src]="auctionState.currentPlayer.image" class="avatar-img"
                                 [alt]="auctionState.currentPlayer.name">
                             } @else {
-                            <span>{{ auctionState.currentPlayer.name ? auctionState.currentPlayer.name.charAt(0) : 'P' }}</span>
+                            <span>{{ auctionState.currentPlayer.name ? auctionState.currentPlayer.name.charAt(0) : 'P'
+                                }}</span>
                             }
                         </div>
                     </div>
@@ -107,12 +109,28 @@
             <div class="empty-state-center">
                 <h2>Auction Paused</h2>
                 <p>Waiting for the administrator to start the next auction.</p>
-                
+
                 <div *ngIf="isAdmin" class="admin-start-action">
-                    <button class="btn-sidebar confirm" (click)="startRandomAuction()" style="max-width: 300px; margin: 20px auto;">
-                        <span class="icon">✨</span> CALL NEXT RANDOM PLAYER
+                    <button *ngIf="availablePlayers.length > 0" class="btn-sidebar confirm"
+                        (click)="startRandomAuction()" style="max-width: 300px; margin: 20px auto;">
+                        <span class="icon">✨</span> {{ auctionMode === 'unsold' ? 'CALL NEXT UNSOLD PLAYER' : 'CALL NEXT
+                        RANDOM PLAYER' }}
                     </button>
-                    <p style="font-size: 11px; opacity: 0.6; margin-top: 10px;">The system will pick a random player from the pool</p>
+
+                    <div *ngIf="availablePlayers.length === 0" class="no-players-alert fade-in">
+                        <span class="icon" style="font-size: 48px; display: block; margin-bottom: 16px;">🏁</span>
+                        <h2
+                            style="color: #ff4e50; font-size: 24px; font-weight: 800; margin-bottom: 10px; letter-spacing: -1px;">
+                            NO NEW {{ auctionMode === 'unsold' ? 'UNSOLD' : 'UPCOMING' }} PLAYERS
+                        </h2>
+                        <p style="opacity: 0.7; font-size: 14px; color: white;">All players in this pool have been
+                            called.</p>
+                    </div>
+
+                    <p *ngIf="availablePlayers.length > 0" style="font-size: 11px; opacity: 0.6; margin-top: 10px;">
+                        {{ auctionMode === 'unsold' ? 'Picks a player who was previously unsold' : 'Picks a random
+                        player from the upcoming pool' }}
+                    </p>
                 </div>
             </div>
             }
@@ -128,17 +146,17 @@
                     <div class="control-group-box">
                         <label>SET INCREMENT</label>
                         <div class="increment-grid">
-                            @for (inc of [200000, 500000, 1000000, 2000000]; track inc) {
+                            @for (inc of incrementOptions; track inc) {
                             <button class="inc-pill-sidebar" [class.active]="currentIncrement === inc"
                                 (click)="setIncrement(inc)">
-                                +{{ inc / 100000 }}L
+                                +{{ formatPrice(inc) }}
                             </button>
                             }
                         </div>
                     </div>
 
                     <div class="control-group-box">
-                        <label>PLACE BID FOR TEAM</label>
+                        <label>PLACE BID FOR TEAM (Next: ₹{{ formatPrice(nextBidPreview) }})</label>
                         <div class="teams-grid-sidebar">
                             @for (team of tournament?.teams; track team.id) {
                             <button (click)="placeBid(team.id)"
@@ -150,7 +168,8 @@
                                     <span class="slots">Slots: {{ getRemainingSlots(team.id) }}</span>
                                 </div>
                                 <div class="btn-bottom">
-                                    <span class="purse">Purse: ₹{{ (team.remainingBudget / 10000000).toFixed(2) }} Cr</span>
+                                    <span class="purse">Purse: ₹{{ (team.remainingBudget / 10000000).toFixed(2) }}
+                                        Cr</span>
                                     <span class="max-bid">Max: ₹{{ formatPrice(getMaxAllowedBid(team.id)) }}</span>
                                 </div>
                             </button>
@@ -160,10 +179,12 @@
 
                     <div class="action-buttons-stack">
                         <button (click)="sellPlayer()" class="btn-sidebar confirm"
-                            [disabled]="!auctionState.currentBid || auctionState.status !== 'BIDDING'">
-                            <span class="icon">🔨</span> CONFIRM SALE
+                            [class.ready-to-sell]="auctionState.leadingTeam"
+                            [disabled]="!auctionState.leadingTeam || auctionState.status !== 'BIDDING'">
+                            <span class="icon">🔨</span> {{ auctionState.leadingTeam ? 'CONFIRM SOLD' : 'CONFIRM SALE'
+                            }}
                         </button>
-                        <button (click)="markUnsold()" class="btn-sidebar negative"
+                        <button *ngIf="!auctionState.leadingTeam" (click)="markUnsold()" class="btn-sidebar negative"
                             [disabled]="auctionState.status !== 'BIDDING'">
                             <span class="icon">🚫</span> MARK UNSOLD
                         </button>
@@ -174,7 +195,7 @@
                     <div class="wallet-info-sidebar">
                         <label>YOUR REMAINING PURSE</label>
                         <h3>₹{{ formatPrice(getTeamBudget(userTeamId!)) }}</h3>
-                        
+
                         <div class="wallet-sub-info">
                             <div class="sub-item">
                                 <label>SLOTS LEFT</label>
