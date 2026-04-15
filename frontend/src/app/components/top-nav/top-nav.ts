@@ -11,9 +11,10 @@ import { AuthService } from '../../services/auth.service';
     styleUrls: ['./top-nav.css']
 })
 export class TopNavComponent implements OnInit {
-    adminName: string = 'Admin';
+    adminName: string = 'User';
     isAdmin: boolean = false;
-    userInitials: string = 'AD';
+    userInitials: string = 'U';
+    isMenuOpen: boolean = false;
 
     constructor(
         private authService: AuthService,
@@ -23,9 +24,17 @@ export class TopNavComponent implements OnInit {
     ngOnInit() {
         const user = this.authService.getUser();
         if (user) {
-            this.adminName = user.username || 'Admin';
+            this.adminName = user.username || 'User';
             this.isAdmin = user.role === 'ADMIN';
-            this.userInitials = this.adminName.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2);
+            this.userInitials = this.adminName.substring(0, 2).toUpperCase();
+        }
+    }
+
+    toggleUserMenu() {
+        this.isMenuOpen = !this.isMenuOpen;
+        // Simple toggle for now, could show a dropdown menu
+        if (confirm('Logout?')) {
+            this.logout();
         }
     }
 

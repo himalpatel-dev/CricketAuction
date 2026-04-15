@@ -50,19 +50,19 @@ exports.updateTournament = async (req, res) => {
     try {
         const tournament = await Tournament.findByPk(req.params.id);
         if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
-        
+
         const { playersPerTeam, minimumPlayerBasePrice, competitionFactor } = req.body;
 
         await sequelize.transaction(async (t) => {
             await tournament.update(req.body, { transaction: t });
-            
+
             // Reload inside transaction to ensure we have the absolute latest data from DB
             await tournament.reload({ transaction: t });
 
             // Check if any of the three key fields were provided in the request
-            const hasBudgetChanges = 
-                playersPerTeam !== undefined || 
-                minimumPlayerBasePrice !== undefined || 
+            const hasBudgetChanges =
+                playersPerTeam !== undefined ||
+                minimumPlayerBasePrice !== undefined ||
                 competitionFactor !== undefined;
 
             if (hasBudgetChanges) {
@@ -70,14 +70,14 @@ exports.updateTournament = async (req, res) => {
                 const pPT = parseInt(tournament.playersPerTeam) || 0;
                 const mPBP = parseFloat(tournament.minimumPlayerBasePrice) || 0;
                 const cF = parseFloat(tournament.competitionFactor) || 0;
-                
+
                 const newBudget = Math.round(pPT * mPBP * cF);
-                
+
                 console.log(`[RECALC] Recalculating with: ${pPT} * ${mPBP} * ${cF} = ${newBudget}`);
 
                 if (newBudget > 0) {
                     const teams = await Team.findAll({ where: { tournamentId: tournament.id }, transaction: t });
-                    
+
                     // Also update tournament totalAmount for display consistency
                     tournament.totalAmount = newBudget * teams.length;
                     await tournament.save({ transaction: t });
@@ -92,12 +92,12 @@ exports.updateTournament = async (req, res) => {
                     if (minimumPlayerBasePrice !== undefined) {
                         await Player.update(
                             { basePrice: mPBP },
-                            { 
-                                where: { 
+                            {
+                                where: {
                                     tournamentId: tournament.id,
                                     status: 'UPCOMING' // Only update those not yet sold
                                 },
-                                transaction: t 
+                                transaction: t
                             }
                         );
                         console.log(`[RECALC] Updated basePrice for all upcoming players to ${mPBP}`);
@@ -127,8 +127,8 @@ exports.addTeam = async (req, res) => {
 
         const calculatedBudget = tournament.playersPerTeam * tournament.minimumPlayerBasePrice * tournament.competitionFactor;
 
-        const teamData = { 
-            ...req.body, 
+        const teamData = {
+            ...req.body,
             tournamentId: id,
             budget: calculatedBudget,
             remainingBudget: calculatedBudget,
@@ -146,8 +146,8 @@ exports.addTeam = async (req, res) => {
 exports.addPlayer = async (req, res) => {
     try {
         const { id } = req.params;
-        const player = await Player.create({ 
-            ...req.body, 
+        const player = await Player.create({
+            ...req.body,
             tournamentId: id,
             status: 'UPCOMING'
         });

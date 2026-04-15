@@ -546,7 +546,7 @@ export class TournamentDetailComponent implements OnInit {
 
   formatInUnit(value: number, unit: string): { val: string, unit: string } {
     if (!value && value !== 0) return { val: '0', unit };
-    
+
     let valStr = '0';
     if (unit === 'Cr') {
       const cr = value / 10000000;

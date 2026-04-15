@@ -1,21 +1,27 @@
 <nav class="top-nav">
     <div class="nav-container">
         <div class="nav-left">
-            <div class="nav-logo">
-                <span class="logo-icon">🏏</span>
-                <span class="logo-text">CrioBid</span>
+            <div class="nav-logo" routerLink="/">
+                <div class="logo-box">A</div>
+                <span class="logo-text">Crio<span class="logo-accent">Bid</span></span>
             </div>
-            <div class="nav-links" *ngIf="isAdmin">
+        </div>
+
+        <div class="nav-center" *ngIf="isAdmin">
+            <div class="nav-links">
                 <a routerLink="/admin" routerLinkActive="active" class="nav-link">Dashboard</a>
                 <a routerLink="/tournaments" routerLinkActive="active" class="nav-link">Tournaments</a>
             </div>
         </div>
-        <div class="nav-user">
-            <div class="user-pill">
-                <div class="avatar-sm">{{ userInitials }}</div>
-                <p class="user-name">{{ adminName }}</p>
-                <button (click)="logout()" class="logout-btn" title="Logout">🚪</button>
+
+        <div class="nav-right">
+            <div class="user-profile">
+                <div class="avatar-circle">{{ userInitials[0] || 'A' }}</div>
+                <span class="user-name">{{ adminName }}</span>
             </div>
+            <button class="logout-btn" (click)="logout()" title="Logout">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
         </div>
     </div>
 </nav>

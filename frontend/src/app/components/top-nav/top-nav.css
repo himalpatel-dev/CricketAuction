@@ -4,20 +4,24 @@
 }
 
 .top-nav {
-    background-color: var(--bg-sidebar);
+    background-color: var(--bg-sidebar); /* Project's primary deep green */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     color: white;
     height: 70px;
     display: flex;
     align-items: center;
-    padding: 0 40px;
     position: sticky;
     top: 0;
     z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    font-family: 'Outfit', sans-serif; /* Project's primary font */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .nav-container {
     width: 100%;
-    margin: 0 auto;
+    padding: 0 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -26,38 +30,58 @@
 .nav-left {
     display: flex;
     align-items: center;
-    gap: 48px;
 }
 
 .nav-logo {
     display: flex;
     align-items: center;
     gap: 12px;
+    cursor: pointer;
 }
 
-.logo-icon {
-    font-size: 24px;
+.logo-box {
+    background-color: var(--accent); /* Project's accent yellow */
+    color: var(--bg-sidebar);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 20px;
 }
 
 .logo-text {
     font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+}
+
+.logo-accent {
+    color: var(--accent);
+}
+
+.nav-center {
+    display: flex;
+    justify-content: center;
 }
 
 .nav-links {
     display: flex;
-    gap: 8px;
+    gap: 12px;
+    align-items: center;
 }
 
 .nav-link {
-    padding: 10px 20px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
+    padding: 10px 24px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 15px;
     font-weight: 600;
     text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.2s;
+    border-radius: 30px;
+    transition: all 0.3s ease;
 }
 
 .nav-link:hover {
@@ -67,49 +91,65 @@
 
 .nav-link.active {
     background-color: var(--accent);
-    color: var(--text-main);
+    color: var(--bg-sidebar); /* High contrast text on accent */
 }
 
-.user-pill {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 6px 16px;
+.nav-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-profile {
     display: flex;
     align-items: center;
     gap: 12px;
+    padding: 8px 12px;
+    border-radius: 30px;
+    background-color: rgba(255, 255, 255, 0.03);
 }
 
-.avatar-sm {
-    width: 32px;
-    height: 32px;
+.avatar-circle {
+    width: 36px;
+    height: 36px;
     background-color: var(--accent);
-    color: var(--text-main);
-    border-radius: 6px;
+    color: var(--bg-sidebar);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
-    font-size: 13px;
+    font-weight: 700;
+    font-size: 15px;
 }
 
 .user-name {
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 600;
     color: white;
 }
 
 .logout-btn {
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    padding: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .logout-btn:hover {
-    opacity: 1;
+    background-color: var(--danger);
+    color: white;
+    border-color: var(--danger);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
+
+
+

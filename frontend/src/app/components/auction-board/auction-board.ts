@@ -94,30 +94,30 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
 
   async loadInitialData(showLoading = true) {
     if (!this.tournamentId) return;
-    
+
     // Prevent the loading overlay from showing if we are just refreshing state
     if (showLoading) this.loading = true;
 
     try {
       this.tournament = await this.tournamentService.getById(this.tournamentId);
-      
+
       // Sort teams alphabetically by name
       if (this.tournament?.teams) {
         this.tournament.teams.sort((a: any, b: any) => a.name.localeCompare(b.name));
       }
 
       const state: any = await this.auctionService.getAuctionState(this.tournamentId);
-      
+
       // Strict Check: If we are in Unsold mode, only show player if they were originally UNSOLD
       // or if they are already IN_AUCTION.
       // But if they are still UPCOMING, and we are in unsold mode, hide them.
       let validPlayer = state.player;
       if (this.auctionMode === 'unsold' && state.player && state.player.status === 'UPCOMING') {
-          validPlayer = null;
+        validPlayer = null;
       }
       // Conversely, if we are in normal mode and the player is UNSOLD (re-auction), hide them.
       if (this.auctionMode === 'normal' && state.player && state.player.status === 'UNSOLD') {
-          validPlayer = null;
+        validPlayer = null;
       }
 
       this.auctionState = {
@@ -138,7 +138,7 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
       console.error('Error loading auction data:', err);
     } finally {
       this.loading = false;
-      
+
       // Auto-set initial increment if needed
       if (this.currentIncrement === 0 && this.tournament) {
         this.currentIncrement = this.incrementOptions[0];
@@ -255,8 +255,8 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     // Frontend Check
     const maxAllowed = this.getMaxAllowedBid(teamId);
     if (nextBid > maxAllowed) {
-        alert(`Bid exceeds maximum allowed bid for this team. \nMax Allowed: ₹${this.formatPrice(maxAllowed)} \n(Reserved for squad completion)`);
-        return;
+      alert(`Bid exceeds maximum allowed bid for this team. \nMax Allowed: ₹${this.formatPrice(maxAllowed)} \n(Reserved for squad completion)`);
+      return;
     }
 
     try {
@@ -319,12 +319,12 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
   getMaxAllowedBid(teamId: number): number {
     const team = this.tournament?.teams?.find((t: any) => t.id === teamId);
     if (!this.tournament || !team) return 0;
-    
+
     // RemainingSlots * MinimumPlayerBasePrice is our reserve amount
     // But one slot is the one we are bidding for right now!
     const remainingSlots = this.getRemainingSlots(teamId);
     const reserveAmount = (remainingSlots - 1) * this.tournament.minimumPlayerBasePrice;
-    
+
     return team.remainingBudget - reserveAmount;
   }
 
