@@ -64,6 +64,10 @@ const Player = sequelize.define('Player', {
         type: DataTypes.INTEGER, // Associated Tournament
         allowNull: true,
     },
+    city: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
 }, {
     timestamps: true,
     hooks: {

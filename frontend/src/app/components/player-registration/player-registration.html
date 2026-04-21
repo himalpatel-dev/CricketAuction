@@ -7,194 +7,253 @@
 
     <div class="registration-container">
         <div class="glass-card registration-card fade-in">
+            <button type="button" class="close-card-btn" (click)="goToLogin()" title="Return to Login">×</button>
             <div class="card-header">
-                <div class="badge-row">
-                    <span class="badge yellow">Auction 2026</span>
+                <div class="registration-branding">
+                    <img src="/assets/images/sidelogo.png" alt="BidWicket Logo" class="brand-mini-logo">
+                    <div class="brand-text">
+                        <h2 class="brand-name">Bid<span class="green-text">Wicket</span></h2>
+                        <p class="brand-tagline">Bid Smart. Build Champions.</p>
+                    </div>
                 </div>
-                <h1 class="gradient-text">Player Registration</h1>
-                <p class="subtitle">Join the prestigious league and let teams bid for your talent</p>
+                <div class="title-row">
+                    <h1 class="page-title">Player Registration</h1>
+                </div>
+            </div>
+
+            <div class="stepper-bar">
+                <div class="step-line">
+                    <div class="line-fill" [style.width.%]="((currentStep - 1) / (totalSteps - 1)) * 100"></div>
+                </div>
+                <div class="step-circles">
+                    <div class="step-node" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1"
+                        (click)="setStep(1)">
+                        <div class="circle">1</div>
+                        <span>Tournament</span>
+                    </div>
+                    <div class="step-node" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2"
+                        (click)="setStep(2)">
+                        <div class="circle">2</div>
+                        <span>Personal</span>
+                    </div>
+                    <div class="step-node" [class.active]="currentStep >= 3" [class.completed]="currentStep > 3"
+                        (click)="setStep(3)">
+                        <div class="circle">3</div>
+                        <span>Professional</span>
+                    </div>
+                </div>
             </div>
 
             <form (ngSubmit)="register()" #regForm="ngForm" class="registration-form">
-                <!-- Photo Upload Section -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <i class="icon">📸</i>
-                        <h3>Profile Photo</h3>
-                    </div>
-                    
-                    <div class="player-photo-upload">
-                        <div class="photo-preview" [class.has-image]="player.image">
-                            <img *ngIf="player.image" [src]="playerImageUrl" alt="Player Preview">
-                            <div *ngIf="!player.image" class="photo-placeholder">
-                                <i>👤</i>
-                                <span>No Photo</span>
-                            </div>
-                        </div>
-                        <div class="upload-controls">
-                            <label for="playerPhoto" class="btn btn-outline small">Upload Photo</label>
-                            <input type="file" id="playerPhoto" #photoInput hidden (change)="onPlayerPhotoSelected($event)" accept="image/*">
-                            <p class="input-hint">JPG, PNG or WEBP (Max 2MB)</p>
-                        </div>
 
-                        <!-- Image Cropper Overlay -->
-                        <div class="cropper-overlay" *ngIf="showCropper">
-                            <div class="cropper-card">
-                                <div class="cropper-header">
-                                    <h3>Crop Your Profile Photo</h3>
-                                    <p>Adjust the square box to frame your face perfectly</p>
-                                </div>
-                                <div class="cropper-wrapper">
-                                    <div class="cropper-loading-overlay" *ngIf="isCropperLoading && !croppedImage">
-                                        <div class="spinner"></div>
-                                        <p>{{ croppedImage ? 'Finalizing...' : 'Loading Image...' }}</p>
+                <!-- STEP 1: Setup Details -->
+                <div class="step-content fade-in" *ngIf="currentStep === 1">
+                    <div class="form-section">
+
+                        <div class="tournament-selector">
+                            <div class="form-group full">
+                                <label>Select Tournament *</label>
+                                <div class="custom-dropdown" [class.open]="isDropdownOpen">
+                                    <div class="dropdown-selected" (click)="toggleDropdown()">
+                                        <span>{{ selectedTournamentName }}</span>
+                                        <i class="caret"></i>
                                     </div>
-                                    <image-cropper
-                                        [imageChangedEvent]="imageChangedEvent"
-                                        [maintainAspectRatio]="true"
-                                        [aspectRatio]="1 / 1"
-                                        [resizeToWidth]="400"
-                                        [autoCrop]="true"
-                                        [onlyScaleDown]="true"
-                                        format="webp"
-                                        (imageCropped)="imageCropped($event)"
-                                        (imageLoaded)="imageLoaded()"
-                                        (cropperReady)="cropperReady()"
-                                        (loadImageFailed)="loadImageFailed()"
-                                    ></image-cropper>
+                                    <div class="dropdown-list" *ngIf="isDropdownOpen">
+                                        <div class="dropdown-item" *ngFor="let t of tournaments" (click)="selectTournament(t)">
+                                            <span class="t-name">{{ t.name }}</span>
+                                            <span class="t-status" [class]="t.status.toLowerCase()">{{ t.status }}</span>
+                                        </div>
+                                        <div class="dropdown-item no-data" *ngIf="tournaments.length === 0">
+                                            No active tournaments found
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="cropper-actions">
-                                    <button type="button" class="btn-cancel" (click)="cancelCrop()">Cancel</button>
-                                    <button type="button" class="btn btn-primary" (click)="confirmCrop()" [disabled]="isCropperLoading && !croppedImage">
-                                        Apply Crop
-                                    </button>
+
+                            </div>
+                        </div>
+
+                        <div class="photo-upload-compact">
+                            <div class="photo-preview" [class.has-image]="player.image">
+                                <img *ngIf="player.image" [src]="playerImageUrl" alt="Player Preview">
+                                <div *ngIf="!player.image" class="photo-placeholder">
+                                    <i>👤</i>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tournament Selector Section -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <i class="icon">🏆</i>
-                        <h3>Tournament Details</h3>
-                    </div>
-                    <div class="tournament-selector">
-                        <div class="form-group full">
-                            <label>Select Tournament *</label>
-                            <div class="select-wrapper">
-                                <select name="selectedTournament" [(ngModel)]="selectedTournamentId"
-                                    (change)="onTournamentChange()" required>
-                                    <option value="" disabled>Choose an active tournament</option>
-                                    @for (t of tournaments; track t.id) {
-                                    <option [value]="t.id">{{ t.name }} ({{ t.status }})</option>
-                                    } @empty {
-                                    <option value="" disabled>No active tournaments found</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="base-price-info" *ngIf="basePrice">
-                                <span class="label">FIXED BASE PRICE</span>
-                                <span class="value">₹{{ basePrice.toLocaleString('en-IN') }}</span>
+                            <div class="upload-controls">
+                                <label for="playerPhoto" class="btn btn-outline small">Upload Photo</label>
+                                <input type="file" id="playerPhoto" #photoInput hidden
+                                    (change)="onPlayerPhotoSelected($event)" accept=".jpg,.jpeg,.png">
+                                <p class="input-hint">JPG, PNG (Max 2MB)</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Personal Info Section -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <i class="icon">👤</i>
-                        <h3>Personal Information</h3>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Full Name *</label>
-                            <input type="text" name="name" [(ngModel)]="player.name" placeholder="e.g. Virat Kohli"
-                                required>
+                <!-- STEP 2: Personal Information -->
+                <div class="step-content fade-in" *ngIf="currentStep === 2">
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="icon">👤</i>
+                            <h3>Personal Information</h3>
                         </div>
-                        <div class="form-group">
-                            <label>Mobile Number *</label>
-                            <input type="tel" name="mobile" [(ngModel)]="player.mobileNo" placeholder="e.g. 9876543210"
-                                required>
-                        </div>
-                        <div class="form-group">
-                            <label>Date of Birth *</label>
-                            <input type="date" name="dob" [(ngModel)]="player.dob" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Gender *</label>
-                            <div class="select-wrapper">
-                                <select name="gender" [(ngModel)]="player.gender">
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Full Name *</label>
+                                <input type="text" name="name" [(ngModel)]="player.name" placeholder="e.g. Virat Kohli"
+                                    required class="rounded-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Mobile Number *</label>
+                                <input type="tel" name="mobile" [(ngModel)]="player.mobileNo"
+                                    placeholder="e.g. 9876543210" required class="rounded-input">
+                            </div>
+                             <div class="form-group">
+                                <label>Date of Birth *</label>
+                                <div class="date-input-wrapper">
+                                    <div class="dropdown-selected rounded-input" (click)="toggleCalendar()" [class.active]="isCalendarOpen">
+                                        <span>{{ player.dob ? (player.dob | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                        <i class="calendar-icon-svg"></i>
+                                    </div>
+                                    
+                                    <div class="custom-calendar-popup" *ngIf="isCalendarOpen">
+                                        <div class="calendar-header">
+                                            <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                            <span class="month-year">{{ calendarMonthYear }}</span>
+                                            <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                        </div>
+                                        <div class="calendar-grid">
+                                            <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                            <div class="day" *ngFor="let d of calendarDays" 
+                                                 [class.other-month]="!d.current"
+                                                 (click)="selectDate(d.day, d.current)">
+                                                 {{ d.day }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Gender *</label>
+                                <div class="custom-dropdown" [class.open]="isGenderDropdownOpen">
+                                    <div class="dropdown-selected" (click)="toggleGenderDropdown()">
+                                        <span>{{ player.gender || 'Select Gender' }}</span>
+                                        <i class="caret"></i>
+                                    </div>
+                                    <div class="dropdown-list" *ngIf="isGenderDropdownOpen">
+                                        <div class="dropdown-item" (click)="selectGender('Male')">Male</div>
+                                        <div class="dropdown-item" (click)="selectGender('Female')">Female</div>
+                                        <div class="dropdown-item" (click)="selectGender('Other')">Other</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>City / Location</label>
+                                <input type="text" name="city" [(ngModel)]="player.city" placeholder="e.g. Mumbai" class="rounded-input">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Professional Details Section -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <i class="icon">🏏</i>
-                        <h3>Professional Details</h3>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Playing Role *</label>
-                            <div class="select-wrapper">
-                                <select name="role" [(ngModel)]="player.role" required>
-                                    <option value="Batsman">Batsman</option>
-                                    <option value="Bowler">Bowler</option>
-                                    <option value="All-Rounder">All-Rounder</option>
-                                    <option value="Wicketkeeper">Wicketkeeper</option>
-                                </select>
+                <!-- STEP 3: Professional Details -->
+                <div class="step-content fade-in" *ngIf="currentStep === 3">
+                    <div class="form-section">
+                        <div class="section-header">
+                            <i class="icon">🏏</i>
+                            <h3>Professional Details</h3>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Playing Role *</label>
+                                <div class="custom-dropdown" [class.open]="isRoleDropdownOpen">
+                                    <div class="dropdown-selected" (click)="toggleRoleDropdown()">
+                                        <span>{{ player.role || 'Select Role' }}</span>
+                                        <i class="caret"></i>
+                                    </div>
+                                    <div class="dropdown-list" *ngIf="isRoleDropdownOpen">
+                                        <div class="dropdown-item" (click)="selectRole('Batsman')">Batsman</div>
+                                        <div class="dropdown-item" (click)="selectRole('Bowler')">Bowler</div>
+                                        <div class="dropdown-item" (click)="selectRole('All-Rounder')">All-Rounder</div>
+                                        <div class="dropdown-item" (click)="selectRole('Wicketkeeper')">Wicketkeeper</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>T-Shirt Size</label>
+                                <div class="custom-dropdown" [class.open]="isTshirtDropdownOpen">
+                                    <div class="dropdown-selected" (click)="toggleTshirtDropdown()">
+                                        <span>{{ player.tShirtSize || 'Select Size' }}</span>
+                                        <i class="caret"></i>
+                                    </div>
+                                    <div class="dropdown-list" *ngIf="isTshirtDropdownOpen">
+                                        <div class="dropdown-item" (click)="selectTshirt('S')">Small (S)</div>
+                                        <div class="dropdown-item" (click)="selectTshirt('M')">Medium (M)</div>
+                                        <div class="dropdown-item" (click)="selectTshirt('L')">Large (L)</div>
+                                        <div class="dropdown-item" (click)="selectTshirt('XL')">Extra Large (XL)</div>
+                                        <div class="dropdown-item" (click)="selectTshirt('XXL')">Double XL (XXL)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Trouser Size</label>
+                                <input type="text" name="trouser" [(ngModel)]="player.trouserSize"
+                                    placeholder="e.g. 32, 34" class="rounded-input">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>City / Location</label>
-                            <input type="text" name="city" [(ngModel)]="player.city" placeholder="e.g. Mumbai">
-                        </div>
-                        <div class="form-group">
-                            <label>T-Shirt Size</label>
-                            <div class="select-wrapper">
-                                <select name="tshirt" [(ngModel)]="player.tShirtSize">
-                                    <option value="">Select Size</option>
-                                    <option value="S">Small (S)</option>
-                                    <option value="M">Medium (M)</option>
-                                    <option value="L">Large (L)</option>
-                                    <option value="XL">Extra Large (XL)</option>
-                                    <option value="XXL">Double XL (XXL)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Trouser Size</label>
-                            <input type="text" name="trouser" [(ngModel)]="player.trouserSize"
-                                placeholder="e.g. 32, 34">
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Feedback Area -->
-                <div class="feedback-area" *ngIf="message">
-                    <div class="alert" [class.success]="success" [class.error]="!success">
-                        <i class="icon">{{ success ? '✅' : '❌' }}</i>
-                        <span>{{ message }}</span>
+                        <!-- Feedback Area inside the card -->
+                        <div class="feedback-area" *ngIf="message">
+                            <div class="alert" [class.success]="success" [class.error]="!success">
+                                <i class="icon">{{ success ? '✅' : '❌' }}</i>
+                                <span>{{ message }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Form Actions -->
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary" [disabled]="loading || !regForm.valid">
+                <div class="form-actions stepper-actions">
+                    <button type="button" class="btn btn-outline" *ngIf="currentStep > 1" (click)="prevStep()">
+                        <span class="icon-arrow">←</span> Back
+                    </button>
+
+                    <button type="button" class="btn btn-primary" *ngIf="currentStep < totalSteps" (click)='nextStep()'>
+                        Continue <span class="icon-arrow">→</span>
+                    </button>
+
+                    <button type="submit" class="btn btn-primary submit-btn" *ngIf="currentStep === totalSteps"
+                        [disabled]="loading || !regForm.valid">
                         {{ loading ? 'Registering...' : 'Complete Registration' }}
-                        <span class="icon-arrow">→</span>
+                        <i class="icon-check">✓</i>
                     </button>
                 </div>
             </form>
+
+            <!-- Image Cropper Overlay -->
+            <div class="cropper-overlay" *ngIf="showCropper">
+                <div class="cropper-card">
+                    <div class="cropper-header">
+                        <h3>Crop Your Profile Photo</h3>
+                        <p>Adjust the square box to frame your face perfectly</p>
+                    </div>
+                    <div class="cropper-wrapper">
+                        <div class="cropper-loading-overlay" *ngIf="isCropperLoading && !croppedImage">
+                            <div class="spinner"></div>
+                            <p>{{ croppedImage ? 'Finalizing...' : 'Loading Image...' }}</p>
+                        </div>
+                        <image-cropper [imageChangedEvent]="imageChangedEvent" [maintainAspectRatio]="true"
+                            [aspectRatio]="1 / 1" [resizeToWidth]="400" [autoCrop]="true" [onlyScaleDown]="true"
+                            format="webp" (imageCropped)="imageCropped($event)" (imageLoaded)="imageLoaded()"
+                            (cropperReady)="cropperReady()" (loadImageFailed)="loadImageFailed()"></image-cropper>
+                    </div>
+                    <div class="cropper-actions">
+                        <button type="button" class="btn-cancel" (click)="cancelCrop()">Cancel</button>
+                        <button type="button" class="btn btn-primary" (click)="confirmCrop()"
+                            [disabled]="isCropperLoading && !croppedImage">
+                            Apply Crop
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

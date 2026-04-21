@@ -131,9 +131,9 @@
 }
 
 .role-filters button.active {
-    background: #133b33;
+    background: var(--primary);
     color: white;
-    border-color: #133b33;
+    border-color: var(--primary);
     box-shadow: 0 4px 12px rgba(19, 59, 51, 0.2);
 }
 
@@ -149,7 +149,7 @@
 
 /* Premium Hero Card */
 .premium-hero-card {
-    background: #133b33;
+    background: var(--primary);
     /* Deep Dark Green */
     margin: 24px;
     border-radius: 24px;
@@ -189,7 +189,7 @@
 
 .badge.active {
     background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
+    color: var(--primary-light);
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
@@ -244,7 +244,7 @@
 
 .btn-continue {
     background: #ffb700;
-    color: #133b33;
+    color: var(--primary);
     border: none;
     padding: 12px 24px;
     border-radius: 12px;
@@ -322,7 +322,7 @@
 
 .stat-column.remaining .stat-value,
 .stat-column.rank .stat-value {
-    color: #10b981;
+    color: var(--primary-light);
     /* Neon Green */
 }
 
@@ -370,7 +370,7 @@
 
 .circle {
     fill: none;
-    stroke: #10b981;
+    stroke: var(--primary-light);
     stroke-width: 2.4;
     stroke-linecap: round;
     transition: stroke-dasharray 0.3s ease;
@@ -422,9 +422,9 @@
 }
 
 .content-tabs button.active {
-    background: #133b33;
+    background: var(--primary);
     color: white;
-    border-color: #133b33;
+    border-color: var(--primary);
     box-shadow: 0 10px 15px -3px rgba(19, 59, 51, 0.2);
 }
 
@@ -503,7 +503,7 @@
 .dot-green {
     width: 8px;
     height: 8px;
-    background: #10b981;
+    background: var(--primary-light);
     border-radius: 50%;
 }
 
@@ -647,7 +647,7 @@
 .radial-progress .percentage h3 {
     font-size: 28px;
     font-weight: 800;
-    color: #133b33;
+    color: var(--primary);
     margin: 0;
     line-height: 1;
 }
@@ -665,7 +665,7 @@
 }
 
 .circular-chart.green .circle {
-    stroke: #10b981;
+    stroke: var(--primary-light);
 }
 
 /* Budget Overview Card */
@@ -723,13 +723,13 @@
 }
 
 .bar-fill.green {
-    background: #10b981;
+    background: var(--primary-light);
 }
 
 .budget-bar-item .value {
     font-size: 13px;
     font-weight: 800;
-    color: #133b33;
+    color: var(--primary);
     min-width: 55px;
     text-align: right;
     font-family: 'Outfit', sans-serif;
@@ -740,7 +740,7 @@
 }
 
 .budget-bar-item .value.green {
-    color: #10b981;
+    color: var(--primary-light);
 }
 
 /* Main Grid Layout */
@@ -794,7 +794,7 @@
 .stat-item .val {
     font-size: 20px;
     font-weight: 800;
-    color: #133b33;
+    color: var(--primary);
     line-height: 1;
 }
 
@@ -815,7 +815,7 @@
 }
 
 .stat-item.green .lab {
-    color: #10b981;
+    color: var(--primary-light);
 }
 
 .stat-item.orange .lab {
@@ -895,7 +895,7 @@
 }
 
 .activity-item:not(.lost) .status-label {
-    color: #10b981;
+    color: var(--primary-light);
 }
 
 .activity-item.lost .status-label {
@@ -910,7 +910,7 @@
     font-size: 18px;
     font-weight: 800;
     font-family: 'Outfit', sans-serif;
-    color: #133b33;
+    color: var(--primary);
     line-height: 1;
     margin-bottom: 4px;
 }
@@ -957,7 +957,7 @@
 .dot-green-circle {
     width: 8px;
     height: 8px;
-    background: #10b981;
+    background: var(--primary-light);
     border-radius: 50%;
 }
 
@@ -991,7 +991,7 @@
 }
 
 .logo-upload-section:hover {
-    border-color: #133b33;
+    border-color: var(--primary);
     background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
 }
 
@@ -1075,7 +1075,7 @@
 .logo-info .label {
     font-size: 12px;
     font-weight: 800;
-    color: #133b33;
+    color: var(--primary);
     letter-spacing: 1.5px;
     margin-bottom: 6px;
     text-transform: uppercase;
@@ -1135,7 +1135,7 @@
 
 .form-group input:focus,
 .select-wrapper select:focus {
-    border-color: #133b33;
+    border-color: var(--primary);
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(19, 59, 51, 0.05);
     /* Subtle focus ring */
@@ -1165,7 +1165,7 @@
 }
 
 .select-wrapper:hover .select-arrow {
-    color: #133b33;
+    color: var(--primary);
 }
 
 .full-width {

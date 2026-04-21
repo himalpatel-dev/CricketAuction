@@ -4,7 +4,7 @@
 }
 
 .top-nav {
-    background-color: var(--bg-sidebar); /* Project's primary deep green */
+    background-color: var(--primary); /* Project's primary deep green */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     color: white;
@@ -41,7 +41,7 @@
 
 .logo-box {
     background-color: var(--accent); /* Project's accent yellow */
-    color: var(--bg-sidebar);
+    color: var(--primary);
     width: 34px;
     height: 34px;
     border-radius: 8px;

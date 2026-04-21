@@ -182,7 +182,7 @@ exports.getLatestPublicTournament = async (req, res) => {
     try {
         const tournament = await Tournament.findOne({
             order: [['createdAt', 'DESC']],
-            attributes: ['id', 'name', 'baseAuctionPrice', 'status', 'tournamentStartDate'] // Public fields only
+            attributes: ['id', 'name', 'minimumPlayerBasePrice', 'status', 'tournamentStartDate', 'tournamentEndDate', 'auctionDate', 'location', 'category', 'format', 'regEndDate'] // Public fields only
         });
 
         if (!tournament) {
@@ -203,7 +203,7 @@ exports.getOpenTournaments = async (req, res) => {
                 }
             },
             order: [['createdAt', 'DESC']],
-            attributes: ['id', 'name', 'baseAuctionPrice', 'status', 'tournamentStartDate']
+            attributes: ['id', 'name', 'minimumPlayerBasePrice', 'status', 'tournamentStartDate', 'tournamentEndDate', 'auctionDate', 'location', 'category', 'format', 'regEndDate']
         });
         res.json(tournaments);
     } catch (error) {
@@ -263,7 +263,8 @@ exports.uploadPlayers = async (req, res) => {
                 gender: row['Gender'] || row['gender'] || 'Male',
                 dob: parseDate(row['DOB'] || row['dob']),
                 tShirtSize: row['T-Shirt'] || row['tshirt'] || null,
-                trouserSize: row['Trouser'] || row['trouser'] || null
+                trouserSize: row['Trouser'] || row['trouser'] || null,
+                city: row['City'] || row['city'] || null
             };
         }).filter(p => p.name);
 
@@ -271,7 +272,7 @@ exports.uploadPlayers = async (req, res) => {
             return res.status(400).json({ message: 'No valid players found in file' });
         }
 
-        await Player.bulkCreate(players);
+        await Player.bulkCreate(players, { individualHooks: true });
 
         res.status(201).json({ message: `Successfully added ${players.length} players` });
     } catch (error) {

@@ -1,6 +1,6 @@
 .auction-page {
     min-height: 100vh;
-    background-color: #062a1e;
+    background-color: var(--primary);
     color: #ffffff;
     font-family: 'Outfit', sans-serif;
     position: relative;
@@ -158,7 +158,7 @@
 
 .panel-card {
     flex: 1;
-    background: #f7f7e8;
+    background: white;
     border-radius: 32px;
     overflow: hidden;
     display: flex;
@@ -176,7 +176,7 @@
 
 .current-bid-display-left {
     flex: 0 0 auto;
-    background: #f7f7e8;
+    background: white;
     border-radius: 32px;
     padding: 24px;
     color: #1e293b;
@@ -389,7 +389,7 @@
 
 .control-panel-sidebar {
     flex: 1;
-    background: #f7f7e8;
+    background: white;
     border-radius: 32px;
     padding: 24px;
     color: #1e293b;
@@ -596,8 +596,8 @@
 }
 
 .sold .stamp {
-    color: #10b981;
-    border-color: #10b981;
+    color: var(--primary-light);
+    border-color: var(--primary-light);
 }
 
 .unsold .stamp {

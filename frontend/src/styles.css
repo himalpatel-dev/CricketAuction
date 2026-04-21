@@ -6,10 +6,12 @@
 
 :root {
   /* Design System Tokens */
-  --primary: #10b981;
-  /* Emerald Green */
-  --primary-dark: #064e3b;
-  /* Dark Emerald */
+  --primary: #133b33;
+  /* Deep Teal Primary */
+  --primary-light: #10b981;
+  /* Emerald Green Secondary */
+  --primary-dark: #0b241f;
+  /* Darker Teal */
   --accent: #ffb700;
   /* Golden Yellow */
   --accent-hover: #eab308;
