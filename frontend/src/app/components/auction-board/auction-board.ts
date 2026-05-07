@@ -29,6 +29,7 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
   isAdmin = false;
   currentUserId: string | null = null;
   userTeamId: number | null = null;
+  teamPlayers: any[] = [];
   private initialAutoStartDone = false;
 
   constructor(
@@ -150,6 +151,15 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
         if (this.availablePlayers.length > 0) {
           console.log('Auto-starting first random auction...');
           this.startRandomAuction();
+        }
+      }
+
+      // Fetch team players if user is a team owner
+      if (this.userTeamId) {
+        try {
+          this.teamPlayers = await this.tournamentService.getTeamPlayers(this.userTeamId);
+        } catch (err) {
+          console.error('Error fetching team players:', err);
         }
       }
 

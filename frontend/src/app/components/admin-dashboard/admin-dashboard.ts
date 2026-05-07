@@ -213,11 +213,14 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   public formatCurrency(value: number): string {
-    if (!value) return '0';
-    if (value >= 10000000) {
-      return (value / 10000000).toFixed(1) + 'Cr';
-    } else if (value >= 100000) {
+    if (!value && value !== 0) return '0';
+    if (value >= 9000000) { // 90 Lakhs and above -> Crore
+      const cr = value / 10000000;
+      return (cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(1)) + 'Cr';
+    } else if (value >= 100000) { // 1 Lakh and above -> Lakh
       return (value / 100000).toFixed(0) + 'L';
+    } else if (value >= 1000) {
+      return (value / 1000).toFixed(1) + 'K';
     } else {
       return value.toLocaleString('en-IN');
     }

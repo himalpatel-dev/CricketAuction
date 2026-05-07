@@ -1762,6 +1762,13 @@
     margin-bottom: 32px;
 }
 
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
 .form-group {
     display: flex;
     flex-direction: column;
@@ -2059,4 +2066,736 @@
 .cropper-actions button {
     min-width: 160px;
     padding: 14px 24px;
-}
+}
+
+/* --- Selection Cards Design (Ported from Add Tournament) --- */
+.selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.selection-card {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    user-select: none;
+}
+
+.selection-card:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+
+.selection-card.selected {
+    background: #f0fdf4;
+    border-color: #133b33;
+    border-width: 1.5px;
+}
+
+.card-radio {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    margin-top: 3px;
+}
+
+.selection-card.selected .card-radio {
+    border-color: #133b33;
+    border-width: 6px;
+}
+
+.card-content {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.card-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.card-desc {
+    font-size: 11px;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* --- Custom Dropdown & Calendar Logic (Ported from Registration) --- */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+
+/* --- Custom Dropdown & Calendar Logic (Ported from Registration) --- */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.dropdown-selected {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 18px;
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    min-height: 46px;
+}
+
+.custom-dropdown.open .dropdown-selected {
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.dropdown-selected .caret {
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #94a3b8;
+    transition: transform 0.3s ease;
+}
+
+.custom-dropdown.open .caret {
+    transform: rotate(180deg);
+}
+
+.dropdown-list {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    min-width: 200px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid #f1f5f9;
+    z-index: 1000;
+    overflow: hidden;
+    animation: dropdownFadeCentered 0.2s ease-out;
+}
+
+@keyframes dropdownFadeCentered {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.dropdown-item {
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 13px;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background: #f0fdf4;
+}
+
+/* Rounded Select & Inputs */
+.rounded-input {
+    border-radius: 12px !important;
+}
+
+/* Date Input Customization */
+.date-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.date-input-wrapper .dropdown-selected.active {
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.calendar-icon-svg {
+    width: 18px;
+    height: 18px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' /%3E%3C/svg%3E") no-repeat center;
+    background-size: contain;
+}
+
+/* Custom Calendar Popup Content */
+.custom-calendar-popup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 280px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
+    border: 1px solid #f1f5f9;
+    z-index: 1001;
+    padding: 18px;
+    animation: dropdownFadeCenteredScale 0.25s ease-out;
+}
+
+@keyframes dropdownFadeCenteredScale {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.cal-dropdowns {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.cal-dropdowns select {
+    appearance: auto;
+    width: auto;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #1e293b;
+    font-weight: 700;
+    outline: none;
+    cursor: pointer;
+}
+
+.cal-nav {
+    background: #f8fafc;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 10px;
+    transition: all 0.2s;
+}
+
+.cal-nav:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.weekday {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    padding-bottom: 8px;
+}
+
+.day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: #1e293b;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.day:hover {
+    background: #f0fdf4;
+    color: #10b981;
+}
+
+.day.other-month {
+    color: #cbd5e1;
+}
+
+.day.selected {
+    background: #10b981;
+    color: #ffffff;
+}
+/* --- New Card-Based Form Design --- */
+.registration-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px 0;
+}
+
+.reg-card {
+    background: #ffffff;
+    border: 1.5px solid #d1fae5; /* Very light green border */
+    border-radius: 20px;
+    padding: 28px;
+    position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.reg-card.green-theme {
+    background: #f0fdf4;
+    border-color: #10b981;
+}
+
+.reg-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.reg-card-header i {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reg-card-header h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #133b33;
+    margin: 0;
+    /* Removed uppercase to match image */
+}
+
+.middle-row {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 24px;
+}
+
+.form-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #10b981; /* Green labels as per image */
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+    letter-spacing: 0.5px;
+}
+
+.capsule-input {
+    border-radius: 50px !important;
+    padding: 12px 20px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    font-size: 14px !important;
+    width: 100%;
+    background: #ffffff !important;
+    color: #334155;
+    transition: all 0.2s;
+}
+
+.capsule-input::placeholder {
+    color: #94a3b8;
+}
+
+.capsule-input:focus {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+    outline: none;
+}
+
+.left-aligned-input {
+    text-align: left !important;
+}
+
+/* Dropdown refinements */
+.custom-dropdown .dropdown-selected {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.custom-dropdown .caret {
+    border-top: 5px solid #94a3b8;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    margin-left: 8px;
+}
+
+/* Photo Section Refinement */
+.photo-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.square-preview {
+    width: 110px;
+    height: 110px;
+    border-radius: 16px;
+    border: 1.5px dashed #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #f8fafc;
+}
+
+.square-preview.has-image {
+    border-style: solid;
+    border-color: #10b981;
+    background: white;
+}
+
+.square-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.upload-btn-styled {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.btn-upload-small {
+    background: #ffffff;
+    border: 1.5px solid #133b33;
+    color: #133b33;
+    padding: 8px 18px;
+    border-radius: 50px; /* Capsule shape button */
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-upload-small:hover {
+    background: #133b33;
+    color: #ffffff;
+}
+
+.input-hint {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 6px;
+}
+
+/* Specific grids */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .middle-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Admin Player Registration Form Layout Improvements --- */
+.form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 32px 0 24px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.form-section-header:first-of-type {
+    margin-top: 0;
+}
+
+.form-section-header .f-icon {
+    width: 42px;
+    height: 42px;
+    background: #f1f5f9;
+    color: var(--text-main);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-style: normal;
+    border: 1px solid var(--border);
+}
+
+.form-section-header .f-text h4 {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.form-section-header .f-text p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 2px 0 0 0;
+}
+
+.identity-layout {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 32px;
+    margin-bottom: 32px;
+    align-items: start;
+    padding: 0; /* Removed background and padding for neutral look */
+}
+
+.identity-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Photo Upload refinement */
+.player-photo-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    background: #f8fafc;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+}
+
+.photo-preview {
+    width: 140px;
+    height: 140px;
+    border-radius: 24px;
+    background: white;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.upload-controls {
+    align-items: center;
+    text-align: center;
+}
+
+/* Grid refinement for form */
+.form-grid {
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .identity-layout {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+    
+    .identity-fields {
+        width: 100%;
+    }
+}
+/* Global Database Section */
+.global-database-section {
+    margin-top: 20px;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.filter-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.filter-group input, .filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+}
+
+.global-players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 200px;
+    position: relative;
+}
+
+.global-player-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.global-player-row:hover {
+    border-color: #10b981;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transform: translateY(-2px);
+}
+
+.p-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f1f5f9;
+}
+
+.p-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.p-main-info {
+    flex: 1;
+}
+
+.p-main-info h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.p-meta {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.p-contact {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.p-actions {
+    margin-left: 12px;
+}
+
+.btn-add-mini {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-add-mini:hover {
+    background: #059669;
+}
+
+.btn-add-mini:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.loading-overlay-inline {
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+}
+

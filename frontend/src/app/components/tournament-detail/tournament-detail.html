@@ -257,19 +257,19 @@
                             <p>{{ tournament.tournamentStartDate | date:'yyyy' }}</p>
                         </div>
                         <div class="detail-item">
-                            <label>REGISTRATION</label>
-                            <p>{{ tournament.regStartDate | date:'MMM d' }} - {{ tournament.regEndDate |
-                                date:'MMM d, y' }}</p>
+                            <label>TOURNAMENT DATES</label>
+                            <p>{{ tournament.tournamentStartDate | date:'MMM d' }} - {{
+                                tournament.tournamentEndDate | date:'MMM d,
+                                y' }}</p>
                         </div>
                         <div class="detail-item">
                             <label>AUCTION DATE</label>
                             <p>{{ tournament.auctionDate | date:'MMM d, y' }}</p>
                         </div>
                         <div class="detail-item">
-                            <label>TOURNAMENT DATES</label>
-                            <p>{{ tournament.tournamentStartDate | date:'MMM d' }} - {{
-                                tournament.tournamentEndDate | date:'MMM d,
-                                y' }}</p>
+                            <label>REGISTRATION</label>
+                            <p>{{ tournament.regStartDate | date:'MMM d' }} - {{ tournament.regEndDate |
+                                date:'MMM d, y' }}</p>
                         </div>
                         <div class="detail-item">
                             <label>MATCH DATES</label>
@@ -447,20 +447,83 @@
             <div class="players-tab-content">
                 <div class="tab-header-row justify-end">
                     <div class="header-actions">
-                        @if (!showAddPlayerForm) {
+                        @if (!showAddPlayerForm && !showGlobalDatabase) {
                         <div class="search-box">
                             <i class="search-icon">🔍</i>
                             <input type="text" placeholder="Search players..." [(ngModel)]="playerSearchTerm"
                                 (input)="onSearch()">
                         </div>
                         }
-                        <button class="btn btn-primary" (click)="toggleAddPlayerForm()">
+                        
+                        <button class="btn btn-primary" (click)="toggleGlobalDatabase()" *ngIf="!showAddPlayerForm">
+                            {{ showGlobalDatabase ? '← Back to Players' : '🔍 Pick from Global' }}
+                        </button>
+
+                        <button class="btn btn-primary" (click)="toggleAddPlayerForm()" *ngIf="!showGlobalDatabase">
                             {{ showAddPlayerForm ? '← Back to Players' : '+ Register Player' }}
                         </button>
                     </div>
                 </div>
 
-                @if (!showAddPlayerForm) {
+                @if (showGlobalDatabase) {
+                <div class="global-database-section fade-in">
+                    <div class="settings-card">
+                        <div class="settings-header">
+                            <h2>Global Player Database</h2>
+                            <p>Search and add players who have registered in any tournament.</p>
+                        </div>
+
+                        <div class="filter-bar">
+                            <div class="filter-group">
+                                <label>Search</label>
+                                <input type="text" [(ngModel)]="globalFilters.search" (input)="loadGlobalPlayers()" placeholder="Name or Mobile...">
+                            </div>
+                            <div class="filter-group">
+                                <label>Playing Role</label>
+                                <select [(ngModel)]="globalFilters.role" (change)="loadGlobalPlayers()">
+                                    <option value="All">All Roles</option>
+                                    <option value="Batsman">Batsman</option>
+                                    <option value="Bowler">Bowler</option>
+                                    <option value="All-Rounder">All-Rounder</option>
+                                    <option value="Wicketkeeper">Wicketkeeper</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>City</label>
+                                <input type="text" [(ngModel)]="globalFilters.city" (input)="loadGlobalPlayers()" placeholder="e.g. Mumbai">
+                            </div>
+                        </div>
+
+                        <div class="global-players-list">
+                            <div class="loading-overlay-inline" *ngIf="loadingGlobal">
+                                <div class="spinner"></div>
+                            </div>
+
+                            <div class="empty-state" *ngIf="!loadingGlobal && globalPlayers.length === 0">
+                                <p>No players found matching your filters.</p>
+                            </div>
+
+                            <div class="global-player-row" *ngFor="let p of globalPlayers">
+                                <div class="p-avatar">
+                                    <img [src]="p.image || '/assets/images/default-avatar.png'" alt="">
+                                </div>
+                                <div class="p-main-info">
+                                    <h4>{{ p.name }}</h4>
+                                    <span class="p-meta">{{ p.role }} • {{ p.city || 'Unknown City' }}</span>
+                                </div>
+                                <div class="p-contact">
+                                    <span class="p-mobile">{{ p.mobileNo }}</span>
+                                </div>
+                                <div class="p-actions">
+                                    <button class="btn-add-mini" (click)="addGlobalPlayerToTournament(p)" [disabled]="saving">
+                                        {{ saving ? '...' : '+ Add' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                } @else if (!showAddPlayerForm) {
                 <div class="players-grid">
                     @for (player of filteredPlayers; track player.id) {
                     <app-player-card [player]="player" [tournament]="tournament" [index]="$index" [canEdit]="true"
@@ -476,101 +539,228 @@
                             tournament?.name }}</p>
                     </div>
 
-                    <form (ngSubmit)="submitAddPlayer()" #playerForm="ngForm">
-                        <div class="player-photo-upload">
-                            <div class="photo-preview" [class.has-image]="newPlayer.image">
-                                <img *ngIf="newPlayer.image" [src]="playerImageUrl" alt="Player Preview">
-                                <div *ngIf="!newPlayer.image" class="photo-placeholder">
-                                    <i>👤</i>
-                                    <span>No Photo</span>
+                    <form (ngSubmit)="submitAddPlayer()" #playerForm="ngForm" class="settings-form">
+                        <div class="registration-container">
+                            <!-- Card 1: Quick Start -->
+                            <div class="reg-card green-theme">
+                                <div class="reg-card-header">
+                                    <i>📱</i>
+                                    <h3>Quick Start</h3>
+                                </div>
+                                <div class="form-group">
+                                    <label>MOBILE NUMBER *</label>
+                                    <input type="tel" [(ngModel)]="newPlayer.mobileNo" name="mobileNo"
+                                        (ngModelChange)="onMobileChange()" placeholder="Enter 10-digit mobile number"
+                                        maxlength="10" (keypress)="numberOnly($event)" class="capsule-input" required>
+                                    <p class="input-hint">Enter your number to auto-fill details if you've registered
+                                        before.</p>
                                 </div>
                             </div>
-                            <div class="upload-controls">
-                                <label for="playerPhoto" class="btn btn-outline small">Upload Photo</label>
-                                <input type="file" id="playerPhoto" #photoInput hidden
-                                    (change)="onPlayerPhotoSelected($event)" accept="image/*">
-                                <p class="input-hint">JPG, PNG or WEBP (Max 2MB)</p>
+
+                            <!-- Middle Row: Identity & Personal -->
+                            <div class="middle-row">
+                                <!-- Card 2: Tournament & Identity -->
+                                <div class="reg-card">
+                                    <div class="reg-card-header">
+                                        <i style="color: #f59e0b;">🏆</i>
+                                        <h3>Tournament & Identity</h3>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>SELECT TOURNAMENT *</label>
+                                        <div class="custom-dropdown">
+                                            <div
+                                                class="dropdown-selected rounded-input capsule-input left-aligned-input">
+                                                <span>{{ tournament?.name }} (ACTIVE)</span>
+                                                <i class="caret"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="photo-upload-row">
+                                        <div class="square-preview" [class.has-image]="newPlayer.image">
+                                            <img *ngIf="newPlayer.image" [src]="playerImageUrl" alt="Player Preview">
+                                            <div *ngIf="!newPlayer.image" class="photo-placeholder">
+                                                <i style="font-size: 40px; color: #cbd5e1;">👤</i>
+                                            </div>
+                                        </div>
+                                        <div class="upload-btn-styled">
+                                            <label for="playerPhoto" class="btn-upload-small">
+                                                <i>📤</i> Upload Photo
+                                            </label>
+                                            <input type="file" id="playerPhoto" #photoInput hidden
+                                                (change)="onPlayerPhotoSelected($event)" accept="image/*">
+                                            <p class="input-hint">JPG, PNG (Max 2MB)</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 3: Personal Information -->
+                                <div class="reg-card">
+                                    <div class="reg-card-header">
+                                        <i style="color: #f59e0b;">👤</i>
+                                        <h3>Personal Information</h3>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>FULL NAME *</label>
+                                        <input type="text" [(ngModel)]="newPlayer.name" name="playerName" required
+                                            placeholder="e.g. Virat Kohli" class="capsule-input left-aligned-input">
+                                    </div>
+
+                                    <div class="form-grid-2" style="margin-top: 16px;">
+                                        <div class="form-group">
+                                            <label>DATE OF BIRTH *</label>
+                                            <div class="date-input-wrapper">
+                                                <div class="dropdown-selected rounded-input capsule-input left-aligned-input"
+                                                    (click)="toggleCalendar('dob')"
+                                                    [class.active]="isCalendarOpen && activeDateField === 'dob'">
+                                                    <span>{{ newPlayer.dob ? (newPlayer.dob | date:'dd-MM-yyyy') :
+                                                        'dd-mm-yyyy' }}</span>
+                                                    <i class="calendar-icon-svg"></i>
+                                                </div>
+
+                                                <div class="custom-calendar-popup"
+                                                    *ngIf="isCalendarOpen && activeDateField === 'dob'">
+                                                    <div class="calendar-header">
+                                                        <button type="button" class="cal-nav"
+                                                            (click)="changeMonth(-1)">❮</button>
+                                                        <div class="cal-dropdowns">
+                                                            <select [(ngModel)]="selectedMonth"
+                                                                (change)="onMonthYearChange()" name="calMonth">
+                                                                <option *ngFor="let m of months; let i = index"
+                                                                    [value]="i">{{ m }}
+                                                                </option>
+                                                            </select>
+                                                            <select [(ngModel)]="selectedYear"
+                                                                (change)="onMonthYearChange()" name="calYear">
+                                                                <option *ngFor="let y of years" [value]="y">{{ y }}
+                                                                </option>
+                                                            </select>
+                                                        </div>
+                                                        <button type="button" class="cal-nav"
+                                                            (click)="changeMonth(1)">❯</button>
+                                                    </div>
+                                                    <div class="calendar-grid">
+                                                        <div class="weekday" *ngFor="let day of weekDays">{{ day }}
+                                                        </div>
+                                                        <div class="day" *ngFor="let d of calendarDays"
+                                                            [class.other-month]="!d.current"
+                                                            (click)="selectDate(d.day, d.current)">
+                                                            {{ d.day }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>GENDER *</label>
+                                            <div class="custom-dropdown" [class.open]="isGenderDropdownOpen">
+                                                <div class="dropdown-selected rounded-input capsule-input left-aligned-input"
+                                                    (click)="toggleGenderDropdown()">
+                                                    <span>{{ newPlayer.gender || 'Select' }}</span>
+                                                    <i class="caret"></i>
+                                                </div>
+                                                <div class="dropdown-list" *ngIf="isGenderDropdownOpen">
+                                                    <div class="dropdown-item" (click)="selectGender('Male')">Male</div>
+                                                    <div class="dropdown-item" (click)="selectGender('Female')">Female
+                                                    </div>
+                                                    <div class="dropdown-item" (click)="selectGender('Other')">Other
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-top: 16px;">
+                                        <label>CITY / LOCATION</label>
+                                        <input type="text" [(ngModel)]="newPlayer.location" name="location"
+                                            placeholder="e.g. Mumbai" class="capsule-input left-aligned-input">
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Image Cropper Overlay -->
-                            <div class="cropper-overlay" *ngIf="showCropper">
-                                <div class="cropper-card">
-                                    <div class="cropper-header">
-                                        <h3>Crop Player Photo</h3>
-                                        <p>Adjust the square box to frame the player's face perfectly</p>
-                                    </div>
-                                    <div class="cropper-wrapper">
-                                        <div class="cropper-loading-overlay" *ngIf="isCropperLoading && !croppedImage">
-                                            <div class="spinner"></div>
-                                            <p>{{ croppedImage ? 'Finalizing...' : 'Loading Image...' }}</p>
+                            <!-- Card 4: Professional Details -->
+                            <div class="reg-card">
+                                <div class="reg-card-header">
+                                    <i>🪄</i>
+                                    <h3>Professional Details</h3>
+                                </div>
+                                <div class="form-grid-3">
+                                    <div class="form-group">
+                                        <label>PLAYING ROLE *</label>
+                                        <div class="custom-dropdown" [class.open]="isRoleDropdownOpen">
+                                            <div class="dropdown-selected capsule-input left-aligned-input"
+                                                (click)="toggleRoleDropdown()">
+                                                <span>{{ newPlayer.role || 'Batsman' }}</span>
+                                                <i class="caret"></i>
+                                            </div>
+                                            <div class="dropdown-list" *ngIf="isRoleDropdownOpen">
+                                                <div class="dropdown-item" (click)="selectRole('Batsman')">Batsman</div>
+                                                <div class="dropdown-item" (click)="selectRole('Bowler')">Bowler</div>
+                                                <div class="dropdown-item" (click)="selectRole('All-Rounder')">
+                                                    All-Rounder</div>
+                                                <div class="dropdown-item" (click)="selectRole('Wicketkeeper')">
+                                                    Wicketkeeper</div>
+                                            </div>
                                         </div>
-                                        <image-cropper [imageChangedEvent]="imageChangedEvent"
-                                            [maintainAspectRatio]="true" [aspectRatio]="1 / 1" [resizeToWidth]="400"
-                                            [autoCrop]="true" [onlyScaleDown]="true" format="webp"
-                                            (imageCropped)="imageCropped($event)" (imageLoaded)="imageLoaded()"
-                                            (cropperReady)="cropperReady()"
-                                            (loadImageFailed)="loadImageFailed()"></image-cropper>
                                     </div>
-                                    <div class="cropper-actions">
-                                        <button type="button" class="btn-cancel" (click)="cancelCrop()">Cancel</button>
-                                        <button type="button" class="btn btn-primary" (click)="confirmCrop()"
-                                            [disabled]="isCropperLoading && !croppedImage">
-                                            Apply Crop
-                                        </button>
+
+                                    <div class="form-group">
+                                        <label>T-SHIRT SIZE</label>
+                                        <div class="custom-dropdown" [class.open]="isTshirtDropdownOpen">
+                                            <div class="dropdown-selected capsule-input left-aligned-input"
+                                                (click)="toggleTshirtDropdown()">
+                                                <span>{{ newPlayer.tShirtSize || 'Select Size' }}</span>
+                                                <i class="caret"></i>
+                                            </div>
+                                            <div class="dropdown-list" *ngIf="isTshirtDropdownOpen">
+                                                <div class="dropdown-item" (click)="selectTshirt('S')">Small (S)</div>
+                                                <div class="dropdown-item" (click)="selectTshirt('M')">Medium (M)</div>
+                                                <div class="dropdown-item" (click)="selectTshirt('L')">Large (L)</div>
+                                                <div class="dropdown-item" (click)="selectTshirt('XL')">Extra Large (XL)
+                                                </div>
+                                                <div class="dropdown-item" (click)="selectTshirt('XXL')">Double XL (XXL)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>TROUSER SIZE</label>
+                                        <input type="text" name="trouser" [(ngModel)]="newPlayer.trouserSize"
+                                            placeholder="e.g. 32" maxlength="2" (keypress)="numberOnly($event)"
+                                            class="capsule-input left-aligned-input">
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Player Name *</label>
-                                <input type="text" [(ngModel)]="newPlayer.name" name="playerName" required
-                                    placeholder="e.g. Virat Kohli">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Role *</label>
-                                <select [(ngModel)]="newPlayer.role" name="playerRole" required>
-                                    <option value="Batsman">Batsman</option>
-                                    <option value="Bowler">Bowler</option>
-                                    <option value="All-Rounder">All-Rounder</option>
-                                    <option value="Wicketkeeper">Wicketkeeper</option>
-                                </select>
-                            </div>
-
-                            <!-- Individual base price removed - managed centrally by Tournament Settings -->
-
-                            <div class="form-group">
-                                <label>Mobile Number</label>
-                                <input type="text" [(ngModel)]="newPlayer.mobileNo" name="mobileNo"
-                                    placeholder="e.g. 9876543210">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Date of Birth *</label>
-                                <input type="date" [(ngModel)]="newPlayer.dob" name="dob" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Gender</label>
-                                <select [(ngModel)]="newPlayer.gender" name="gender">
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label>T-Shirt Size</label>
-                                <input type="text" [(ngModel)]="newPlayer.tShirtSize" name="tShirtSize"
-                                    placeholder="e.g. M, L, XL">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Trouser Size</label>
-                                <input type="text" [(ngModel)]="newPlayer.trouserSize" name="trouserSize"
-                                    placeholder="e.g. 32, 34">
+                        <!-- Image Cropper Overlay (Keep outside the container) -->
+                        <div class="cropper-overlay" *ngIf="showCropper">
+                            <div class="cropper-card">
+                                <div class="cropper-header">
+                                    <h3>Crop Player Photo</h3>
+                                    <p>Adjust the square box to frame the player's face perfectly</p>
+                                </div>
+                                <div class="cropper-wrapper">
+                                    <div class="cropper-loading-overlay" *ngIf="isCropperLoading && !croppedImage">
+                                        <div class="spinner"></div>
+                                        <p>{{ croppedImage ? 'Finalizing...' : 'Loading Image...' }}</p>
+                                    </div>
+                                    <image-cropper [imageChangedEvent]="imageChangedEvent" [maintainAspectRatio]="true"
+                                        [aspectRatio]="1 / 1" [resizeToWidth]="400" [autoCrop]="true"
+                                        [onlyScaleDown]="true" format="webp" (imageCropped)="imageCropped($event)"
+                                        (imageLoaded)="imageLoaded()" (cropperReady)="cropperReady()"
+                                        (loadImageFailed)="loadImageFailed()"></image-cropper>
+                                </div>
+                                <div class="cropper-actions">
+                                    <button type="button" class="btn-cancel" (click)="cancelCrop()">Cancel</button>
+                                    <button type="button" class="btn btn-primary" (click)="confirmCrop()"
+                                        [disabled]="isCropperLoading && !croppedImage">
+                                        Apply Crop
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -711,62 +901,209 @@
                                     placeholder="e.g. Mumbai, India">
                             </div>
 
-                            <div class="form-group">
-                                <label>Category</label>
-                                <select [(ngModel)]="tournament.category" name="category">
-                                    <option value="Franchise League">Franchise League</option>
-                                    <option value="Corporate League">Corporate League</option>
-                                    <option value="Local Premier League">Local Premier League</option>
-                                    <option value="District Premier League">District Premier League</option>
-                                    <option value="Community League">Community League</option>
-                                </select>
+                            <div class="form-group full">
+                                <label class="section-subtitle">TOURNAMENT CATEGORY *</label>
+                                <div class="selection-grid">
+                                    <div class="selection-card"
+                                        [class.selected]="tournament.category === 'Franchise League'"
+                                        (click)="tournament.category = 'Franchise League'">
+                                        <div class="card-radio"></div>
+                                        <div class="card-content">
+                                            <span class="card-icon">🏟️</span>
+                                            <div class="card-text">
+                                                <p class="card-title">Franchise League</p>
+                                                <p class="card-desc">Team-based franchise system</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="selection-card"
+                                        [class.selected]="tournament.category === 'Corporate League'"
+                                        (click)="tournament.category = 'Corporate League'">
+                                        <div class="card-radio"></div>
+                                        <div class="card-content">
+                                            <span class="card-icon">🌍</span>
+                                            <div class="card-text">
+                                                <p class="card-title">Corporate League</p>
+                                                <p class="card-desc">Professional corporate format</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="selection-card"
+                                        [class.selected]="tournament.category === 'Community League'"
+                                        (click)="tournament.category = 'Community League'">
+                                        <div class="card-radio"></div>
+                                        <div class="card-content">
+                                            <span class="card-icon">🎓</span>
+                                            <div class="card-text">
+                                                <p class="card-title">Club / Amateur</p>
+                                                <p class="card-desc">Local or community league</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label>Format</label>
-                                <select [(ngModel)]="tournament.format" name="format">
-                                    <option value="T10">T10</option>
-                                    <option value="T20">T20</option>
-                                    <option value="ODI">ODI</option>
-                                    <option value="Box Cricket">Box Cricket</option>
-                                    <option value="Tennis Ball T20">Tennis Ball T20</option>
-                                </select>
+                            <div class="form-group full">
+                                <label class="section-subtitle">TOURNAMENT FORMAT *</label>
+                                <div class="selection-grid">
+                                    <div class="selection-card" [class.selected]="tournament.format === 'T20'"
+                                        (click)="tournament.format = 'T20'">
+                                        <div class="card-radio"></div>
+                                        <div class="card-content">
+                                            <span class="card-icon">🏏</span>
+                                            <div class="card-text">
+                                                <p class="card-title">T20 Format</p>
+                                                <p class="card-desc">Standard 20-over matches</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="selection-card" [class.selected]="tournament.format === 'T10'"
+                                        (click)="tournament.format = 'T10'">
+                                        <div class="card-radio"></div>
+                                        <div class="card-content">
+                                            <span class="card-icon">⚡</span>
+                                            <div class="card-text">
+                                                <p class="card-title">T10 Format</p>
+                                                <p class="card-desc">Fast 10-over explosions</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="selection-card" [class.selected]="tournament.format === 'ODI'"
+                                        (click)="tournament.format = 'ODI'">
+                                        <div class="card-radio"></div>
+                                        <div class="card-content">
+                                            <span class="card-icon">👕</span>
+                                            <div class="card-text">
+                                                <p class="card-title">ODI Format</p>
+                                                <p class="card-desc">Standard 50-over strategy</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="selection-card" [class.selected]="tournament.format === 'Box Cricket'"
+                                        (click)="tournament.format = 'Box Cricket'">
+                                        <div class="card-radio"></div>
+                                        <div class="card-content">
+                                            <span class="card-icon">📦</span>
+                                            <div class="card-text">
+                                                <p class="card-title">Box / Tennis</p>
+                                                <p class="card-desc">Small field or indoor play</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-
-
 
                             <div class="form-group">
                                 <label>Tournament Start Date</label>
-                                <input type="date" [(ngModel)]="tournament.tournamentStartDate"
-                                    name="tournamentStartDate">
+                                <div class="date-input-wrapper">
+                                    <div class="dropdown-selected rounded-input"
+                                        (click)="toggleCalendar('tournamentStartDate')"
+                                        [class.active]="isCalendarOpen && activeDateField === 'tournamentStartDate'">
+                                        <span>{{ tournament.tournamentStartDate ? (tournament.tournamentStartDate |
+                                            date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                        <i class="calendar-icon-svg"></i>
+                                    </div>
+                                    <!-- Reuse calendar popup -->
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Tournament End Date</label>
-                                <input type="date" [(ngModel)]="tournament.tournamentEndDate" name="tournamentEndDate">
+                                <div class="date-input-wrapper">
+                                    <div class="dropdown-selected rounded-input"
+                                        (click)="toggleCalendar('tournamentEndDate')"
+                                        [class.active]="isCalendarOpen && activeDateField === 'tournamentEndDate'">
+                                        <span>{{ tournament.tournamentEndDate ? (tournament.tournamentEndDate | date:'dd
+                                            / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                        <i class="calendar-icon-svg"></i>
+                                    </div>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Registration Start Date</label>
-                                <input type="date" [(ngModel)]="tournament.regStartDate" name="regStartDate">
+                                <div class="date-input-wrapper">
+                                    <div class="dropdown-selected rounded-input"
+                                        (click)="toggleCalendar('regStartDate')"
+                                        [class.active]="isCalendarOpen && activeDateField === 'regStartDate'">
+                                        <span>{{ tournament.regStartDate ? (tournament.regStartDate | date:'dd / MM /
+                                            yyyy') : 'dd / mm / yyyy' }}</span>
+                                        <i class="calendar-icon-svg"></i>
+                                    </div>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Registration End Date</label>
-                                <input type="date" [(ngModel)]="tournament.regEndDate" name="regEndDate">
+                                <div class="date-input-wrapper">
+                                    <div class="dropdown-selected rounded-input" (click)="toggleCalendar('regEndDate')"
+                                        [class.active]="isCalendarOpen && activeDateField === 'regEndDate'">
+                                        <span>{{ tournament.regEndDate ? (tournament.regEndDate | date:'dd / MM / yyyy')
+                                            : 'dd / mm / yyyy' }}</span>
+                                        <i class="calendar-icon-svg"></i>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Match Start Date</label>
-                                <input type="date" [(ngModel)]="tournament.matchStartDate" name="matchStartDate">
+                                <div class="date-input-wrapper">
+                                    <div class="dropdown-selected rounded-input"
+                                        (click)="toggleCalendar('matchStartDate')"
+                                        [class.active]="isCalendarOpen && activeDateField === 'matchStartDate'">
+                                        <span>{{ tournament.matchStartDate ? (tournament.matchStartDate | date:'dd / MM
+                                            / yyyy') : 'dd / mm / yyyy' }}</span>
+                                        <i class="calendar-icon-svg"></i>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Match End Date</label>
-                                <input type="date" [(ngModel)]="tournament.matchEndDate" name="matchEndDate">
+                                <div class="date-input-wrapper">
+                                    <div class="dropdown-selected rounded-input"
+                                        (click)="toggleCalendar('matchEndDate')"
+                                        [class.active]="isCalendarOpen && activeDateField === 'matchEndDate'">
+                                        <span>{{ tournament.matchEndDate ? (tournament.matchEndDate | date:'dd / MM /
+                                            yyyy') : 'dd / mm / yyyy' }}</span>
+                                        <i class="calendar-icon-svg"></i>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Auction Date</label>
-                                <input type="date" [(ngModel)]="tournament.auctionDate" name="auctionDate">
+                                <div class="date-input-wrapper">
+                                    <div class="dropdown-selected rounded-input" (click)="toggleCalendar('auctionDate')"
+                                        [class.active]="isCalendarOpen && activeDateField === 'auctionDate'">
+                                        <span>{{ tournament.auctionDate ? (tournament.auctionDate | date:'dd / MM /
+                                            yyyy') : 'dd / mm / yyyy' }}</span>
+                                        <i class="calendar-icon-svg"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Single Calendar Popup for all fields -->
+                            <div class="custom-calendar-popup" *ngIf="isCalendarOpen && activeDateField !== 'dob'">
+                                <div class="calendar-header">
+                                    <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                    <div class="cal-dropdowns">
+                                        <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
+                                            name="calMonth">
+                                            <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                        </select>
+                                        <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
+                                            name="calYear">
+                                            <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                </div>
+                                <div class="calendar-grid">
+                                    <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                    <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                        (click)="selectDate(d.day, d.current)">
+                                        {{ d.day }}
+                                    </div>
+                                </div>
                             </div>
 
 

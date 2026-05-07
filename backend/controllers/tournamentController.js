@@ -1,4 +1,6 @@
-const { Tournament, Team, Player, sequelize } = require('../models');
+const { Tournament, Team, Player, User, sequelize } = require('../models');
+const bcrypt = require('bcryptjs');
+const { Op } = require('sequelize');
 
 exports.createTournament = async (req, res) => {
     try {
@@ -137,7 +139,28 @@ exports.addTeam = async (req, res) => {
         };
 
         const team = await Team.create(teamData);
-        res.status(201).json(team);
+
+        // Automatically create a user account for the team
+        const defaultPassword = "Team" + (req.body.code || "123");
+        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+        try {
+            await User.create({
+                username: (req.body.code || team.id).toString().toLowerCase(),
+                password: hashedPassword,
+                role: 'TEAM',
+                teamId: team.id
+            });
+            console.log(`User account created for team ${team.name}: ${team.code}`);
+        } catch (userError) {
+            console.error("Could not create team user account:", userError);
+            // We don't fail the team creation if user creation fails (e.g. duplicate username)
+        }
+
+        res.status(201).json({
+            ...team.toJSON(),
+            defaultPassword: defaultPassword // Send back so admin knows the initial password
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -146,6 +169,20 @@ exports.addTeam = async (req, res) => {
 exports.addPlayer = async (req, res) => {
     try {
         const { id } = req.params;
+        const { mobileNo } = req.body;
+
+        // Validation: Prevent duplicate mobile number in the same tournament
+        const existingPlayer = await Player.findOne({
+            where: {
+                mobileNo: mobileNo,
+                tournamentId: id
+            }
+        });
+
+        if (existingPlayer) {
+            return res.status(400).json({ error: "A player with this mobile number is already registered for this tournament." });
+        }
+
         const player = await Player.create({
             ...req.body,
             tournamentId: id,
@@ -158,12 +195,22 @@ exports.addPlayer = async (req, res) => {
     }
 };
 
-const { Op } = require('sequelize');
-
 exports.registerPlayer = async (req, res) => {
     try {
-        const tournamentId = req.body.tournamentId;
+        const { tournamentId, mobileNo } = req.body;
         if (!tournamentId) return res.status(400).json({ message: "Tournament ID required" });
+
+        // Validation: Prevent duplicate mobile number in the same tournament
+        const existingPlayer = await Player.findOne({
+            where: {
+                mobileNo: mobileNo,
+                tournamentId: tournamentId
+            }
+        });
+
+        if (existingPlayer) {
+            return res.status(400).json({ message: "You are already registered for this tournament with this mobile number." });
+        }
 
         const player = await Player.create({
             ...req.body,
@@ -175,6 +222,25 @@ exports.registerPlayer = async (req, res) => {
     } catch (error) {
         console.error("Register Player Error:", error);
         res.status(500).json({ message: "Registration failed", error: error.message });
+    }
+};
+
+exports.checkExistingPlayer = async (req, res) => {
+    try {
+        const { mobileNo } = req.params;
+        const player = await Player.findOne({
+            where: { mobileNo },
+            order: [['createdAt', 'DESC']],
+            attributes: ['name', 'role', 'dob', 'gender', 'city', 'image', 'tShirtSize', 'trouserSize']
+        });
+
+        if (player) {
+            res.json(player);
+        } else {
+            res.status(404).json({ message: 'No existing player found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
 
@@ -190,6 +256,56 @@ exports.getLatestPublicTournament = async (req, res) => {
         }
         res.json(tournament);
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.getGlobalPlayers = async (req, res) => {
+    try {
+        const { search, role, city, excludeTournamentId } = req.query;
+        let whereClause = {};
+
+        if (search) {
+            whereClause[Op.or] = [
+                { name: { [Op.iLike]: `%${search}%` } },
+                { mobileNo: { [Op.iLike]: `%${search}%` } }
+            ];
+        }
+        if (role && role !== 'All') whereClause.role = role;
+        if (city) whereClause.city = { [Op.iLike]: `%${city}%` };
+
+        // Exclude players already in the specified tournament
+        if (excludeTournamentId) {
+            const existingPlayers = await Player.findAll({
+                where: { tournamentId: excludeTournamentId },
+                attributes: ['mobileNo'],
+                raw: true
+            });
+            const existingMobiles = existingPlayers.map(p => p.mobileNo);
+            if (existingMobiles.length > 0) {
+                whereClause.mobileNo = {
+                    ...(whereClause.mobileNo || {}),
+                    [Op.notIn]: existingMobiles
+                };
+            }
+        }
+
+        // Get unique players based on mobileNo (latest entry)
+        // Using grouping to get distinct mobile numbers
+        const players = await Player.findAll({
+            where: whereClause,
+            attributes: [
+                'mobileNo', 'name', 'role', 'dob', 'gender', 'city', 'image', 'tShirtSize', 'trouserSize',
+                [sequelize.fn('MAX', sequelize.col('createdAt')), 'latestRegistration']
+            ],
+            group: ['mobileNo', 'name', 'role', 'dob', 'gender', 'city', 'image', 'tShirtSize', 'trouserSize'],
+            order: [[sequelize.fn('MAX', sequelize.col('createdAt')), 'DESC']],
+            limit: 100 // Limit results for performance
+        });
+
+        res.json(players);
+    } catch (error) {
+        console.error("Get Global Players Error:", error);
         res.status(500).json({ error: error.message });
     }
 };

@@ -137,11 +137,12 @@
         </main>
 
         <!-- Right Panel: Bidding War & Controls -->
+        <!-- Right Panel: Bidding War & Controls -->
         <aside class="side-panel right-column">
 
-            <!-- Controls Section -->
-            <div class="control-panel-sidebar" *ngIf="auctionState?.currentPlayer">
-                @if (isAdmin) {
+            <!-- Admin Controls -->
+            @if (isAdmin && auctionState?.currentPlayer) {
+            <div class="control-panel-sidebar">
                 <div class="admin-controls-wrapper">
                     <div class="control-group-box">
                         <label>SET INCREMENT</label>
@@ -190,31 +191,60 @@
                         </button>
                     </div>
                 </div>
-                } @else if (userTeamId) {
-                <div class="owner-controls-wrapper">
-                    <div class="wallet-info-sidebar">
-                        <label>YOUR REMAINING PURSE</label>
-                        <h3>₹{{ formatPrice(getTeamBudget(userTeamId!)) }}</h3>
-
-                        <div class="wallet-sub-info">
-                            <div class="sub-item">
-                                <label>SLOTS LEFT</label>
-                                <span>{{ getRemainingSlots(userTeamId!) }}</span>
-                            </div>
-                            <div class="sub-item">
-                                <label>MAX BID</label>
-                                <span class="max-value">₹{{ formatPrice(getMaxAllowedBid(userTeamId!)) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button (click)="placeBid(userTeamId!)"
-                        [disabled]="auctionState.status !== 'BIDDING' || auctionState.leadingTeam?.id === userTeamId"
-                        class="btn-sidebar confirm major">
-                        {{ auctionState.leadingTeam?.id === userTeamId ? '👑 YOU ARE LEADING' : 'PLACE BID' }}
-                    </button>
-                </div>
-                }
             </div>
+            } 
+            
+            <!-- Team Owner Controls -->
+            @else if (userTeamId && auctionState?.currentPlayer) {
+            
+            <!-- Box 1: Purse Info -->
+            <div class="current-bid-display-left" style="position: relative; margin-top: 20px;">
+                
+                <!-- Leading Alert Bubble -->
+                <div *ngIf="auctionState.leadingTeam?.id === userTeamId" 
+                     style="position: absolute; top: -16px; left: 50%; transform: translateX(-50%); background: #ffb700; color: #062a1e; font-weight: 900; font-size: 12px; padding: 6px 20px; border-radius: 20px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); white-space: nowrap; z-index: 10;">
+                    👑 YOU ARE LEADING THE BID
+                </div>
+                
+                <div class="bid-label">YOUR REMAINING PURSE</div>
+                <h1 class="bid-amount-sidebar">₹{{ formatPrice(getTeamBudget(userTeamId!)) }}</h1>
+                
+                <div style="display: flex; justify-content: center; gap: 32px; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(0,0,0,0.05);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 10px; font-weight: 800; color: #94a3b8; margin-bottom: 4px; letter-spacing: 1px;">SLOTS LEFT</div>
+                        <div style="font-size: 18px; font-weight: 800; color: #1e293b;">{{ getRemainingSlots(userTeamId!) }}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 10px; font-weight: 800; color: #94a3b8; margin-bottom: 4px; letter-spacing: 1px;">MAX BID</div>
+                        <div style="font-size: 18px; font-weight: 800; color: #ef4444;">₹{{ formatPrice(getMaxAllowedBid(userTeamId!)) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Box 2: Squad -->
+            <div class="panel-card secondary-panel" style="background: white; border-radius: 32px; color: #1e293b;">
+                <div class="panel-header">
+                    <h3>Your Squad</h3>
+                    <span class="icon" style="font-size: 20px;">👥</span>
+                </div>
+                <div class="scroll-list">
+                    @for (p of teamPlayers; track p.id) {
+                    <div class="history-pill">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <span class="h-team-code">{{ p.name }}</span>
+                            <span style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase;">{{ p.role }}</span>
+                        </div>
+                        <span class="h-bid-amount" style="font-size: 16px;">₹{{ formatPrice(p.soldPrice) }}</span>
+                    </div>
+                    } @empty {
+                    <div class="empty-state" style="text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600; padding: 20px 0;">
+                        <p>No players bought yet</p>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            }
         </aside>
     </div>
     }

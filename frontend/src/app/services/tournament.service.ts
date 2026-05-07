@@ -55,6 +55,10 @@ export class TournamentService {
         return firstValueFrom(this.http.post<any>(`${this.apiUrl}/register-player`, data));
     }
 
+    async checkPlayerByMobile(mobileNo: string) {
+        return firstValueFrom(this.http.get<any>(`${this.apiUrl}/check-player/${mobileNo}`));
+    }
+
     async getLatestPublicTournament() {
         return firstValueFrom(this.http.get<any>(`${this.apiUrl}/latest-public`));
     }
@@ -77,5 +81,19 @@ export class TournamentService {
 
     async getDashboardRosters() {
         return firstValueFrom(this.http.get<any[]>(`${this.apiUrl}/dashboard/rosters`, { headers: this.getHeaders() }));
+    }
+
+    async getTeamPlayers(teamId: string | number) {
+        return firstValueFrom(this.http.get<any[]>(`http://127.0.0.1:5001/api/teams/${teamId}/players`, { headers: this.getHeaders() }));
+    }
+
+    async getGlobalPlayers(filters: any = {}) {
+        let queryParams = '?';
+        if (filters.search) queryParams += `search=${filters.search}&`;
+        if (filters.role) queryParams += `role=${filters.role}&`;
+        if (filters.city) queryParams += `city=${filters.city}&`;
+        if (filters.excludeTournamentId) queryParams += `excludeTournamentId=${filters.excludeTournamentId}&`;
+
+        return firstValueFrom(this.http.get<any[]>(`${this.apiUrl}/global/players${queryParams}`, { headers: this.getHeaders() }));
     }
 }

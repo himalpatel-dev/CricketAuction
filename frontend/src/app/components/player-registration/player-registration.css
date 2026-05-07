@@ -88,118 +88,14 @@
     margin-bottom: 16px;
 }
 
-.stepper-bar {
-    margin-bottom: 24px;
-    position: relative;
-    padding: 0 10px;
-}
-
-.step-line {
-    position: absolute;
-    top: 20px;
-    left: 40px;
-    right: 40px;
-    height: 3px;
-    background: #f1f5f9;
-    z-index: 1;
-    border-radius: 10px;
-}
-
-.line-fill {
-    height: 100%;
-    background: var(--primary);
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.step-circles {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    justify-content: space-between;
-}
-
-.step-node {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    width: 80px;
-}
-
-.step-node .circle {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: #ffffff;
-    border: 3px solid #f1f5f9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    color: #94a3b8;
-    transition: all 0.3s ease;
-    font-size: 14px;
-}
-
-.step-node span {
-    font-size: 11px;
-    font-weight: 700;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-}
-
-.step-node.active .circle {
-    border-color: var(--primary);
-    color: var(--primary);
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(19, 59, 51, 0.1);
-}
-
-.step-node.active span {
-    color: var(--primary);
-}
-
-.step-node.completed .circle {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-}
-
-.step-content {
-    height: auto;
-    overflow-y: auto;
-    animation: slideUp 0.4s ease-out;
+.form-group {
+    margin-bottom: 16px;
 }
 
 /* Hide scrollbar for cleaner look */
-.step-content::-webkit-scrollbar {
+.form-section::-webkit-scrollbar {
     width: 0px;
     background: transparent;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.form-actions.stepper-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid #f1f5f9;
-    gap: 16px;
 }
 
 .submit-btn {
@@ -246,7 +142,7 @@
 .brand-tagline {
     font-size: 12px;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--primary);
     margin: 4px 0 0 20px;
     text-transform: uppercase;
     letter-spacing: 1.8px;
@@ -272,8 +168,8 @@
     border-radius: 10px;
 }
 
-.green-text {
-    color: var(--primary-light);
+.accent-text {
+    color: var(--accent);
 }
 
 /* Form Styles */
@@ -286,10 +182,39 @@
     background: #f8fafc;
     border-radius: 20px;
     padding: 24px;
-    height: 440px;
     display: flex;
     flex-direction: column;
     border: 1px solid #f1f5f9;
+}
+
+.quick-start-section {
+    background: #ecfdf5;
+    border: 2px solid #10b981;
+    margin-bottom: 24px;
+}
+
+.highlight-group input {
+    font-size: 20px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 2px;
+    border-color: #10b981;
+}
+
+.registration-content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+@media (min-width: 1024px) {
+    .registration-container {
+        max-width: 1000px;
+    }
+
+    .registration-content-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .section-header {
@@ -316,6 +241,12 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 28px;
+}
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
 }
 
 .form-group {
@@ -388,7 +319,8 @@ select {
 .dropdown-selected {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 40px; /* Fully rounded pill */
+    border-radius: 40px;
+    /* Fully rounded pill */
     padding: 16px 24px;
     color: #1e293b;
     font-size: 15px;
@@ -421,7 +353,8 @@ select {
     position: absolute;
     top: calc(100% + 8px);
     left: 50%;
-    transform: translateX(-50%); /* Center horizontally */
+    transform: translateX(-50%);
+    /* Center horizontally */
     width: 100%;
     min-width: 200px;
     background: #ffffff;
@@ -434,8 +367,15 @@ select {
 }
 
 @keyframes dropdownFadeCentered {
-    from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 .dropdown-item {
@@ -471,9 +411,20 @@ select {
     letter-spacing: 0.5px;
 }
 
-.t-status.active { background: #dcfce7; color: #166534; }
-.t-status.upcoming { background: #fef9c3; color: #854d0e; }
-.t-status.completed { background: #fee2e2; color: #991b1b; }
+.t-status.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.t-status.upcoming {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.t-status.completed {
+    background: #fee2e2;
+    color: #991b1b;
+}
 
 .dropdown-item.no-data {
     color: #94a3b8;
@@ -483,7 +434,8 @@ select {
 }
 
 /* Rounded Select & Inputs */
-.rounded-select, .rounded-input {
+.rounded-select,
+.rounded-input {
     border-radius: 40px !important;
 }
 
@@ -510,7 +462,8 @@ select {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Centered exactly over the box */
+    transform: translate(-50%, -50%);
+    /* Centered exactly over the box */
     width: 280px;
     background: #ffffff;
     border-radius: 20px;
@@ -522,8 +475,15 @@ select {
 }
 
 @keyframes dropdownFadeCenteredScale {
-    from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 
 .calendar-header {
@@ -537,6 +497,30 @@ select {
     font-weight: 700;
     color: #1e293b;
     font-size: 14px;
+}
+
+.cal-dropdowns {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.cal-dropdowns select {
+    appearance: auto;
+    width: auto;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #1e293b;
+    font-weight: 700;
+    outline: none;
+    cursor: pointer;
+}
+
+.cal-dropdowns select:focus {
+    border-color: #10b981;
 }
 
 .cal-nav {
@@ -826,6 +810,27 @@ select {
     font-weight: 600;
 }
 
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .glass-card {
+        padding: 30px 20px;
+        border-radius: 24px;
+    }
+
+    .brand-name {
+        font-size: 24px;
+    }
+
+    .form-section {
+        padding: 16px;
+    }
+
+    .highlight-group input {
+        font-size: 18px;
+        padding: 12px;
+    }
+}
+
 /* Image Cropper Overlay */
 .cropper-overlay {
     position: fixed;
@@ -881,27 +886,6 @@ select {
     border: 1px solid #e2e8f0;
     position: relative;
     display: block;
-}
-
-.registration-page {
-    min-height: 100vh;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow-x: hidden;
-    padding: 20px 0;
-}
-
-.background-decor {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    overflow: hidden;
 }
 
 .cropper-loading-overlay {

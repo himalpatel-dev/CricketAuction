@@ -40,8 +40,10 @@ export class PlayerRegistrationComponent {
   calendarMonthYear: string = '';
   weekDays: string[] = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-  currentStep = 1;
-  totalSteps = 3;
+  months: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  years: number[] = [];
+  selectedMonth: number = new Date().getMonth();
+  selectedYear: number = new Date().getFullYear();
 
   // Image Cropper State
   imageChangedEvent: any = '';
@@ -75,6 +77,11 @@ export class PlayerRegistrationComponent {
     private cdr: ChangeDetectorRef
   ) {
     this.fetchOpenTournaments();
+    const currentYear = new Date().getFullYear();
+    for(let i = currentYear - 60; i <= currentYear + 5; i++) {
+        this.years.push(i);
+    }
+    this.years.reverse();
   }
 
   onPlayerPhotoSelected(event: any) {
@@ -200,6 +207,9 @@ export class PlayerRegistrationComponent {
     const month = this.calendarDate.getMonth();
     this.calendarMonthYear = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(this.calendarDate);
 
+    this.selectedMonth = month;
+    this.selectedYear = year;
+
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     
@@ -226,6 +236,12 @@ export class PlayerRegistrationComponent {
     }
 
     this.calendarDays = days;
+  }
+
+  onMonthYearChange() {
+    this.calendarDate.setFullYear(this.selectedYear);
+    this.calendarDate.setMonth(this.selectedMonth);
+    this.generateCalendar();
   }
 
   changeMonth(delta: number) {
@@ -284,24 +300,45 @@ export class PlayerRegistrationComponent {
     }
   }
 
-  nextStep() {
-    if (this.currentStep < this.totalSteps) {
-      this.currentStep++;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  numberOnly(event: any): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
     }
+    return true;
   }
 
-  prevStep() {
-    if (this.currentStep > 1) {
-      this.currentStep--;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
+  async onMobileChange() {
+    if (this.player.mobileNo && this.player.mobileNo.length === 10) {
+      try {
+        const existing = await this.tournamentService.checkPlayerByMobile(this.player.mobileNo);
+        if (existing) {
+          // Merge existing data into the current player object
+          // We keep the current tournamentId but update personal/professional details
+          this.player = { 
+            ...this.player, 
+            ...existing,
+            // Format DOB for the form if it comes as a full date string
+            dob: existing.dob ? existing.dob.split('T')[0] : ''
+          };
 
-  setStep(step: number) {
-    if (step >= 1 && step <= this.totalSteps) {
-      this.currentStep = step;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+          this.message = `Welcome back, ${existing.name}! We've pre-filled your details.`;
+          this.success = true;
+          
+          // Clear message after some time
+          setTimeout(() => {
+            if (this.success) {
+              this.message = '';
+              this.cdr.detectChanges();
+            }
+          }, 5000);
+
+          this.cdr.detectChanges();
+        }
+      } catch (err) {
+        // 404 is expected for new players, just ignore
+        console.log('New player or error checking mobile:', err);
+      }
     }
   }
 

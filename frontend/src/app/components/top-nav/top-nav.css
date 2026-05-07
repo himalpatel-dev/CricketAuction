@@ -4,7 +4,8 @@
 }
 
 .top-nav {
-    background-color: var(--primary); /* Project's primary deep green */
+    background-color: var(--primary);
+    /* Project's primary deep green */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     color: white;
@@ -15,7 +16,8 @@
     top: 0;
     z-index: 1000;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    font-family: 'Outfit', sans-serif; /* Project's primary font */
+    font-family: 'Outfit', sans-serif;
+    /* Project's primary font */
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -35,21 +37,28 @@
 .nav-logo {
     display: flex;
     align-items: center;
-    gap: 12px;
-    cursor: pointer;
+    gap: 8px;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
 }
 
-.logo-box {
-    background-color: var(--accent); /* Project's accent yellow */
-    color: var(--primary);
-    width: 34px;
-    height: 34px;
+.nav-brand-logo-wrapper {
+    background-color: var(--accent);
+    padding: 6px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
-    font-size: 20px;
+    height: 36px;
+}
+
+.nav-brand-logo {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) contrast(2.9);
+    /* Makes the logo dark to contrast with accent background */
 }
 
 .logo-text {
@@ -91,7 +100,8 @@
 
 .nav-link.active {
     background-color: var(--accent);
-    color: var(--bg-sidebar); /* High contrast text on accent */
+    color: var(--bg-sidebar);
+    /* High contrast text on accent */
 }
 
 .nav-right {
@@ -150,6 +160,3 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
-
-
-

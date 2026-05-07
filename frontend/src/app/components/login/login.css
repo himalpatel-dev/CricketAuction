@@ -146,7 +146,7 @@
 
 .brand-tagline {
     font-size: 15px;
-    color: #64748b;
+    color: var(--primary);
     margin: 8px 0 0 0;
     font-weight: 600;
     letter-spacing: -0.2px;
@@ -175,8 +175,8 @@
     font-weight: 500;
 }
 
-.green-text {
-    color: var(--primary-light);
+.accent-text {
+    color: var(--accent);
 }
 
 /* Form Styles */

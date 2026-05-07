@@ -59,10 +59,10 @@
                             <p class="stat-label">BUDGET SPENT</p>
                             <div class="stat-main">
                                 <span class="stat-unit">₹</span>
-                                <span class="stat-value">{{ formatInCr(totalBudget - remainingBudget).val }}</span>
-                                <span class="stat-unit">Cr</span>
+                                <span class="stat-value">{{ formatAdaptive(totalBudget - remainingBudget).val }}</span>
+                                <span class="stat-unit">{{ formatAdaptive(totalBudget - remainingBudget).unit }}</span>
                             </div>
-                            <p class="stat-sub">of ₹{{ formatInCr(totalBudget).val }}Cr cap</p>
+                            <p class="stat-sub">of ₹{{ formatAdaptive(totalBudget).val }}{{ formatAdaptive(totalBudget).unit }} cap</p>
                         </div>
 
                         <div class="stat-divider"></div>
@@ -71,8 +71,8 @@
                             <p class="stat-label">REMAINING</p>
                             <div class="stat-main">
                                 <span class="stat-unit">₹</span>
-                                <span class="stat-value">{{ formatInCr(remainingBudget).val }}</span>
-                                <span class="stat-unit">Cr</span>
+                                <span class="stat-value">{{ formatAdaptive(remainingBudget).val }}</span>
+                                <span class="stat-unit">{{ formatAdaptive(remainingBudget).unit }}</span>
                             </div>
                             <p class="stat-sub">available to bid</p>
                         </div>
@@ -94,8 +94,8 @@
                             <p class="stat-label">HIGHEST BID</p>
                             <div class="stat-main">
                                 <span class="stat-unit">₹</span>
-                                <span class="stat-value">{{ formatInL(stats.highestBid).val }}</span>
-                                <span class="stat-unit">L</span>
+                                <span class="stat-value">{{ formatAdaptive(stats.highestBid).val }}</span>
+                                <span class="stat-unit">{{ formatAdaptive(stats.highestBid).unit }}</span>
                             </div>
                             <p class="stat-sub">{{ stats.highestBidder }}</p>
                         </div>
@@ -282,24 +282,24 @@
                                     <div class="bar-container">
                                         <div class="bar-fill grey" style="width: 100%"></div>
                                     </div>
-                                    <span class="value">₹{{ formatInCr(totalBudget).val }}{{
-                                        formatInCr(totalBudget).unit }}</span>
+                                    <span class="value">₹{{ formatAdaptive(totalBudget).val }}{{
+                                        formatAdaptive(totalBudget).unit }}</span>
                                 </div>
                                 <div class="budget-bar-item">
                                     <label>Spent</label>
                                     <div class="bar-container">
                                         <div class="bar-fill orange" [style.width.%]="stats.usedPercentage"></div>
                                     </div>
-                                    <span class="value orange">₹{{ formatInCr(totalBudget - remainingBudget).val }}{{
-                                        formatInCr(totalBudget - remainingBudget).unit }}</span>
+                                    <span class="value orange">₹{{ formatAdaptive(totalBudget - remainingBudget).val }}{{
+                                        formatAdaptive(totalBudget - remainingBudget).unit }}</span>
                                 </div>
                                 <div class="budget-bar-item">
                                     <label>Remaining</label>
                                     <div class="bar-container">
                                         <div class="bar-fill green" [style.width.%]="100 - stats.usedPercentage"></div>
                                     </div>
-                                    <span class="value green">₹{{ formatInCr(remainingBudget).val }}{{
-                                        formatInCr(remainingBudget).unit }}</span>
+                                    <span class="value green">₹{{ formatAdaptive(remainingBudget).val }}{{
+                                        formatAdaptive(remainingBudget).unit }}</span>
                                 </div>
                             </div>
                         </div>

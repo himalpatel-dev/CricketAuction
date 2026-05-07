@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -53,6 +53,39 @@ export class TournamentDetailComponent implements OnInit {
     image: ''
   };
 
+  // Dropdown and Calendar State
+  isRoleDropdownOpen = false;
+  isTshirtDropdownOpen = false;
+  isGenderDropdownOpen = false;
+  isCategoryDropdownOpen = false;
+  isFormatDropdownOpen = false;
+  isCalendarOpen = false;
+  activeDateField: string | null = null; // To track which date field is being edited
+
+  calendarDate: Date = new Date();
+  calendarDays: any[] = [];
+  calendarMonthYear: string = '';
+  weekDays: string[] = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
+  months: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  years: number[] = [];
+  selectedMonth: number = new Date().getMonth();
+  selectedYear: number = new Date().getFullYear();
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-dropdown') && !target.closest('.date-input-wrapper')) {
+      this.isRoleDropdownOpen = false;
+      this.isTshirtDropdownOpen = false;
+      this.isGenderDropdownOpen = false;
+      this.isCategoryDropdownOpen = false;
+      this.isFormatDropdownOpen = false;
+      this.isCalendarOpen = false;
+      this.activeDateField = null;
+    }
+  }
+
   // Image Cropper State
   imageChangedEvent: any = '';
   croppedImage: any = '';
@@ -60,6 +93,65 @@ export class TournamentDetailComponent implements OnInit {
   isCropperLoading = false;
 
   @ViewChild(ImageCropperComponent) cropper!: ImageCropperComponent;
+
+  // Global Player Database State
+  showGlobalDatabase = false;
+  globalPlayers: any[] = [];
+  globalFilters = {
+    search: '',
+    role: 'All',
+    city: ''
+  };
+  loadingGlobal = false;
+
+  async toggleGlobalDatabase() {
+    console.log('Toggling Global Database. Current state:', this.showGlobalDatabase);
+    this.showGlobalDatabase = !this.showGlobalDatabase;
+    
+    if (this.showGlobalDatabase) {
+      await this.loadGlobalPlayers();
+    } else {
+      // Refresh local players just in case
+      this.onSearch(); 
+    }
+    this.cdr.detectChanges();
+  }
+
+  async loadGlobalPlayers() {
+    this.loadingGlobal = true;
+    try {
+      const filters = {
+        ...this.globalFilters,
+        excludeTournamentId: this.tournament?.id
+      };
+      this.globalPlayers = await this.tournamentService.getGlobalPlayers(filters);
+    } catch (err) {
+      console.error('Error loading global players:', err);
+    } finally {
+      this.loadingGlobal = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async addGlobalPlayerToTournament(player: any) {
+    try {
+      this.saving = true;
+      const payload = { 
+        ...player, 
+        basePrice: this.tournament?.minimumPlayerBasePrice || 0,
+        status: 'UPCOMING'
+      };
+      await this.tournamentService.addPlayer(this.tournament.id, payload);
+      await this.loadTournament(this.tournament.id.toString(), true);
+      alert(`${player.name} added successfully to this tournament!`);
+      await this.loadGlobalPlayers(); // Refresh the list so the added player disappears
+    } catch (err: any) {
+      alert(err.error?.error || 'Failed to add player');
+    } finally {
+      this.saving = false;
+      this.cdr.detectChanges();
+    }
+  }
 
   get playerImageUrl(): any {
     if (!this.newPlayer.image) return null;
@@ -215,7 +307,8 @@ export class TournamentDetailComponent implements OnInit {
       gender: player.gender || 'Male',
       tShirtSize: player.tShirtSize || '',
       trouserSize: player.trouserSize || '',
-      image: player.image || ''
+      image: player.image || '',
+      basePrice: player.basePrice || this.tournament?.minimumPlayerBasePrice || 0
     };
     this.showAddPlayerForm = true;
     this.showAddTeamForm = false;
@@ -223,15 +316,170 @@ export class TournamentDetailComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  // --- Custom Calendar Logic ---
+  toggleCalendar(field: string | null = null) {
+    if (field && this.activeDateField === field) {
+        this.isCalendarOpen = false;
+        this.activeDateField = null;
+        return;
+    }
+
+    this.isCalendarOpen = true;
+    this.activeDateField = field;
+    
+    let dateToUse = new Date();
+    if (field === 'dob' && this.newPlayer.dob) {
+        dateToUse = new Date(this.newPlayer.dob);
+    } else if (field && this.tournament[field]) {
+        dateToUse = new Date(this.tournament[field]);
+    }
+    
+    this.calendarDate = dateToUse;
+    this.generateCalendar();
+  }
+
+  generateCalendar() {
+    const year = this.calendarDate.getFullYear();
+    const month = this.calendarDate.getMonth();
+    this.calendarMonthYear = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(this.calendarDate);
+
+    this.selectedMonth = month;
+    this.selectedYear = year;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Adjust for Monday start (0 is Sunday in JS, we want 0 for Monday)
+    let startingDay = firstDay === 0 ? 6 : firstDay - 1;
+
+    const days = [];
+    // Prev month padding
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    for (let i = startingDay - 1; i >= 0; i--) {
+      days.push({ day: prevMonthLastDay - i, current: false });
+    }
+
+    // Current month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({ day: i, current: true });
+    }
+
+    // Next month padding
+    const totalSlots = 42; // 6 rows
+    const nextPadding = totalSlots - days.length;
+    for (let i = 1; i <= nextPadding; i++) {
+      days.push({ day: i, current: false });
+    }
+
+    this.calendarDays = days;
+    this.cdr.detectChanges();
+  }
+
+  onMonthYearChange() {
+    this.calendarDate.setFullYear(this.selectedYear);
+    this.calendarDate.setMonth(this.selectedMonth);
+    this.generateCalendar();
+  }
+
+  changeMonth(delta: number) {
+    this.calendarDate.setMonth(this.calendarDate.getMonth() + delta);
+    this.generateCalendar();
+  }
+
+  selectDate(day: number, isCurrent: boolean) {
+    if (!isCurrent) return;
+    const year = this.calendarDate.getFullYear();
+    const month = String(this.calendarDate.getMonth() + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    const dateStr = `${year}-${month}-${d}`;
+
+    if (this.activeDateField === 'dob') {
+        this.newPlayer.dob = dateStr;
+    } else if (this.activeDateField) {
+        this.tournament[this.activeDateField] = dateStr;
+    }
+
+    this.isCalendarOpen = false;
+    this.activeDateField = null;
+    this.cdr.detectChanges();
+  }
+
+  toggleRoleDropdown() { this.isRoleDropdownOpen = !this.isRoleDropdownOpen; }
+  selectRole(role: string) {
+    this.newPlayer.role = role;
+    this.isRoleDropdownOpen = false;
+  }
+
+  toggleTshirtDropdown() { this.isTshirtDropdownOpen = !this.isTshirtDropdownOpen; }
+  selectTshirt(size: string) {
+    this.newPlayer.tShirtSize = size;
+    this.isTshirtDropdownOpen = false;
+  }
+
+  toggleGenderDropdown() { this.isGenderDropdownOpen = !this.isGenderDropdownOpen; }
+  selectGender(gender: string) {
+    this.newPlayer.gender = gender;
+    this.isGenderDropdownOpen = false;
+  }
+
+  toggleCategoryDropdown() { this.isCategoryDropdownOpen = !this.isCategoryDropdownOpen; }
+  selectCategory(cat: string) {
+    this.tournament.category = cat;
+    this.isCategoryDropdownOpen = false;
+  }
+
+  toggleFormatDropdown() { this.isFormatDropdownOpen = !this.isFormatDropdownOpen; }
+  selectFormat(fmt: string) {
+    this.tournament.format = fmt;
+    this.isFormatDropdownOpen = false;
+  }
+
+  numberOnly(event: any): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
+    }
+    return true;
+  }
+
+  async onMobileChange() {
+    if (this.newPlayer.mobileNo && this.newPlayer.mobileNo.length === 10) {
+      try {
+        const existing = await this.tournamentService.checkPlayerByMobile(this.newPlayer.mobileNo);
+        if (existing) {
+          // Merge existing data into the current newPlayer object
+          this.newPlayer = { 
+            ...this.newPlayer, 
+            ...existing,
+            // Format DOB for the form
+            dob: existing.dob ? existing.dob.split('T')[0] : ''
+          };
+
+          // We don't have a 'message' property here like in registration, 
+          // but we can at least detect changes. 
+          // If you want a message, you could add one, but autofill is the main goal.
+          this.cdr.detectChanges();
+        }
+      } catch (err) {
+        // 404 is expected for new players
+        console.log('New player or error checking mobile:', err);
+      }
+    }
+  }
+
   async submitAddTeam() {
     if (!this.newTeam.name || !this.newTeam.code || this.saving) return;
 
     this.saving = true;
     try {
-      await this.tournamentService.addTeam(this.tournament.id, this.newTeam);
+      const response = await this.tournamentService.addTeam(this.tournament.id, this.newTeam);
       this.showAddTeamForm = false;
       this.currentTab = 'Teams'; // Stay on teams tab
       await this.loadTournament(this.tournament.id.toString(), true); // Silent reload
+      
+      if (response && response.defaultPassword) {
+        alert(`Team added successfully!\n\nLOGIN CREDENTIALS:\nUsername: ${response.code.toLowerCase()}\nPassword: ${response.defaultPassword}\n\nPlease share these with the team owner.`);
+      }
     } catch (err: any) {
       console.error('Error adding team:', err);
       alert('Failed to add team. Check if team code is unique.');
@@ -246,6 +494,9 @@ export class TournamentDetailComponent implements OnInit {
 
     this.saving = true;
     try {
+      // Ensure basePrice is set from tournament
+      this.newPlayer.basePrice = this.tournament?.minimumPlayerBasePrice || 0;
+      
       if (this.editingPlayerId) {
         await this.tournamentService.updatePlayer(this.tournament.id, this.editingPlayerId, this.newPlayer);
       } else {
@@ -257,7 +508,8 @@ export class TournamentDetailComponent implements OnInit {
       await this.loadTournament(this.tournament.id.toString(), true); // Silent reload
     } catch (err: any) {
       console.error('Error saving player:', err);
-      alert('Failed to save player. Please try again.');
+      const errorMsg = err.error?.error || err.error?.message || 'Failed to save player. Please try again.';
+      alert(errorMsg);
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -300,7 +552,13 @@ export class TournamentDetailComponent implements OnInit {
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private sanitizer: DomSanitizer
-  ) { }
+  ) { 
+    const currentYear = new Date().getFullYear();
+    for(let i = currentYear - 60; i <= currentYear + 5; i++) {
+        this.years.push(i);
+    }
+    this.years.reverse();
+  }
 
   ngOnInit() {
     const user = this.authService.getUser();
@@ -538,9 +796,9 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   getBestUnit(value: number): string {
-    if (value >= 10000000) return 'Cr';
-    if (value >= 100000) return 'L';
-    if (value >= 1000) return 'K';
+    if (value >= 9000000) return 'Cr'; // 90 Lakhs+ -> Cr
+    if (value >= 100000) return 'L';  // 1 Lakh+ -> L
+    if (value >= 1000) return 'K';    // 1k+ -> K
     return '';
   }
 

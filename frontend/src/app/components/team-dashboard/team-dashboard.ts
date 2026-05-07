@@ -303,22 +303,33 @@ export class TeamDashboardComponent implements OnInit {
         }
     }
 
-    formatInCr(value: number): { val: string, unit: string } {
-        if (!value) return { val: '0', unit: 'Cr' };
-        const cr = value / 10000000;
-        return {
-            val: cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(1),
-            unit: 'Cr'
-        };
-    }
+    formatAdaptive(value: number): { val: string, unit: string } {
+        if (!value && value !== 0) return { val: '0', unit: 'K' };
 
-    formatInL(value: number): { val: string, unit: string } {
-        if (!value) return { val: '0', unit: 'L' };
-        const l = value / 100000;
-        return {
-            val: l % 1 === 0 ? l.toFixed(0) : l.toFixed(1),
-            unit: 'L'
-        };
+        if (value >= 9000000) { // 90 Lakhs and above -> Crore
+            const cr = value / 10000000;
+            return {
+                val: cr % 1 === 0 ? cr.toFixed(0) : cr.toFixed(2),
+                unit: 'Cr'
+            };
+        } else if (value >= 100000) { // 1 Lakh and above -> Lakh
+            const l = value / 100000;
+            return {
+                val: l % 1 === 0 ? l.toFixed(0) : l.toFixed(1),
+                unit: 'L'
+            };
+        } else if (value >= 1000) { // 1 Thousand and above -> K
+            const k = value / 1000;
+            return {
+                val: k % 1 === 0 ? k.toFixed(0) : k.toFixed(1),
+                unit: 'K'
+            };
+        } else {
+            return {
+                val: value.toString(),
+                unit: ''
+            };
+        }
     }
 
     logout() {

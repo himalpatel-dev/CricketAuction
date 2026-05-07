@@ -175,41 +175,103 @@
                         <div class="section-title">📅 Scheduling & Dates</div>
 
                         <div class="form-group">
-                            <label>Registration Starts</label>
-                            <input type="date" name="regStartDate" [(ngModel)]="tournamentData.regStartDate" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Registration Ends</label>
-                            <input type="date" name="regEndDate" [(ngModel)]="tournamentData.regEndDate" required>
-                        </div>
-
-                        <div class="form-group">
                             <label>Tournament Starts</label>
-                            <input type="date" name="tournamentStartDate"
-                                [(ngModel)]="tournamentData.tournamentStartDate" required>
+                            <div class="date-input-wrapper">
+                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('tournamentStartDate')"
+                                    [class.active]="isCalendarOpen && activeDateField === 'tournamentStartDate'">
+                                    <span>{{ tournamentData.tournamentStartDate ? (tournamentData.tournamentStartDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <i class="calendar-icon-svg"></i>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
                             <label>Tournament Ends</label>
-                            <input type="date" name="tournamentEndDate" [(ngModel)]="tournamentData.tournamentEndDate"
-                                required>
+                            <div class="date-input-wrapper">
+                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('tournamentEndDate')"
+                                    [class.active]="isCalendarOpen && activeDateField === 'tournamentEndDate'">
+                                    <span>{{ tournamentData.tournamentEndDate ? (tournamentData.tournamentEndDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <i class="calendar-icon-svg"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Registration Starts</label>
+                            <div class="date-input-wrapper">
+                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('regStartDate')"
+                                    [class.active]="isCalendarOpen && activeDateField === 'regStartDate'">
+                                    <span>{{ tournamentData.regStartDate ? (tournamentData.regStartDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <i class="calendar-icon-svg"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Registration Ends</label>
+                            <div class="date-input-wrapper">
+                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('regEndDate')"
+                                    [class.active]="isCalendarOpen && activeDateField === 'regEndDate'">
+                                    <span>{{ tournamentData.regEndDate ? (tournamentData.regEndDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <i class="calendar-icon-svg"></i>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
                             <label>Matches Start</label>
-                            <input type="date" name="matchStartDate" [(ngModel)]="tournamentData.matchStartDate"
-                                required>
+                            <div class="date-input-wrapper">
+                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('matchStartDate')"
+                                    [class.active]="isCalendarOpen && activeDateField === 'matchStartDate'">
+                                    <span>{{ tournamentData.matchStartDate ? (tournamentData.matchStartDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <i class="calendar-icon-svg"></i>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
                             <label>Matches End</label>
-                            <input type="date" name="matchEndDate" [(ngModel)]="tournamentData.matchEndDate" required>
+                            <div class="date-input-wrapper">
+                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('matchEndDate')"
+                                    [class.active]="isCalendarOpen && activeDateField === 'matchEndDate'">
+                                    <span>{{ tournamentData.matchEndDate ? (tournamentData.matchEndDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <i class="calendar-icon-svg"></i>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-group">
                             <label>Live Auction Date</label>
-                            <input type="date" name="auctionDate" [(ngModel)]="tournamentData.auctionDate" required>
+                            <div class="date-input-wrapper">
+                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('auctionDate')"
+                                    [class.active]="isCalendarOpen && activeDateField === 'auctionDate'">
+                                    <span>{{ tournamentData.auctionDate ? (tournamentData.auctionDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <i class="calendar-icon-svg"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Single Calendar Popup for all fields -->
+                        <div class="custom-calendar-popup" *ngIf="isCalendarOpen">
+                            <div class="calendar-header">
+                                <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                <div class="cal-dropdowns">
+                                    <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                        <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                    </select>
+                                    <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                            </div>
+                            <div class="calendar-grid">
+                                <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                <div class="day" *ngFor="let d of calendarDays"
+                                    [class.other-month]="!d.current" (click)="selectDate(d.day, d.current)">
+                                    {{ d.day }}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
