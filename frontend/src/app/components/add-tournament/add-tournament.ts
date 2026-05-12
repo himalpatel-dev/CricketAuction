@@ -46,9 +46,10 @@ export class AddTournamentComponent {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.date-input-wrapper')) {
+    if (!target.closest('.date-input-wrapper') && !target.closest('.custom-calendar-popup')) {
       this.isCalendarOpen = false;
       this.activeDateField = null;
+      this.cdr.detectChanges();
     }
   }
 
@@ -79,8 +80,9 @@ export class AddTournamentComponent {
     this.activeDateField = field;
     
     let dateToUse = new Date();
-    if (this.tournamentData[field]) {
-        dateToUse = new Date(this.tournamentData[field]);
+    const existingDate = this.tournamentData[field];
+    if (existingDate && !isNaN(new Date(existingDate).getTime())) {
+        dateToUse = new Date(existingDate);
     }
     
     this.calendarDate = dateToUse;
@@ -167,6 +169,9 @@ export class AddTournamentComponent {
         this.tournamentData.status = 'ACTIVE';
       }
     }
+
+    // Set totalAmount explicitly based on formula
+    this.tournamentData.totalAmount = this.getProjectedBudget();
 
     try {
       await this.tournamentService.create(this.tournamentData);

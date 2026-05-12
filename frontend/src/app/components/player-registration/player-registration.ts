@@ -2,7 +2,7 @@ import { Component, ChangeDetectorRef, ViewChild, ElementRef, HostListener } fro
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { DomSanitizer } from '@angular/platform-browser';
+import { ImageService } from '../../services/image.service';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { TournamentService } from '../../services/tournament.service';
 
@@ -55,11 +55,7 @@ export class PlayerRegistrationComponent {
   @ViewChild(ImageCropperComponent) cropper!: ImageCropperComponent;
 
   get playerImageUrl(): any {
-    if (!this.player.image) return null;
-    if (this.player.image.startsWith('data:')) {
-      return this.sanitizer.bypassSecurityTrustUrl(this.player.image);
-    }
-    return this.player.image;
+    return this.imageService.getPlayerImageUrl(this.player.image);
   }
 
   loading = false;
@@ -70,10 +66,26 @@ export class PlayerRegistrationComponent {
   selectedTournamentId: any = '';
   basePrice = 0;
 
+  get isFormValid(): boolean {
+    return !!(
+      this.player.name &&
+      this.player.mobileNo &&
+      this.player.mobileNo.length === 10 &&
+      this.player.dob &&
+      this.player.gender &&
+      this.player.role &&
+      this.player.tShirtSize &&
+      this.player.trouserSize &&
+      this.player.city &&
+      this.player.image &&
+      this.selectedTournamentId
+    );
+  }
+
   constructor(
     private router: Router,
     private tournamentService: TournamentService,
-    private sanitizer: DomSanitizer,
+    private imageService: ImageService,
     private cdr: ChangeDetectorRef
   ) {
     this.fetchOpenTournaments();
@@ -113,6 +125,12 @@ export class PlayerRegistrationComponent {
   }
 
   imageCropped(event: any) {
+    console.log('imageCropped event fired', {
+      hasBase64: !!event.base64,
+      hasBlob: !!event.blob,
+      hasObjectUrl: !!event.objectUrl
+    });
+
     if (event.base64) {
       this.croppedImage = event.base64;
     } else if (event.objectUrl) {
@@ -147,6 +165,7 @@ export class PlayerRegistrationComponent {
   }
 
   confirmCrop() {
+    console.log('Confirming crop. croppedImage length:', this.croppedImage?.length);
     // Manual fallback
     if (!this.croppedImage && this.cropper) {
       const manual = this.cropper.crop();
@@ -157,6 +176,7 @@ export class PlayerRegistrationComponent {
 
     if (this.croppedImage) {
       this.player.image = this.croppedImage;
+      console.log('Image assigned to player. Starts with:', this.player.image.substring(0, 30));
       this.showCropper = false;
       this.imageChangedEvent = '';
       if (this.photoInput) this.photoInput.nativeElement.value = '';
@@ -198,6 +218,11 @@ export class PlayerRegistrationComponent {
   toggleCalendar() {
     this.isCalendarOpen = !this.isCalendarOpen;
     if (this.isCalendarOpen) {
+      if (this.player.dob && !isNaN(new Date(this.player.dob).getTime())) {
+        this.calendarDate = new Date(this.player.dob);
+      } else {
+        this.calendarDate = new Date();
+      }
       this.generateCalendar();
     }
   }
@@ -261,7 +286,7 @@ export class PlayerRegistrationComponent {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('.custom-dropdown') && !target.closest('.date-input-wrapper')) {
+    if (!target.closest('.custom-dropdown') && !target.closest('.date-input-wrapper') && !target.closest('.custom-calendar-popup')) {
       this.isDropdownOpen = false;
       this.isRoleDropdownOpen = false;
       this.isTshirtDropdownOpen = false;
@@ -269,6 +294,8 @@ export class PlayerRegistrationComponent {
       this.isCalendarOpen = false;
     }
   }
+
+
 
   toggleRoleDropdown() { this.isRoleDropdownOpen = !this.isRoleDropdownOpen; }
   selectRole(role: string) {
@@ -342,6 +369,10 @@ export class PlayerRegistrationComponent {
     }
   }
 
+  private blobUrlToBase64(blobUrl: string): Promise<string> {
+    return this.imageService.blobUrlToBase64(blobUrl);
+  }
+
   async register() {
     if (this.loading) return;
 
@@ -362,7 +393,20 @@ export class PlayerRegistrationComponent {
 
     try {
       this.player.basePrice = this.basePrice;
+      
+      // Ensure we don't send blob URLs to backend
+      if (this.player.image && this.player.image.startsWith('blob:')) {
+        console.log('Converting blob URL to base64 before upload...');
+        try {
+          this.player.image = await this.blobUrlToBase64(this.player.image);
+          console.log('Conversion successful. Length:', this.player.image.length);
+        } catch (blobErr) {
+          console.error('Failed to convert blob to base64:', blobErr);
+        }
+      }
+
       const payload = { ...this.player, tournamentId: this.selectedTournamentId };
+      console.log('Registering player with payload:', { ...payload, image: payload.image ? 'IMAGE_DATA' : 'NONE' });
 
       await this.tournamentService.registerPlayer(payload);
 

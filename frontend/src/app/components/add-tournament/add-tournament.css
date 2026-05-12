@@ -18,7 +18,7 @@
     padding: 0;
     border-radius: 20px;
     border: 1px solid var(--border);
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
     position: relative;
     width: 100%;
@@ -343,7 +343,7 @@
 
 .custom-calendar-popup {
     position: absolute;
-    bottom: calc(100% + 10px);
+    top: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
     width: 280px;
@@ -351,19 +351,36 @@
     border-radius: 20px;
     box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
     border: 1px solid #f1f5f9;
-    z-index: 1001;
+    z-index: 10001;
     padding: 18px;
-    animation: dropdownFadeUpCentered 0.25s ease-out;
+    animation: dropdownFadeDownCenteredScale 0.25s ease-out;
 }
 
-@keyframes dropdownFadeUpCentered {
+.custom-calendar-popup.open-up {
+    top: auto;
+    bottom: calc(100% + 8px);
+    animation: dropdownFadeUpCenteredScale 0.25s ease-out;
+}
+
+@keyframes dropdownFadeDownCenteredScale {
     from {
         opacity: 0;
-        transform: translateX(-50%) translateY(10px);
+        transform: translateX(-50%) translateY(-10px) scale(0.95);
     }
     to {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+@keyframes dropdownFadeUpCenteredScale {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
     }
 }
 

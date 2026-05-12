@@ -4,8 +4,9 @@
     <div class="card-header">
         <div class="flex-row">
             <div class="team-avatar">
-                <span *ngIf="!team.code">T</span>
-                <span *ngIf="team.code">🏏</span>
+                <img *ngIf="team.logoUrl" [src]="getTeamImage()" class="team-logo-img" alt="">
+                <span *ngIf="!team.logoUrl && !team.code">T</span>
+                <span *ngIf="!team.logoUrl && team.code">🏏</span>
             </div>
             <div class="team-identity">
                 <h3>{{ team.name }}</h3>

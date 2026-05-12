@@ -72,6 +72,7 @@
                                 <img *ngIf="player.image" [src]="playerImageUrl" alt="Player Preview">
                                 <div *ngIf="!player.image" class="photo-placeholder">
                                     <i>👤</i>
+                                    <span class="required-dot"></span>
                                 </div>
                             </div>
                             <div class="upload-controls">
@@ -98,7 +99,7 @@
                             <div class="form-group">
                                 <label>Date of Birth *</label>
                                 <div class="date-input-wrapper">
-                                    <div class="dropdown-selected rounded-input" (click)="toggleCalendar()"
+                                    <div class="dropdown-selected rounded-input" (click)="toggleCalendar(); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen">
                                         <span>{{ player.dob ? (player.dob | date:'dd / MM / yyyy') : 'dd / mm / yyyy'
                                             }}</span>
@@ -146,9 +147,9 @@
                                 </div>
                             </div>
                             <div class="form-group full">
-                                <label>City / Location</label>
+                                <label>City / Location *</label>
                                 <input type="text" name="city" [(ngModel)]="player.city" placeholder="e.g. Mumbai"
-                                    class="rounded-input">
+                                    required class="rounded-input">
                             </div>
                         </div>
                     </div>
@@ -179,7 +180,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>T-Shirt Size</label>
+                            <label>T-Shirt Size *</label>
                             <div class="custom-dropdown" [class.open]="isTshirtDropdownOpen">
                                 <div class="dropdown-selected rounded-input" (click)="toggleTshirtDropdown()">
                                     <span>{{ player.tShirtSize || 'Select Size' }}</span>
@@ -195,9 +196,9 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label>Trouser Size</label>
+                            <label>Trouser Size *</label>
                             <input type="text" name="trouser" [(ngModel)]="player.trouserSize" placeholder="e.g. 32"
-                                class="rounded-input" maxlength="2" (keypress)="numberOnly($event)">
+                                required class="rounded-input" maxlength="2" (keypress)="numberOnly($event)">
                         </div>
                     </div>
                 </div>
@@ -212,7 +213,7 @@
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary submit-btn" [disabled]="loading || !regForm.valid">
+                    <button type="submit" class="btn btn-primary submit-btn" [disabled]="loading || !isFormValid">
                         {{ loading ? 'Registering...' : 'Register for Tournament' }}
                         <i class="icon-check">✓</i>
                     </button>
@@ -233,7 +234,7 @@
                         </div>
                         <image-cropper [imageChangedEvent]="imageChangedEvent" [maintainAspectRatio]="true"
                             [aspectRatio]="1 / 1" [resizeToWidth]="400" [autoCrop]="true" [onlyScaleDown]="true"
-                            format="webp" (imageCropped)="imageCropped($event)" (imageLoaded)="imageLoaded()"
+                            format="jpeg" (imageCropped)="imageCropped($event)" (imageLoaded)="imageLoaded()"
                             (cropperReady)="cropperReady()" (loadImageFailed)="loadImageFailed()"></image-cropper>
                     </div>
                     <div class="cropper-actions">

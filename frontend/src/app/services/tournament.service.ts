@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { firstValueFrom } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 
 @Injectable({
     providedIn: 'root'
 })
 export class TournamentService {
-    private apiUrl = 'http://127.0.0.1:5001/api/tournaments';
+    private apiUrl = `${API_CONFIG.baseUrl}/api/tournaments`;
 
     constructor(
         private http: HttpClient,
@@ -50,6 +51,10 @@ export class TournamentService {
         return firstValueFrom(this.http.put<any>(`${this.apiUrl}/${tournamentId}/players/${playerId}`, data, { headers: this.getHeaders() }));
     }
 
+    async removePlayer(tournamentId: string | number, playerId: string | number) {
+        return firstValueFrom(this.http.delete<any>(`${this.apiUrl}/${tournamentId}/players/${playerId}`, { headers: this.getHeaders() }));
+    }
+
     async registerPlayer(data: any) {
         // Public endpoint for self-registration, no auth headers needed if backend allows
         return firstValueFrom(this.http.post<any>(`${this.apiUrl}/register-player`, data));
@@ -84,7 +89,7 @@ export class TournamentService {
     }
 
     async getTeamPlayers(teamId: string | number) {
-        return firstValueFrom(this.http.get<any[]>(`http://127.0.0.1:5001/api/teams/${teamId}/players`, { headers: this.getHeaders() }));
+        return firstValueFrom(this.http.get<any[]>(`${API_CONFIG.baseUrl}/api/teams/${teamId}/players`, { headers: this.getHeaders() }));
     }
 
     async getGlobalPlayers(filters: any = {}) {

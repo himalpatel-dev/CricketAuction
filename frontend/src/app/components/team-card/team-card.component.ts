@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { ImageService } from '../../services/image.service';
 
 @Component({
     selector: 'app-team-card',
@@ -11,6 +12,12 @@ import { RouterModule } from '@angular/router';
 })
 export class TeamCardComponent {
     @Input() team: any;
+
+    constructor(private imageService: ImageService) {}
+
+    getTeamImage(): any {
+        return this.imageService.getTeamImageUrl(this.team.logoUrl);
+    }
 
     formatPrice(amount: number) {
         if (!amount) return '0';

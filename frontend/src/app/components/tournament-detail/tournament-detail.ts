@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef, HostListen
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { ImageService } from '../../services/image.service';
 import { TournamentService } from '../../services/tournament.service';
 import { AuthService } from '../../services/auth.service';
 import { TopNavComponent } from '../top-nav/top-nav';
@@ -72,19 +72,7 @@ export class TournamentDetailComponent implements OnInit {
   selectedMonth: number = new Date().getMonth();
   selectedYear: number = new Date().getFullYear();
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.custom-dropdown') && !target.closest('.date-input-wrapper')) {
-      this.isRoleDropdownOpen = false;
-      this.isTshirtDropdownOpen = false;
-      this.isGenderDropdownOpen = false;
-      this.isCategoryDropdownOpen = false;
-      this.isFormatDropdownOpen = false;
-      this.isCalendarOpen = false;
-      this.activeDateField = null;
-    }
-  }
+
 
   // Image Cropper State
   imageChangedEvent: any = '';
@@ -134,6 +122,10 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   async addGlobalPlayerToTournament(player: any) {
+    if (!confirm(`Are you sure you want to add ${player.name} to this tournament?`)) {
+      return;
+    }
+    
     try {
       this.saving = true;
       const payload = { 
@@ -145,8 +137,38 @@ export class TournamentDetailComponent implements OnInit {
       await this.loadTournament(this.tournament.id.toString(), true);
       alert(`${player.name} added successfully to this tournament!`);
       await this.loadGlobalPlayers(); // Refresh the list so the added player disappears
+    } finally {
+      this.saving = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async onDeletePlayer(player: any) {
+    if (!confirm(`Are you sure you want to remove ${player.name} from this tournament?`)) {
+      return;
+    }
+
+    try {
+      this.saving = true;
+      await this.tournamentService.removePlayer(this.tournament.id, player.id);
+      
+      // Manually remove from local array to ensure immediate UI update
+      if (this.tournament && this.tournament.players) {
+        this.tournament.players = this.tournament.players.filter((p: any) => p.id !== player.id);
+      }
+      
+      alert('Player removed successfully');
+      
+      // Recalculate everything locally for instant UI response
+      this.processTeams();
+      this.calculateLocalStats();
+      this.processBudgetTab();
+      
+      // Then sync with server
+      await this.loadTournament(this.tournament.id.toString(), true);
     } catch (err: any) {
-      alert(err.error?.error || 'Failed to add player');
+      console.error('Error removing player:', err);
+      alert(err.error?.message || 'Failed to remove player');
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -154,11 +176,11 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   get playerImageUrl(): any {
-    if (!this.newPlayer.image) return null;
-    if (this.newPlayer.image.startsWith('data:')) {
-      return this.sanitizer.bypassSecurityTrustUrl(this.newPlayer.image);
-    }
-    return this.newPlayer.image;
+    return this.imageService.getPlayerImageUrl(this.newPlayer.image);
+  }
+
+  getGlobalPlayerImageUrl(image: string): any {
+    return this.imageService.getPlayerImageUrl(image);
   }
 
   onPlayerPhotoSelected(event: any) {
@@ -230,6 +252,7 @@ export class TournamentDetailComponent implements OnInit {
     if (this.croppedImage) {
       console.log('2. Image data found, assigning...');
       this.newPlayer.image = this.croppedImage;
+      console.log('Image starts with:', this.newPlayer.image.substring(0, 30));
       this.showCropper = false;
       this.imageChangedEvent = '';
       if (this.photoInput) {
@@ -328,9 +351,9 @@ export class TournamentDetailComponent implements OnInit {
     this.activeDateField = field;
     
     let dateToUse = new Date();
-    if (field === 'dob' && this.newPlayer.dob) {
+    if (field === 'dob' && this.newPlayer.dob && !isNaN(new Date(this.newPlayer.dob).getTime())) {
         dateToUse = new Date(this.newPlayer.dob);
-    } else if (field && this.tournament[field]) {
+    } else if (field && this.tournament?.[field] && !isNaN(new Date(this.tournament[field]).getTime())) {
         dateToUse = new Date(this.tournament[field]);
     }
     
@@ -395,13 +418,29 @@ export class TournamentDetailComponent implements OnInit {
 
     if (this.activeDateField === 'dob') {
         this.newPlayer.dob = dateStr;
-    } else if (this.activeDateField) {
+    } else if (this.activeDateField && this.tournament) {
         this.tournament[this.activeDateField] = dateStr;
     }
 
     this.isCalendarOpen = false;
     this.activeDateField = null;
     this.cdr.detectChanges();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    // Don't close if clicking inside a dropdown or a calendar-related element
+    if (!target.closest('.custom-dropdown') && !target.closest('.date-input-wrapper') && !target.closest('.custom-calendar-popup')) {
+      this.isCalendarOpen = false;
+      this.activeDateField = null;
+      this.isRoleDropdownOpen = false;
+      this.isTshirtDropdownOpen = false;
+      this.isGenderDropdownOpen = false;
+      this.isCategoryDropdownOpen = false;
+      this.isFormatDropdownOpen = false;
+      this.cdr.detectChanges();
+    }
   }
 
   toggleRoleDropdown() { this.isRoleDropdownOpen = !this.isRoleDropdownOpen; }
@@ -467,6 +506,10 @@ export class TournamentDetailComponent implements OnInit {
     }
   }
 
+  private blobUrlToBase64(blobUrl: string): Promise<string> {
+    return this.imageService.blobUrlToBase64(blobUrl);
+  }
+
   async submitAddTeam() {
     if (!this.newTeam.name || !this.newTeam.code || this.saving) return;
 
@@ -494,6 +537,17 @@ export class TournamentDetailComponent implements OnInit {
 
     this.saving = true;
     try {
+      // Ensure we don't send blob URLs to backend
+      if (this.newPlayer.image && this.newPlayer.image.startsWith('blob:')) {
+        console.log('Converting blob URL to base64 before upload...');
+        try {
+          this.newPlayer.image = await this.blobUrlToBase64(this.newPlayer.image);
+          console.log('Conversion successful. Length:', this.newPlayer.image.length);
+        } catch (blobErr) {
+          console.error('Failed to convert blob to base64:', blobErr);
+        }
+      }
+
       // Ensure basePrice is set from tournament
       this.newPlayer.basePrice = this.tournament?.minimumPlayerBasePrice || 0;
       
@@ -551,7 +605,7 @@ export class TournamentDetailComponent implements OnInit {
     private tournamentService: TournamentService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private sanitizer: DomSanitizer
+    private imageService: ImageService
   ) { 
     const currentYear = new Date().getFullYear();
     for(let i = currentYear - 60; i <= currentYear + 5; i++) {
@@ -831,6 +885,10 @@ export class TournamentDetailComponent implements OnInit {
     this.saving = true;
     try {
       this.computeAndSetStatus();
+      
+      // Explicitly recalculate totalAmount before sending to server to ensure sync
+      this.tournament.totalAmount = this.getProjectedBudget();
+      
       await this.tournamentService.update(this.tournament.id, this.tournament);
       alert('Tournament updated successfully!');
       this.setTab('Overview');

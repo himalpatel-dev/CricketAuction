@@ -454,13 +454,9 @@
                                 (input)="onSearch()">
                         </div>
                         }
-                        
+
                         <button class="btn btn-primary" (click)="toggleGlobalDatabase()" *ngIf="!showAddPlayerForm">
                             {{ showGlobalDatabase ? '← Back to Players' : '🔍 Pick from Global' }}
-                        </button>
-
-                        <button class="btn btn-primary" (click)="toggleAddPlayerForm()" *ngIf="!showGlobalDatabase">
-                            {{ showAddPlayerForm ? '← Back to Players' : '+ Register Player' }}
                         </button>
                     </div>
                 </div>
@@ -476,7 +472,8 @@
                         <div class="filter-bar">
                             <div class="filter-group">
                                 <label>Search</label>
-                                <input type="text" [(ngModel)]="globalFilters.search" (input)="loadGlobalPlayers()" placeholder="Name or Mobile...">
+                                <input type="text" [(ngModel)]="globalFilters.search" (input)="loadGlobalPlayers()"
+                                    placeholder="Name or Mobile...">
                             </div>
                             <div class="filter-group">
                                 <label>Playing Role</label>
@@ -490,7 +487,8 @@
                             </div>
                             <div class="filter-group">
                                 <label>City</label>
-                                <input type="text" [(ngModel)]="globalFilters.city" (input)="loadGlobalPlayers()" placeholder="e.g. Mumbai">
+                                <input type="text" [(ngModel)]="globalFilters.city" (input)="loadGlobalPlayers()"
+                                    placeholder="e.g. Mumbai">
                             </div>
                         </div>
 
@@ -505,7 +503,7 @@
 
                             <div class="global-player-row" *ngFor="let p of globalPlayers">
                                 <div class="p-avatar">
-                                    <img [src]="p.image || '/assets/images/default-avatar.png'" alt="">
+                                    <img [src]="getGlobalPlayerImageUrl(p.image)" alt="">
                                 </div>
                                 <div class="p-main-info">
                                     <h4>{{ p.name }}</h4>
@@ -515,7 +513,8 @@
                                     <span class="p-mobile">{{ p.mobileNo }}</span>
                                 </div>
                                 <div class="p-actions">
-                                    <button class="btn-add-mini" (click)="addGlobalPlayerToTournament(p)" [disabled]="saving">
+                                    <button class="btn-add-mini" (click)="addGlobalPlayerToTournament(p)"
+                                        [disabled]="saving">
                                         {{ saving ? '...' : '+ Add' }}
                                     </button>
                                 </div>
@@ -527,7 +526,7 @@
                 <div class="players-grid">
                     @for (player of filteredPlayers; track player.id) {
                     <app-player-card [player]="player" [tournament]="tournament" [index]="$index" [canEdit]="true"
-                        (onEdit)="onEditPlayer($event)"></app-player-card>
+                        (onEdit)="onEditPlayer($event)" (onDelete)="onDeletePlayer($event)"></app-player-card>
                     }
                 </div>
                 } @else {
@@ -750,7 +749,7 @@
                                     </div>
                                     <image-cropper [imageChangedEvent]="imageChangedEvent" [maintainAspectRatio]="true"
                                         [aspectRatio]="1 / 1" [resizeToWidth]="400" [autoCrop]="true"
-                                        [onlyScaleDown]="true" format="webp" (imageCropped)="imageCropped($event)"
+                                        [onlyScaleDown]="true" format="jpeg" (imageCropped)="imageCropped($event)"
                                         (imageLoaded)="imageLoaded()" (cropperReady)="cropperReady()"
                                         (loadImageFailed)="loadImageFailed()"></image-cropper>
                                 </div>
@@ -997,13 +996,34 @@
                                 <label>Tournament Start Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('tournamentStartDate')"
+                                        (click)="toggleCalendar('tournamentStartDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'tournamentStartDate'">
                                         <span>{{ tournament.tournamentStartDate ? (tournament.tournamentStartDate |
                                             date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
                                         <i class="calendar-icon-svg"></i>
                                     </div>
-                                    <!-- Reuse calendar popup -->
+                                    <!-- Calendar Popup -->
+                                    <div class="custom-calendar-popup" *ngIf="isCalendarOpen && activeDateField === 'tournamentStartDate'">
+                                        <div class="calendar-header">
+                                            <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                            <div class="cal-dropdowns">
+                                                <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                                    <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                                </select>
+                                                <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                                    <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                        </div>
+                                        <div class="calendar-grid">
+                                            <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                            <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                                (click)="selectDate(d.day, d.current)">
+                                                {{ d.day }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1011,11 +1031,33 @@
                                 <label>Tournament End Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('tournamentEndDate')"
+                                        (click)="toggleCalendar('tournamentEndDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'tournamentEndDate'">
                                         <span>{{ tournament.tournamentEndDate ? (tournament.tournamentEndDate | date:'dd
                                             / MM / yyyy') : 'dd / mm / yyyy' }}</span>
                                         <i class="calendar-icon-svg"></i>
+                                    </div>
+                                    <!-- Calendar Popup -->
+                                    <div class="custom-calendar-popup" *ngIf="isCalendarOpen && activeDateField === 'tournamentEndDate'">
+                                        <div class="calendar-header">
+                                            <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                            <div class="cal-dropdowns">
+                                                <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                                    <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                                </select>
+                                                <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                                    <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                        </div>
+                                        <div class="calendar-grid">
+                                            <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                            <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                                (click)="selectDate(d.day, d.current)">
+                                                {{ d.day }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1029,16 +1071,61 @@
                                             yyyy') : 'dd / mm / yyyy' }}</span>
                                         <i class="calendar-icon-svg"></i>
                                     </div>
+                                    <!-- Calendar Popup -->
+                                    <div class="custom-calendar-popup" *ngIf="isCalendarOpen && activeDateField === 'regStartDate'">
+                                        <div class="calendar-header">
+                                            <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                            <div class="cal-dropdowns">
+                                                <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                                    <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                                </select>
+                                                <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                                    <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                        </div>
+                                        <div class="calendar-grid">
+                                            <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                            <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                                (click)="selectDate(d.day, d.current)">
+                                                {{ d.day }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Registration End Date</label>
                                 <div class="date-input-wrapper">
-                                    <div class="dropdown-selected rounded-input" (click)="toggleCalendar('regEndDate')"
+                                    <div class="dropdown-selected rounded-input"
+                                        (click)="toggleCalendar('regEndDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'regEndDate'">
                                         <span>{{ tournament.regEndDate ? (tournament.regEndDate | date:'dd / MM / yyyy')
                                             : 'dd / mm / yyyy' }}</span>
                                         <i class="calendar-icon-svg"></i>
+                                    </div>
+                                    <!-- Calendar Popup -->
+                                    <div class="custom-calendar-popup open-up" *ngIf="isCalendarOpen && activeDateField === 'regEndDate'">
+                                        <div class="calendar-header">
+                                            <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                            <div class="cal-dropdowns">
+                                                <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                                    <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                                </select>
+                                                <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                                    <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                        </div>
+                                        <div class="calendar-grid">
+                                            <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                            <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                                (click)="selectDate(d.day, d.current)">
+                                                {{ d.day }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1047,11 +1134,33 @@
                                 <label>Match Start Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('matchStartDate')"
+                                        (click)="toggleCalendar('matchStartDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'matchStartDate'">
                                         <span>{{ tournament.matchStartDate ? (tournament.matchStartDate | date:'dd / MM
                                             / yyyy') : 'dd / mm / yyyy' }}</span>
                                         <i class="calendar-icon-svg"></i>
+                                    </div>
+                                    <!-- Calendar Popup -->
+                                    <div class="custom-calendar-popup open-up" *ngIf="isCalendarOpen && activeDateField === 'matchStartDate'">
+                                        <div class="calendar-header">
+                                            <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                            <div class="cal-dropdowns">
+                                                <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                                    <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                                </select>
+                                                <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                                    <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                        </div>
+                                        <div class="calendar-grid">
+                                            <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                            <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                                (click)="selectDate(d.day, d.current)">
+                                                {{ d.day }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1060,11 +1169,33 @@
                                 <label>Match End Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('matchEndDate')"
+                                        (click)="toggleCalendar('matchEndDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'matchEndDate'">
                                         <span>{{ tournament.matchEndDate ? (tournament.matchEndDate | date:'dd / MM /
                                             yyyy') : 'dd / mm / yyyy' }}</span>
                                         <i class="calendar-icon-svg"></i>
+                                    </div>
+                                    <!-- Calendar Popup -->
+                                    <div class="custom-calendar-popup open-up" *ngIf="isCalendarOpen && activeDateField === 'matchEndDate'">
+                                        <div class="calendar-header">
+                                            <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                            <div class="cal-dropdowns">
+                                                <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                                    <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                                </select>
+                                                <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                                    <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                        </div>
+                                        <div class="calendar-grid">
+                                            <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                            <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                                (click)="selectDate(d.day, d.current)">
+                                                {{ d.day }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1072,39 +1203,38 @@
                             <div class="form-group">
                                 <label>Auction Date</label>
                                 <div class="date-input-wrapper">
-                                    <div class="dropdown-selected rounded-input" (click)="toggleCalendar('auctionDate')"
+                                    <div class="dropdown-selected rounded-input"
+                                        (click)="toggleCalendar('auctionDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'auctionDate'">
                                         <span>{{ tournament.auctionDate ? (tournament.auctionDate | date:'dd / MM /
                                             yyyy') : 'dd / mm / yyyy' }}</span>
                                         <i class="calendar-icon-svg"></i>
                                     </div>
+                                    <!-- Calendar Popup -->
+                                    <div class="custom-calendar-popup open-up" *ngIf="isCalendarOpen && activeDateField === 'auctionDate'">
+                                        <div class="calendar-header">
+                                            <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                            <div class="cal-dropdowns">
+                                                <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                                    <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                                </select>
+                                                <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                                    <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                        </div>
+                                        <div class="calendar-grid">
+                                            <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                            <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                                (click)="selectDate(d.day, d.current)">
+                                                {{ d.day }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Single Calendar Popup for all fields -->
-                            <div class="custom-calendar-popup" *ngIf="isCalendarOpen && activeDateField !== 'dob'">
-                                <div class="calendar-header">
-                                    <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
-                                    <div class="cal-dropdowns">
-                                        <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
-                                            name="calMonth">
-                                            <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
-                                        </select>
-                                        <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
-                                            name="calYear">
-                                            <option *ngFor="let y of years" [value]="y">{{ y }}</option>
-                                        </select>
-                                    </div>
-                                    <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
-                                </div>
-                                <div class="calendar-grid">
-                                    <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                    <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
-                                        (click)="selectDate(d.day, d.current)">
-                                        {{ d.day }}
-                                    </div>
-                                </div>
-                            </div>
 
 
                             <div class="form-group">

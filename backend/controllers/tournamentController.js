@@ -1,9 +1,21 @@
 const { Tournament, Team, Player, User, sequelize } = require('../models');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
+const { saveBase64Image } = require('../utils/imageUpload');
 
 exports.createTournament = async (req, res) => {
     try {
+        const { playersPerTeam, minimumPlayerBasePrice, competitionFactor } = req.body;
+
+        // Use provided values or defaults from model to calculate initial totalAmount (individual team budget)
+        const pPT = playersPerTeam !== undefined ? parseInt(playersPerTeam) : 15;
+        const mPBP = minimumPlayerBasePrice !== undefined ? parseFloat(minimumPlayerBasePrice) : 500000;
+        const cF = competitionFactor !== undefined ? parseFloat(competitionFactor) : 5;
+
+        if (req.body.totalAmount === undefined) {
+            req.body.totalAmount = Math.round(pPT * mPBP * cF);
+        }
+
         const tournament = await Tournament.create(req.body);
         res.status(201).json(tournament);
     } catch (error) {
@@ -54,35 +66,28 @@ exports.updateTournament = async (req, res) => {
         if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
 
         const { playersPerTeam, minimumPlayerBasePrice, competitionFactor } = req.body;
+        const hasBudgetChanges = playersPerTeam !== undefined || minimumPlayerBasePrice !== undefined || competitionFactor !== undefined;
 
         await sequelize.transaction(async (t) => {
+            // Calculate new budget if any related params are changed
+            if (hasBudgetChanges) {
+                const pPT = parseInt(playersPerTeam !== undefined ? playersPerTeam : tournament.playersPerTeam) || 0;
+                const mPBP = parseFloat(minimumPlayerBasePrice !== undefined ? minimumPlayerBasePrice : tournament.minimumPlayerBasePrice) || 0;
+                const cF = parseFloat(competitionFactor !== undefined ? competitionFactor : tournament.competitionFactor) || 0;
+                const newBudget = Math.round(pPT * mPBP * cF);
+                
+                // Set totalAmount in req.body so tournament.update picks it up
+                req.body.totalAmount = newBudget;
+            }
+
             await tournament.update(req.body, { transaction: t });
 
-            // Reload inside transaction to ensure we have the absolute latest data from DB
-            await tournament.reload({ transaction: t });
-
-            // Check if any of the three key fields were provided in the request
-            const hasBudgetChanges =
-                playersPerTeam !== undefined ||
-                minimumPlayerBasePrice !== undefined ||
-                competitionFactor !== undefined;
-
             if (hasBudgetChanges) {
-                console.log(`[RECALC] Change detected. Params: P:${playersPerTeam}, M:${minimumPlayerBasePrice}, C:${competitionFactor}`);
-                const pPT = parseInt(tournament.playersPerTeam) || 0;
-                const mPBP = parseFloat(tournament.minimumPlayerBasePrice) || 0;
-                const cF = parseFloat(tournament.competitionFactor) || 0;
-
-                const newBudget = Math.round(pPT * mPBP * cF);
-
-                console.log(`[RECALC] Recalculating with: ${pPT} * ${mPBP} * ${cF} = ${newBudget}`);
+                const newBudget = tournament.totalAmount;
+                console.log(`[RECALC] Change detected. Recalculating with: ${tournament.playersPerTeam} * ${tournament.minimumPlayerBasePrice} * ${tournament.competitionFactor} = ${newBudget}`);
 
                 if (newBudget > 0) {
                     const teams = await Team.findAll({ where: { tournamentId: tournament.id }, transaction: t });
-
-                    // Also update tournament totalAmount for display consistency
-                    tournament.totalAmount = newBudget * teams.length;
-                    await tournament.save({ transaction: t });
 
                     for (const team of teams) {
                         team.budget = newBudget;
@@ -93,21 +98,17 @@ exports.updateTournament = async (req, res) => {
                     // If base price changed, update all upcoming players in this tournament
                     if (minimumPlayerBasePrice !== undefined) {
                         await Player.update(
-                            { basePrice: mPBP },
+                            { basePrice: parseFloat(minimumPlayerBasePrice) },
                             {
                                 where: {
                                     tournamentId: tournament.id,
-                                    status: 'UPCOMING' // Only update those not yet sold
+                                    status: 'UPCOMING'
                                 },
                                 transaction: t
                             }
                         );
-                        console.log(`[RECALC] Updated basePrice for all upcoming players to ${mPBP}`);
                     }
-
                     console.log(`[RECALC] Successfully updated ${teams.length} teams.`);
-                } else {
-                    console.warn(`[RECALC] Budget calculated as 0 or NaN, skipping team updates.`);
                 }
             }
         });
@@ -183,6 +184,10 @@ exports.addPlayer = async (req, res) => {
             return res.status(400).json({ error: "A player with this mobile number is already registered for this tournament." });
         }
 
+        if (req.body.image) {
+            req.body.image = saveBase64Image(req.body.image, req.body.name);
+        }
+
         const player = await Player.create({
             ...req.body,
             tournamentId: id,
@@ -210,6 +215,10 @@ exports.registerPlayer = async (req, res) => {
 
         if (existingPlayer) {
             return res.status(400).json({ message: "You are already registered for this tournament with this mobile number." });
+        }
+
+        if (req.body.image) {
+            req.body.image = saveBase64Image(req.body.image, req.body.name);
         }
 
         const player = await Player.create({
@@ -455,9 +464,29 @@ exports.updatePlayer = async (req, res) => {
         const player = await Player.findByPk(playerId);
         if (!player) return res.status(404).json({ message: 'Player not found' });
 
+        if (req.body.image) {
+            req.body.image = saveBase64Image(req.body.image, req.body.name || player.name);
+        }
+
         await player.update(req.body);
         res.json(player);
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.deletePlayer = async (req, res) => {
+    try {
+        const { playerId } = req.params;
+        const player = await Player.findByPk(playerId);
+        if (!player) {
+            return res.status(404).json({ message: 'Player not found' });
+        }
+
+        await player.destroy();
+        res.json({ message: 'Player removed successfully from tournament' });
+    } catch (error) {
+        console.error("Delete Player Error:", error);
         res.status(500).json({ error: error.message });
     }
 };

@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { ImageService } from '../../services/image.service';
 
 @Component({
     selector: 'app-player-card',
@@ -16,6 +17,20 @@ export class PlayerCardComponent {
     @Input() tournament: any;
     @Input() canEdit: boolean = false;
     @Output() onEdit = new EventEmitter<any>();
+    @Output() onDelete = new EventEmitter<any>();
+
+    constructor(private imageService: ImageService) {}
+
+    getPlayerImage(): string {
+        const url = this.imageService.getPlayerImageUrl(this.player.image);
+        if (!url) return 'none';
+        
+        // If it's a SafeUrl (for base64/blob), we need to extract the string or let CSS handle it
+        // But for background-image, we need the raw string.
+        // ImageService returns string | SafeUrl.
+        const stringUrl = typeof url === 'string' ? url : (url as any).changingThisBreaksApplicationSecurity;
+        return `url(${stringUrl})`;
+    }
 
     formatPrice(amount: number) {
         if (!amount && amount !== 0) return '0';
