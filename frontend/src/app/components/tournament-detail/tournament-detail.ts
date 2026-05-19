@@ -886,8 +886,10 @@ export class TournamentDetailComponent implements OnInit {
     try {
       this.computeAndSetStatus();
       
-      // Explicitly recalculate totalAmount before sending to server to ensure sync
-      this.tournament.totalAmount = this.getProjectedBudget();
+      // If budget is not defined or is 0/empty, set it to the default projected formula
+      if (!this.tournament.totalAmount) {
+        this.tournament.totalAmount = this.getProjectedBudget();
+      }
       
       await this.tournamentService.update(this.tournament.id, this.tournament);
       alert('Tournament updated successfully!');
@@ -926,13 +928,20 @@ export class TournamentDetailComponent implements OnInit {
     if (!this.tournament) return 0;
     const p = Number(this.tournament.playersPerTeam || 0);
     const m = Number(this.tournament.minimumPlayerBasePrice || 0);
-    const c = Number(this.tournament.competitionFactor || 0);
+    const c = Number(this.tournament.competitionFactor || 5);
     const budget = Math.round(p * m * c);
     return isNaN(budget) ? 0 : budget;
   }
 
   onBudgetParamChange() {
+    this.tournament.totalAmount = this.getProjectedBudget();
     this.cdr.detectChanges();
+  }
+
+  formatIndianNumber(value: number | string): string {
+    if (value === undefined || value === null || value === '') return '';
+    const num = Number(value);
+    return isNaN(num) ? '' : num.toLocaleString('en-IN');
   }
 
   private formatDateLabel(date: Date | null) {

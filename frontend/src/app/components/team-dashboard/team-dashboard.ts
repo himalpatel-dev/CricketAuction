@@ -332,6 +332,12 @@ export class TeamDashboardComponent implements OnInit {
         }
     }
 
+    formatIndianNumber(value: number | string): string {
+        if (value === undefined || value === null || value === '') return '';
+        const num = Number(value);
+        return isNaN(num) ? '' : num.toLocaleString('en-IN');
+    }
+
     logout() {
         this.authService.logout();
         this.router.navigate(['/login']);

@@ -1235,8 +1235,6 @@
                                 </div>
                             </div>
 
-
-
                             <div class="form-group">
                                 <label>Players Per Team</label>
                                 <input type="number" [(ngModel)]="tournament.playersPerTeam" name="playersPerTeam"
@@ -1247,21 +1245,18 @@
                                 <label>Min. Player Base Price (₹)</label>
                                 <input type="number" [(ngModel)]="tournament.minimumPlayerBasePrice"
                                     name="minimumPlayerBasePrice" (ngModelChange)="onBudgetParamChange()">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Competition Factor</label>
-                                <input type="number" step="0.1" [(ngModel)]="tournament.competitionFactor"
-                                    name="competitionFactor" (ngModelChange)="onBudgetParamChange()">
+                                <p class="input-hint" *ngIf="tournament.minimumPlayerBasePrice">
+                                    <strong class="currency-preview">(₹{{ formatIndianNumber(tournament.minimumPlayerBasePrice) }})</strong>
+                                </p>
                             </div>
 
                             <div class="form-group full">
-                                <label>Calculated Team Budget (₹)</label>
-                                <div class="calculated-value-small">
-                                    ₹{{ getProjectedBudget() | number }}
-                                </div>
-                                <p class="input-hint">Formula: Players × Base Price × Factor. Changing these will update
-                                    all teams.</p>
+                                <label>Team Budget (₹)</label>
+                                <input type="number" [(ngModel)]="tournament.totalAmount" name="totalAmount" placeholder="Enter total budget">
+                                <p class="input-hint">
+                                    Default Formula: Players × Base Price × 5 (You can customize this value). 
+                                    <strong *ngIf="tournament.totalAmount" class="currency-preview">(₹{{ formatIndianNumber(tournament.totalAmount) }})</strong>
+                                </p>
                             </div>
 
                             <div class="form-group">

@@ -244,6 +244,9 @@
                             (₹)</label>
                         <input type="number" name="pbprice" [(ngModel)]="newPlayer.basePrice" class="input-field"
                             required>
+                        <span class="text-xs text-orange-400 mt-1 pl-1 block" *ngIf="newPlayer.basePrice">
+                            <strong>₹{{ formatIndianNumber(newPlayer.basePrice) }}</strong>
+                        </span>
                     </div>
                     <div class="space-y-2">
                         <label class="text-xs uppercase tracking-wider text-slate-400 font-semibold pl-1">T-Shirt

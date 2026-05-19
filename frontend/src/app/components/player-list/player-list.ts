@@ -246,4 +246,10 @@ export class PlayerListComponent implements OnInit {
     if (amount >= 100000) return (amount / 100000).toFixed(0).replace(/\.0$/, '') + 'L';
     return amount.toLocaleString();
   }
+
+  formatIndianNumber(value: number | string): string {
+    if (value === undefined || value === null || value === '') return '';
+    const num = Number(value);
+    return isNaN(num) ? '' : num.toLocaleString('en-IN');
+  }
 }

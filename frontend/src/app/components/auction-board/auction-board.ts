@@ -5,6 +5,7 @@ import { AuctionService } from '../../services/auction.service';
 import { SocketService } from '../../services/socket.service';
 import { TournamentService } from '../../services/tournament.service';
 import { AuthService } from '../../services/auth.service';
+import { ImageService } from '../../services/image.service';
 
 @Component({
   selector: 'app-auction-board',
@@ -39,8 +40,13 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     private tournamentService: TournamentService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private imageService: ImageService
   ) { }
+
+  getPlayerImageUrl(imagePath: string | null | undefined): any {
+    return this.imageService.getPlayerImageUrl(imagePath);
+  }
 
   get availablePlayers() {
     const status = this.auctionMode === 'unsold' ? 'UNSOLD' : 'UPCOMING';

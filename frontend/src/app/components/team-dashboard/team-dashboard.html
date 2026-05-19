@@ -437,6 +437,9 @@
                             <div class="form-group">
                                 <label>Total Budget (₹)</label>
                                 <input type="number" [(ngModel)]="teamUpdate.budget" placeholder="Enter total budget">
+                                <span class="input-hint" *ngIf="teamUpdate.budget" style="margin-top: 4px; display: block;">
+                                    <strong class="currency-preview">(₹{{ formatIndianNumber(teamUpdate.budget) }})</strong>
+                                </span>
                             </div>
                         </div>
 

@@ -28,7 +28,7 @@ const Player = sequelize.define('Player', {
         defaultValue: {},
     },
     status: {
-        type: DataTypes.ENUM('UPCOMING', 'IN_AUCTION', 'SOLD', 'UNSOLD'),
+        type: DataTypes.ENUM('UPCOMING', 'IN_AUCTION', 'SOLD', 'UNSOLD', 'WITHDRAWN'),
         defaultValue: 'UPCOMING',
     },
     soldPrice: {

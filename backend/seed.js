@@ -32,8 +32,7 @@ async function seed() {
         // Budget calculation logic matches backend
         const pPT = tournament.playersPerTeam;
         const mPBP = tournament.minimumPlayerBasePrice;
-        const cF = tournament.competitionFactor;
-        const calculatedBudget = Math.round(pPT * mPBP * cF);
+        const calculatedBudget = Math.round(pPT * mPBP);
         
         console.log(`Per-Team Budget: ₹${calculatedBudget}`);
 

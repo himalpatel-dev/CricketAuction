@@ -90,7 +90,7 @@
                     <div class="avatar-container">
                         <div class="avatar-circle">
                             @if (auctionState.currentPlayer.image) {
-                            <img [src]="auctionState.currentPlayer.image" class="avatar-img"
+                            <img [src]="getPlayerImageUrl(auctionState.currentPlayer.image)" class="avatar-img"
                                 [alt]="auctionState.currentPlayer.name">
                             } @else {
                             <span>{{ auctionState.currentPlayer.name ? auctionState.currentPlayer.name.charAt(0) : 'P'

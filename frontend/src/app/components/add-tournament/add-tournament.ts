@@ -23,9 +23,10 @@ export class AddTournamentComponent {
     regEndDate: '',
     auctionDate: '',
     totalPlayers: 100,
-    playersPerTeam: 15,
-    minimumPlayerBasePrice: 500000,
-    competitionFactor: 1.5,
+    playersPerTeam: 10,
+    minimumPlayerBasePrice: 50000,
+    competitionFactor: 5,
+    totalAmount: 10 * 50000 * 5,
     format: 'T20',
     category: 'Franchise League',
     status: 'UPCOMING'
@@ -60,10 +61,10 @@ export class AddTournamentComponent {
     private tournamentService: TournamentService,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) { 
+  ) {
     const currentYear = new Date().getFullYear();
-    for(let i = currentYear - 60; i <= currentYear + 5; i++) {
-        this.years.push(i);
+    for (let i = currentYear - 60; i <= currentYear + 5; i++) {
+      this.years.push(i);
     }
     this.years.reverse();
   }
@@ -71,20 +72,20 @@ export class AddTournamentComponent {
   // --- Custom Calendar Logic ---
   toggleCalendar(field: string) {
     if (this.activeDateField === field) {
-        this.isCalendarOpen = false;
-        this.activeDateField = null;
-        return;
+      this.isCalendarOpen = false;
+      this.activeDateField = null;
+      return;
     }
 
     this.isCalendarOpen = true;
     this.activeDateField = field;
-    
+
     let dateToUse = new Date();
     const existingDate = this.tournamentData[field];
     if (existingDate && !isNaN(new Date(existingDate).getTime())) {
-        dateToUse = new Date(existingDate);
+      dateToUse = new Date(existingDate);
     }
-    
+
     this.calendarDate = dateToUse;
     this.generateCalendar();
   }
@@ -99,7 +100,7 @@ export class AddTournamentComponent {
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     // Adjust for Monday start (0 is Sunday in JS, we want 0 for Monday)
     let startingDay = firstDay === 0 ? 6 : firstDay - 1;
 
@@ -145,7 +146,7 @@ export class AddTournamentComponent {
     const dateStr = `${year}-${month}-${d}`;
 
     if (this.activeDateField) {
-        this.tournamentData[this.activeDateField] = dateStr;
+      this.tournamentData[this.activeDateField] = dateStr;
     }
 
     this.isCalendarOpen = false;
@@ -162,7 +163,7 @@ export class AddTournamentComponent {
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Start of today
       const startDate = new Date(this.tournamentData.tournamentStartDate);
-      
+
       if (startDate > today) {
         this.tournamentData.status = 'UPCOMING';
       } else {
@@ -170,8 +171,10 @@ export class AddTournamentComponent {
       }
     }
 
-    // Set totalAmount explicitly based on formula
-    this.tournamentData.totalAmount = this.getProjectedBudget();
+    // Ensure totalAmount is set, default to projected formula if missing
+    if (this.tournamentData.totalAmount === undefined || this.tournamentData.totalAmount === null || this.tournamentData.totalAmount === '') {
+      this.tournamentData.totalAmount = this.getProjectedBudget();
+    }
 
     try {
       await this.tournamentService.create(this.tournamentData);
@@ -184,11 +187,21 @@ export class AddTournamentComponent {
     }
   }
 
+  onParamChange() {
+    this.tournamentData.totalAmount = this.getProjectedBudget();
+  }
+
+  formatIndianNumber(value: number | string): string {
+    if (value === undefined || value === null || value === '') return '';
+    const num = Number(value);
+    return isNaN(num) ? '' : num.toLocaleString('en-IN');
+  }
+
   getProjectedBudget(): number {
     if (!this.tournamentData) return 0;
     const p = Number(this.tournamentData.playersPerTeam || 0);
     const m = Number(this.tournamentData.minimumPlayerBasePrice || 0);
-    const c = Number(this.tournamentData.competitionFactor || 0);
+    const c = Number(this.tournamentData.competitionFactor || 5);
     const budget = Math.round(p * m * c);
     return isNaN(budget) ? 0 : budget;
   }

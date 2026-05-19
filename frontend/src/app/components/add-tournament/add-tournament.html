@@ -42,7 +42,9 @@
                         <div class="form-group full-width">
                             <label class="section-subtitle">TOURNAMENT CATEGORY *</label>
                             <div class="selection-grid">
-                                <div class="selection-card" [class.selected]="tournamentData.category === 'Franchise League'" (click)="tournamentData.category = 'Franchise League'">
+                                <div class="selection-card"
+                                    [class.selected]="tournamentData.category === 'Franchise League'"
+                                    (click)="tournamentData.category = 'Franchise League'">
                                     <div class="card-radio"></div>
                                     <div class="card-content">
                                         <span class="card-icon">🏟️</span>
@@ -52,7 +54,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="selection-card" [class.selected]="tournamentData.category === 'Corporate League'" (click)="tournamentData.category = 'Corporate League'">
+                                <div class="selection-card"
+                                    [class.selected]="tournamentData.category === 'Corporate League'"
+                                    (click)="tournamentData.category = 'Corporate League'">
                                     <div class="card-radio"></div>
                                     <div class="card-content">
                                         <span class="card-icon">🌍</span>
@@ -62,7 +66,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="selection-card" [class.selected]="tournamentData.category === 'Community League'" (click)="tournamentData.category = 'Community League'">
+                                <div class="selection-card"
+                                    [class.selected]="tournamentData.category === 'Community League'"
+                                    (click)="tournamentData.category = 'Community League'">
                                     <div class="card-radio"></div>
                                     <div class="card-content">
                                         <span class="card-icon">🎓</span>
@@ -78,7 +84,8 @@
                         <div class="form-group full-width">
                             <label class="section-subtitle">TOURNAMENT FORMAT *</label>
                             <div class="selection-grid">
-                                <div class="selection-card" [class.selected]="tournamentData.format === 'T20'" (click)="tournamentData.format = 'T20'">
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'T20'"
+                                    (click)="tournamentData.format = 'T20'">
                                     <div class="card-radio"></div>
                                     <div class="card-content">
                                         <span class="card-icon">🏏</span>
@@ -88,7 +95,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="selection-card" [class.selected]="tournamentData.format === 'T10'" (click)="tournamentData.format = 'T10'">
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'T10'"
+                                    (click)="tournamentData.format = 'T10'">
                                     <div class="card-radio"></div>
                                     <div class="card-content">
                                         <span class="card-icon">⚡</span>
@@ -98,7 +106,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="selection-card" [class.selected]="tournamentData.format === 'ODI'" (click)="tournamentData.format = 'ODI'">
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'ODI'"
+                                    (click)="tournamentData.format = 'ODI'">
                                     <div class="card-radio"></div>
                                     <div class="card-content">
                                         <span class="card-icon">👕</span>
@@ -108,7 +117,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="selection-card" [class.selected]="tournamentData.format === 'Box Cricket'" (click)="tournamentData.format = 'Box Cricket'">
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'Box Cricket'"
+                                    (click)="tournamentData.format = 'Box Cricket'">
                                     <div class="card-radio"></div>
                                     <div class="card-content">
                                         <span class="card-icon">📦</span>
@@ -118,7 +128,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="selection-card" [class.selected]="tournamentData.format === 'Other'" (click)="tournamentData.format = 'Other'">
+                                <div class="selection-card" [class.selected]="tournamentData.format === 'Other'"
+                                    (click)="tournamentData.format = 'Other'">
                                     <div class="card-radio"></div>
                                     <div class="card-content">
                                         <span class="card-icon">📝</span>
@@ -139,30 +150,23 @@
                         <div class="form-group">
                             <label>Players Per Team</label>
                             <input type="number" name="playersPerTeam" [(ngModel)]="tournamentData.playersPerTeam"
-                                placeholder="e.g. 15" required>
+                                (ngModelChange)="onParamChange()" placeholder="e.g. 15" required>
                             <span class="input-hint">Required number of players in each team squad.</span>
                         </div>
 
                         <div class="form-group">
                             <label>Minimum Player Base Price (INR)</label>
-                            <input type="number" name="minimumPlayerBasePrice" [(ngModel)]="tournamentData.minimumPlayerBasePrice"
+                            <input type="number" name="minimumPlayerBasePrice"
+                                [(ngModel)]="tournamentData.minimumPlayerBasePrice" (ngModelChange)="onParamChange()"
                                 placeholder="e.g. 500000" required>
-                            <span class="input-hint">Uniform base price for all players in this tournament.</span>
+                            <span class="input-hint">Uniform base price for all players in this tournament. <strong *ngIf="tournamentData.minimumPlayerBasePrice" class="currency-preview">(₹{{ formatIndianNumber(tournamentData.minimumPlayerBasePrice) }})</strong></span>
                         </div>
 
                         <div class="form-group">
-                            <label>Competition Factor</label>
-                            <input type="number" step="0.1" name="competitionFactor" [(ngModel)]="tournamentData.competitionFactor"
-                                placeholder="e.g. 1.5" required>
-                            <span class="input-hint">Multiplier to ensure competitive bidding (e.g., 1.5).</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Calculated Team Budget (INR)</label>
-                            <div class="calculated-value">
-                                ₹{{ getProjectedBudget() | number }}
-                            </div>
-                            <span class="input-hint">Formula: Players × Base Price × Factor</span>
+                            <label>Team Budget (INR)</label>
+                            <input type="number" name="totalAmount" [(ngModel)]="tournamentData.totalAmount"
+                                placeholder="e.g. 37500000" required>
+                            <span class="input-hint">Default Formula: Players × Base Price × 5 (You can customize this value). <strong *ngIf="tournamentData.totalAmount" class="currency-preview">(₹{{ formatIndianNumber(tournamentData.totalAmount) }})</strong></span>
                         </div>
 
                         <div class="form-group">
@@ -177,20 +181,26 @@
                         <div class="form-group">
                             <label>Tournament Starts</label>
                             <div class="date-input-wrapper">
-                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('tournamentStartDate'); $event.stopPropagation()"
+                                <div class="dropdown-selected rounded-input"
+                                    (click)="toggleCalendar('tournamentStartDate'); $event.stopPropagation()"
                                     [class.active]="isCalendarOpen && activeDateField === 'tournamentStartDate'">
-                                    <span>{{ tournamentData.tournamentStartDate ? (tournamentData.tournamentStartDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <span>{{ tournamentData.tournamentStartDate ? (tournamentData.tournamentStartDate |
+                                        date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
                                     <i class="calendar-icon-svg"></i>
                                 </div>
                                 <!-- Calendar Popup -->
-                                <div class="custom-calendar-popup" *ngIf="isCalendarOpen && activeDateField === 'tournamentStartDate'">
+                                <div class="custom-calendar-popup"
+                                    *ngIf="isCalendarOpen && activeDateField === 'tournamentStartDate'">
                                     <div class="calendar-header">
                                         <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
                                         <div class="cal-dropdowns">
-                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
-                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
+                                                name="calMonth">
+                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}
+                                                </option>
                                             </select>
-                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
+                                                name="calYear">
                                                 <option *ngFor="let y of years" [value]="y">{{ y }}</option>
                                             </select>
                                         </div>
@@ -198,8 +208,8 @@
                                     </div>
                                     <div class="calendar-grid">
                                         <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                        <div class="day" *ngFor="let d of calendarDays"
-                                            [class.other-month]="!d.current" (click)="selectDate(d.day, d.current)">
+                                        <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                            (click)="selectDate(d.day, d.current)">
                                             {{ d.day }}
                                         </div>
                                     </div>
@@ -210,20 +220,26 @@
                         <div class="form-group">
                             <label>Tournament Ends</label>
                             <div class="date-input-wrapper">
-                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('tournamentEndDate'); $event.stopPropagation()"
+                                <div class="dropdown-selected rounded-input"
+                                    (click)="toggleCalendar('tournamentEndDate'); $event.stopPropagation()"
                                     [class.active]="isCalendarOpen && activeDateField === 'tournamentEndDate'">
-                                    <span>{{ tournamentData.tournamentEndDate ? (tournamentData.tournamentEndDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <span>{{ tournamentData.tournamentEndDate ? (tournamentData.tournamentEndDate |
+                                        date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
                                     <i class="calendar-icon-svg"></i>
                                 </div>
                                 <!-- Calendar Popup -->
-                                <div class="custom-calendar-popup" *ngIf="isCalendarOpen && activeDateField === 'tournamentEndDate'">
+                                <div class="custom-calendar-popup"
+                                    *ngIf="isCalendarOpen && activeDateField === 'tournamentEndDate'">
                                     <div class="calendar-header">
                                         <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
                                         <div class="cal-dropdowns">
-                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
-                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
+                                                name="calMonth">
+                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}
+                                                </option>
                                             </select>
-                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
+                                                name="calYear">
                                                 <option *ngFor="let y of years" [value]="y">{{ y }}</option>
                                             </select>
                                         </div>
@@ -231,8 +247,8 @@
                                     </div>
                                     <div class="calendar-grid">
                                         <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                        <div class="day" *ngFor="let d of calendarDays"
-                                            [class.other-month]="!d.current" (click)="selectDate(d.day, d.current)">
+                                        <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                            (click)="selectDate(d.day, d.current)">
                                             {{ d.day }}
                                         </div>
                                     </div>
@@ -243,20 +259,26 @@
                         <div class="form-group">
                             <label>Registration Starts</label>
                             <div class="date-input-wrapper">
-                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('regStartDate'); $event.stopPropagation()"
+                                <div class="dropdown-selected rounded-input"
+                                    (click)="toggleCalendar('regStartDate'); $event.stopPropagation()"
                                     [class.active]="isCalendarOpen && activeDateField === 'regStartDate'">
-                                    <span>{{ tournamentData.regStartDate ? (tournamentData.regStartDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <span>{{ tournamentData.regStartDate ? (tournamentData.regStartDate | date:'dd / MM
+                                        / yyyy') : 'dd / mm / yyyy' }}</span>
                                     <i class="calendar-icon-svg"></i>
                                 </div>
                                 <!-- Calendar Popup -->
-                                <div class="custom-calendar-popup" *ngIf="isCalendarOpen && activeDateField === 'regStartDate'">
+                                <div class="custom-calendar-popup"
+                                    *ngIf="isCalendarOpen && activeDateField === 'regStartDate'">
                                     <div class="calendar-header">
                                         <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
                                         <div class="cal-dropdowns">
-                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
-                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
+                                                name="calMonth">
+                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}
+                                                </option>
                                             </select>
-                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
+                                                name="calYear">
                                                 <option *ngFor="let y of years" [value]="y">{{ y }}</option>
                                             </select>
                                         </div>
@@ -264,8 +286,8 @@
                                     </div>
                                     <div class="calendar-grid">
                                         <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                        <div class="day" *ngFor="let d of calendarDays"
-                                            [class.other-month]="!d.current" (click)="selectDate(d.day, d.current)">
+                                        <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                            (click)="selectDate(d.day, d.current)">
                                             {{ d.day }}
                                         </div>
                                     </div>
@@ -276,20 +298,26 @@
                         <div class="form-group">
                             <label>Registration Ends</label>
                             <div class="date-input-wrapper">
-                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('regEndDate'); $event.stopPropagation()"
+                                <div class="dropdown-selected rounded-input"
+                                    (click)="toggleCalendar('regEndDate'); $event.stopPropagation()"
                                     [class.active]="isCalendarOpen && activeDateField === 'regEndDate'">
-                                    <span>{{ tournamentData.regEndDate ? (tournamentData.regEndDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <span>{{ tournamentData.regEndDate ? (tournamentData.regEndDate | date:'dd / MM /
+                                        yyyy') : 'dd / mm / yyyy' }}</span>
                                     <i class="calendar-icon-svg"></i>
                                 </div>
                                 <!-- Calendar Popup -->
-                                <div class="custom-calendar-popup open-up" *ngIf="isCalendarOpen && activeDateField === 'regEndDate'">
+                                <div class="custom-calendar-popup open-up"
+                                    *ngIf="isCalendarOpen && activeDateField === 'regEndDate'">
                                     <div class="calendar-header">
                                         <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
                                         <div class="cal-dropdowns">
-                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
-                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
+                                                name="calMonth">
+                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}
+                                                </option>
                                             </select>
-                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
+                                                name="calYear">
                                                 <option *ngFor="let y of years" [value]="y">{{ y }}</option>
                                             </select>
                                         </div>
@@ -297,8 +325,8 @@
                                     </div>
                                     <div class="calendar-grid">
                                         <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                        <div class="day" *ngFor="let d of calendarDays"
-                                            [class.other-month]="!d.current" (click)="selectDate(d.day, d.current)">
+                                        <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                            (click)="selectDate(d.day, d.current)">
                                             {{ d.day }}
                                         </div>
                                     </div>
@@ -309,20 +337,26 @@
                         <div class="form-group">
                             <label>Matches Start</label>
                             <div class="date-input-wrapper">
-                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('matchStartDate'); $event.stopPropagation()"
+                                <div class="dropdown-selected rounded-input"
+                                    (click)="toggleCalendar('matchStartDate'); $event.stopPropagation()"
                                     [class.active]="isCalendarOpen && activeDateField === 'matchStartDate'">
-                                    <span>{{ tournamentData.matchStartDate ? (tournamentData.matchStartDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <span>{{ tournamentData.matchStartDate ? (tournamentData.matchStartDate | date:'dd /
+                                        MM / yyyy') : 'dd / mm / yyyy' }}</span>
                                     <i class="calendar-icon-svg"></i>
                                 </div>
                                 <!-- Calendar Popup -->
-                                <div class="custom-calendar-popup open-up" *ngIf="isCalendarOpen && activeDateField === 'matchStartDate'">
+                                <div class="custom-calendar-popup open-up"
+                                    *ngIf="isCalendarOpen && activeDateField === 'matchStartDate'">
                                     <div class="calendar-header">
                                         <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
                                         <div class="cal-dropdowns">
-                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
-                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
+                                                name="calMonth">
+                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}
+                                                </option>
                                             </select>
-                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
+                                                name="calYear">
                                                 <option *ngFor="let y of years" [value]="y">{{ y }}</option>
                                             </select>
                                         </div>
@@ -330,8 +364,8 @@
                                     </div>
                                     <div class="calendar-grid">
                                         <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                        <div class="day" *ngFor="let d of calendarDays"
-                                            [class.other-month]="!d.current" (click)="selectDate(d.day, d.current)">
+                                        <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                            (click)="selectDate(d.day, d.current)">
                                             {{ d.day }}
                                         </div>
                                     </div>
@@ -342,20 +376,26 @@
                         <div class="form-group">
                             <label>Matches End</label>
                             <div class="date-input-wrapper">
-                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('matchEndDate'); $event.stopPropagation()"
+                                <div class="dropdown-selected rounded-input"
+                                    (click)="toggleCalendar('matchEndDate'); $event.stopPropagation()"
                                     [class.active]="isCalendarOpen && activeDateField === 'matchEndDate'">
-                                    <span>{{ tournamentData.matchEndDate ? (tournamentData.matchEndDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <span>{{ tournamentData.matchEndDate ? (tournamentData.matchEndDate | date:'dd / MM
+                                        / yyyy') : 'dd / mm / yyyy' }}</span>
                                     <i class="calendar-icon-svg"></i>
                                 </div>
                                 <!-- Calendar Popup -->
-                                <div class="custom-calendar-popup open-up" *ngIf="isCalendarOpen && activeDateField === 'matchEndDate'">
+                                <div class="custom-calendar-popup open-up"
+                                    *ngIf="isCalendarOpen && activeDateField === 'matchEndDate'">
                                     <div class="calendar-header">
                                         <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
                                         <div class="cal-dropdowns">
-                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
-                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
+                                                name="calMonth">
+                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}
+                                                </option>
                                             </select>
-                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
+                                                name="calYear">
                                                 <option *ngFor="let y of years" [value]="y">{{ y }}</option>
                                             </select>
                                         </div>
@@ -363,8 +403,8 @@
                                     </div>
                                     <div class="calendar-grid">
                                         <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                        <div class="day" *ngFor="let d of calendarDays"
-                                            [class.other-month]="!d.current" (click)="selectDate(d.day, d.current)">
+                                        <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                            (click)="selectDate(d.day, d.current)">
                                             {{ d.day }}
                                         </div>
                                     </div>
@@ -375,20 +415,26 @@
                         <div class="form-group">
                             <label>Live Auction Date</label>
                             <div class="date-input-wrapper">
-                                <div class="dropdown-selected rounded-input" (click)="toggleCalendar('auctionDate'); $event.stopPropagation()"
+                                <div class="dropdown-selected rounded-input"
+                                    (click)="toggleCalendar('auctionDate'); $event.stopPropagation()"
                                     [class.active]="isCalendarOpen && activeDateField === 'auctionDate'">
-                                    <span>{{ tournamentData.auctionDate ? (tournamentData.auctionDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                    <span>{{ tournamentData.auctionDate ? (tournamentData.auctionDate | date:'dd / MM /
+                                        yyyy') : 'dd / mm / yyyy' }}</span>
                                     <i class="calendar-icon-svg"></i>
                                 </div>
                                 <!-- Calendar Popup -->
-                                <div class="custom-calendar-popup open-up" *ngIf="isCalendarOpen && activeDateField === 'auctionDate'">
+                                <div class="custom-calendar-popup open-up"
+                                    *ngIf="isCalendarOpen && activeDateField === 'auctionDate'">
                                     <div class="calendar-header">
                                         <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
                                         <div class="cal-dropdowns">
-                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
-                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
+                                                name="calMonth">
+                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}
+                                                </option>
                                             </select>
-                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
+                                                name="calYear">
                                                 <option *ngFor="let y of years" [value]="y">{{ y }}</option>
                                             </select>
                                         </div>
@@ -396,8 +442,8 @@
                                     </div>
                                     <div class="calendar-grid">
                                         <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                        <div class="day" *ngFor="let d of calendarDays"
-                                            [class.other-month]="!d.current" (click)="selectDate(d.day, d.current)">
+                                        <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                            (click)="selectDate(d.day, d.current)">
                                             {{ d.day }}
                                         </div>
                                     </div>
