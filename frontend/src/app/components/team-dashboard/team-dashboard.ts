@@ -59,6 +59,7 @@ export class TeamDashboardComponent implements OnInit {
 
     selectedLogoFile: File | null = null;
     logoPreview: string | null = null;
+    logoLightboxOpen: boolean = false;
 
     constructor(
         private route: ActivatedRoute,
