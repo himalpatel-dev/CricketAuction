@@ -76,8 +76,15 @@ exports.updateTournament = async (req, res) => {
 
         const { minimumPlayerBasePrice, totalAmount } = req.body;
 
+        let updateData = { ...req.body };
+        const isStatusOnlyUpdate = Object.keys(req.body).length === 1 && req.body.isrequestedtoedit !== undefined;
+        if (tournament.isrequestedtoedit === 2 && (!isStatusOnlyUpdate || req.body.isrequestedtoedit === 0)) {
+            updateData.isrequestedtoedit = 0;
+            console.log(`[EDIT REQUEST] Resetting edit permission state to 0 as tournament details are saved.`);
+        }
+
         await sequelize.transaction(async (t) => {
-            await tournament.update(req.body, { transaction: t });
+            await tournament.update(updateData, { transaction: t });
 
             // If budget (totalAmount) changed, update all teams
             if (totalAmount !== undefined) {

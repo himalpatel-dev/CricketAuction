@@ -215,6 +215,9 @@
                                     </div>
                                 </div>
                             </div>
+                            <div *ngIf="dateErrors['tournamentStartDate']" class="field-error-tip">
+                                <span>⚠️</span> {{ dateErrors['tournamentStartDate'] }}
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -253,6 +256,9 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div *ngIf="dateErrors['tournamentEndDate']" class="field-error-tip">
+                                <span>⚠️</span> {{ dateErrors['tournamentEndDate'] }}
                             </div>
                         </div>
 
@@ -293,6 +299,9 @@
                                     </div>
                                 </div>
                             </div>
+                            <div *ngIf="dateErrors['regStartDate']" class="field-error-tip">
+                                <span>⚠️</span> {{ dateErrors['regStartDate'] }}
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -332,83 +341,8 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Matches Start</label>
-                            <div class="date-input-wrapper">
-                                <div class="dropdown-selected rounded-input"
-                                    (click)="toggleCalendar('matchStartDate'); $event.stopPropagation()"
-                                    [class.active]="isCalendarOpen && activeDateField === 'matchStartDate'">
-                                    <span>{{ tournamentData.matchStartDate ? (tournamentData.matchStartDate | date:'dd /
-                                        MM / yyyy') : 'dd / mm / yyyy' }}</span>
-                                    <i class="calendar-icon-svg"></i>
-                                </div>
-                                <!-- Calendar Popup -->
-                                <div class="custom-calendar-popup open-up"
-                                    *ngIf="isCalendarOpen && activeDateField === 'matchStartDate'">
-                                    <div class="calendar-header">
-                                        <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
-                                        <div class="cal-dropdowns">
-                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
-                                                name="calMonth">
-                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}
-                                                </option>
-                                            </select>
-                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
-                                                name="calYear">
-                                                <option *ngFor="let y of years" [value]="y">{{ y }}</option>
-                                            </select>
-                                        </div>
-                                        <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
-                                    </div>
-                                    <div class="calendar-grid">
-                                        <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                        <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
-                                            (click)="selectDate(d.day, d.current)">
-                                            {{ d.day }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Matches End</label>
-                            <div class="date-input-wrapper">
-                                <div class="dropdown-selected rounded-input"
-                                    (click)="toggleCalendar('matchEndDate'); $event.stopPropagation()"
-                                    [class.active]="isCalendarOpen && activeDateField === 'matchEndDate'">
-                                    <span>{{ tournamentData.matchEndDate ? (tournamentData.matchEndDate | date:'dd / MM
-                                        / yyyy') : 'dd / mm / yyyy' }}</span>
-                                    <i class="calendar-icon-svg"></i>
-                                </div>
-                                <!-- Calendar Popup -->
-                                <div class="custom-calendar-popup open-up"
-                                    *ngIf="isCalendarOpen && activeDateField === 'matchEndDate'">
-                                    <div class="calendar-header">
-                                        <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
-                                        <div class="cal-dropdowns">
-                                            <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()"
-                                                name="calMonth">
-                                                <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}
-                                                </option>
-                                            </select>
-                                            <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()"
-                                                name="calYear">
-                                                <option *ngFor="let y of years" [value]="y">{{ y }}</option>
-                                            </select>
-                                        </div>
-                                        <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
-                                    </div>
-                                    <div class="calendar-grid">
-                                        <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-                                        <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
-                                            (click)="selectDate(d.day, d.current)">
-                                            {{ d.day }}
-                                        </div>
-                                    </div>
-                                </div>
+                            <div *ngIf="dateErrors['regEndDate']" class="field-error-tip">
+                                <span>⚠️</span> {{ dateErrors['regEndDate'] }}
                             </div>
                         </div>
 
@@ -446,6 +380,85 @@
                                             (click)="selectDate(d.day, d.current)">
                                             {{ d.day }}
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div *ngIf="dateErrors['auctionDate']" class="field-error-tip">
+                                <span>⚠️</span> {{ dateErrors['auctionDate'] }}
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width match-dates-row">
+                            <div class="match-date-pair">
+                                <!-- Match Start -->
+                                <div class="form-group">
+                                    <label>Matches Start</label>
+                                    <div class="date-input-wrapper">
+                                        <div class="dropdown-selected rounded-input"
+                                            (click)="toggleCalendar('matchStartDate'); $event.stopPropagation()"
+                                            [class.active]="isCalendarOpen && activeDateField === 'matchStartDate'">
+                                            <span>{{ tournamentData.matchStartDate ? (tournamentData.matchStartDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                            <i class="calendar-icon-svg"></i>
+                                        </div>
+                                        <div class="custom-calendar-popup open-up"
+                                            *ngIf="isCalendarOpen && activeDateField === 'matchStartDate'">
+                                            <div class="calendar-header">
+                                                <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                                <div class="cal-dropdowns">
+                                                    <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                                        <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                                    </select>
+                                                    <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                                        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                            </div>
+                                            <div class="calendar-grid">
+                                                <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                                <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                                    (click)="selectDate(d.day, d.current)">{{ d.day }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="dateErrors['matchStartDate']" class="field-error-tip">
+                                        <span>⚠️</span> {{ dateErrors['matchStartDate'] }}
+                                    </div>
+                                </div>
+
+                                <!-- Match End -->
+                                <div class="form-group">
+                                    <label>Matches End</label>
+                                    <div class="date-input-wrapper">
+                                        <div class="dropdown-selected rounded-input"
+                                            (click)="toggleCalendar('matchEndDate'); $event.stopPropagation()"
+                                            [class.active]="isCalendarOpen && activeDateField === 'matchEndDate'">
+                                            <span>{{ tournamentData.matchEndDate ? (tournamentData.matchEndDate | date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
+                                            <i class="calendar-icon-svg"></i>
+                                        </div>
+                                        <div class="custom-calendar-popup open-up"
+                                            *ngIf="isCalendarOpen && activeDateField === 'matchEndDate'">
+                                            <div class="calendar-header">
+                                                <button type="button" class="cal-nav" (click)="changeMonth(-1)">❮</button>
+                                                <div class="cal-dropdowns">
+                                                    <select [(ngModel)]="selectedMonth" (change)="onMonthYearChange()" name="calMonth">
+                                                        <option *ngFor="let m of months; let i = index" [value]="i">{{ m }}</option>
+                                                    </select>
+                                                    <select [(ngModel)]="selectedYear" (change)="onMonthYearChange()" name="calYear">
+                                                        <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" class="cal-nav" (click)="changeMonth(1)">❯</button>
+                                            </div>
+                                            <div class="calendar-grid">
+                                                <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+                                                <div class="day" *ngFor="let d of calendarDays" [class.other-month]="!d.current"
+                                                    (click)="selectDate(d.day, d.current)">{{ d.day }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="dateErrors['matchEndDate']" class="field-error-tip">
+                                        <span>⚠️</span> {{ dateErrors['matchEndDate'] }}
                                     </div>
                                 </div>
                             </div>

@@ -85,7 +85,7 @@
                             <button [class.active]="currentTab === 'Live'" (click)="setTab('Live')">Live</button>
                             <button [class.active]="currentTab === 'Upcoming'"
                                 (click)="setTab('Upcoming')">Upcoming</button>
-                            <button [class.active]="currentTab === 'Done'" (click)="setTab('Done')">Done</button>
+                            <button [class.active]="currentTab === 'Done'" (click)="setTab('Done')">Completed</button>
                         </div>
                     </div>
                     <div class="table-container">
@@ -179,12 +179,12 @@
                             <span class="dot-orange"></span>
                             <h3>Top Budget Teams</h3>
                         </div>
-                        <a href="#" class="view-all">View All →</a>
+                        <a (click)="openViewAllTeams()" class="view-all" style="cursor: pointer;">View All →</a>
                     </div>
                     <div class="ranking-list">
-                        @for (team of topTeams.slice(0,3); track team.id; let i = $index) {
-                        <div class="rank-item">
-                            <span class="rank-num">{{ i + 1 }}</span>
+                        @for (team of topTeams.slice(0,5); track team.id; let i = $index) {
+                        <div class="rank-item condensed">
+                            <span class="rank-num-small">{{ i + 1 }}</span>
                             <div class="item-with-icon">
                                 <div class="avatar-sq">{{ team.code[0] }}</div>
                                 <div>
@@ -207,12 +207,12 @@
                             <span class="dot-green"></span>
                             <h3>Highest Sold Players</h3>
                         </div>
-                        <a href="#" class="view-all">All Players →</a>
+                        <a (click)="openViewAllPlayers()" class="view-all" style="cursor: pointer;">All Players →</a>
                     </div>
                     <div class="ranking-list">
                         @for (p of topPlayers.slice(0,5); track p.id; let i = $index) {
                         <div class="rank-item condensed">
-                            <span class="rank-num-small">0{{ i + 1 }}</span>
+                            <span class="rank-num-small">{{ i + 1 }}</span>
                             <div class="item-with-icon">
                                 <div class="avatar-pill">{{ p.name[0] }}</div>
                                 <div>
@@ -233,9 +233,10 @@
                             <span class="dot-blue"></span>
                             <h3>Team Rosters</h3>
                         </div>
+                        <a (click)="openViewAllRosters()" class="view-all" style="cursor: pointer;">View All →</a>
                     </div>
                     <div class="usage-list">
-                        @for (r of rosters.slice(0,3); track r.id) {
+                        @for (r of rosters.slice(0,5); track r.id) {
                         <div class="usage-item">
                             <div class="usage-header">
                                 <p class="item-bold">{{ r.name }}</p>
@@ -255,6 +256,93 @@
                     </div>
                 </section>
             </div>
+
+            <!-- View All Common Modal Overlay -->
+            @if (showViewAllModal) {
+            <div class="modal-overlay" (click)="closeViewAllModal()">
+                <div class="modal-container" (click)="$event.stopPropagation()">
+                    <div class="modal-header">
+                        <div class="modal-header-content">
+
+                            <div class="modal-header-text">
+                                <h3>{{ modalTitle }}</h3>
+                                <p class="modal-header-subtitle">
+                                    @if (modalDataType === 'teams') { Remaining budgets and team standings }
+                                    @else if (modalDataType === 'players') { Highest sold players across all tournaments
+                                    }
+                                    @else if (modalDataType === 'rosters') { Squad sizes and role distribution details }
+                                </p>
+                            </div>
+                        </div>
+                        <button class="close-btn" (click)="closeViewAllModal()">✕</button>
+                    </div>
+                    <div class="modal-body scrollable-modal-list">
+                        @if (modalDataType === 'teams') {
+                        <div class="modal-ranking-list">
+                            @for (team of modalDataList; track team.id; let i = $index) {
+                            <div class="modal-rank-item">
+                                <span class="rank-num">{{ i + 1 }}</span>
+                                <div class="item-with-icon">
+                                    <div class="avatar-sq">{{ team.code[0] }}</div>
+                                    <div>
+                                        <p class="item-bold">{{ team.name }}</p>
+                                        <p class="item-tiny">{{ team.playersCount }} players • {{ team.tournamentName }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="rank-price">
+                                    <p class="price-bold">₹{{ formatCurrency(team.remainingBudget) }}</p>
+                                    <p class="item-tiny">REMAINING</p>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                        } @else if (modalDataType === 'players') {
+                        <div class="modal-ranking-list">
+                            @for (p of modalDataList; track p.id; let i = $index) {
+                            <div class="modal-rank-item">
+                                <span class="rank-num">{{ i + 1 }}</span>
+                                <div class="item-with-icon">
+                                    <div class="avatar-pill">{{ p.name[0] }}</div>
+                                    <div>
+                                        <p class="item-bold">{{ p.name }}</p>
+                                        <p class="item-tiny uppercase">{{ p.role }} • {{ p.ownerTeam }} • {{
+                                            p.tournamentName }}</p>
+                                    </div>
+                                </div>
+                                <div class="rank-price">
+                                    <p class="price-green">₹{{ formatCurrency(p.soldPrice) }}</p>
+                                    <p class="item-tiny">SOLD PRICE</p>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                        } @else if (modalDataType === 'rosters') {
+                        <div class="usage-list" style="padding: 0;">
+                            @for (r of modalDataList; track r.id) {
+                            <div class="usage-item">
+                                <div class="usage-header">
+                                    <p class="item-bold">{{ r.name }}</p>
+                                    <p class="slots-text">{{ r.slotsFilled }}/{{ r.totalSlots }} slots</p>
+                                </div>
+                                <div class="roster-badges">
+                                    <span class="role-badge bat" *ngIf="r.roles.BAT > 0">{{ r.roles.BAT }} BAT</span>
+                                    <span class="role-badge bwl" *ngIf="r.roles.BWL > 0">{{ r.roles.BWL }} BWL</span>
+                                    <span class="role-badge ar" *ngIf="r.roles.AR > 0">{{ r.roles.AR }} AR</span>
+                                    <span class="role-badge wk" *ngIf="r.roles.WK > 0">{{ r.roles.WK }} WK</span>
+                                </div>
+                                <div class="bar-bg">
+                                    <div class="bar-fill green" [style.width.%]="(r.slotsFilled/r.totalSlots)*100">
+                                    </div>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            }
         </div>
         }
     </main>

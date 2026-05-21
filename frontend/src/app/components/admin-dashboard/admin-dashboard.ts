@@ -35,6 +35,15 @@ export class AdminDashboardComponent implements OnInit {
   rosters: any[] = [];
   showTournamentsList: boolean = true;
 
+  allSortedTeams: any[] = [];
+  allSortedPlayers: any[] = [];
+
+  // Modal properties
+  showViewAllModal: boolean = false;
+  modalTitle: string = '';
+  modalDataType: 'teams' | 'players' | 'rosters' = 'teams';
+  modalDataList: any[] = [];
+
   constructor(
     private tournamentService: TournamentService,
     private authService: AuthService,
@@ -155,10 +164,12 @@ export class AdminDashboardComponent implements OnInit {
     });
 
     // Sort Top Teams (by Remaining Budget desc for now, or total spent?)
-    this.topTeams = allTeams.sort((a, b) => b.remainingBudget - a.remainingBudget).slice(0, 5);
+    this.allSortedTeams = [...allTeams].sort((a, b) => b.remainingBudget - a.remainingBudget);
+    this.topTeams = this.allSortedTeams.slice(0, 5);
 
     // Sort Highest Sold Players
-    this.topPlayers = allPlayers.sort((a, b) => b.soldPrice - a.soldPrice).slice(0, 5);
+    this.allSortedPlayers = [...allPlayers].sort((a, b) => b.soldPrice - a.soldPrice);
+    this.topPlayers = this.allSortedPlayers.slice(0, 5);
 
     this.generateLiveFeed(tournaments);
   }
@@ -243,6 +254,35 @@ export class AdminDashboardComponent implements OnInit {
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  openViewAllTeams() {
+    this.modalTitle = 'All Teams - Budget Standings';
+    this.modalDataType = 'teams';
+    this.modalDataList = this.allSortedTeams;
+    this.showViewAllModal = true;
+    this.cdr.detectChanges();
+  }
+
+  openViewAllPlayers() {
+    this.modalTitle = 'All Players - Highest Sold';
+    this.modalDataType = 'players';
+    this.modalDataList = this.allSortedPlayers;
+    this.showViewAllModal = true;
+    this.cdr.detectChanges();
+  }
+
+  openViewAllRosters() {
+    this.modalTitle = 'All Team Rosters';
+    this.modalDataType = 'rosters';
+    this.modalDataList = this.rosters;
+    this.showViewAllModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeViewAllModal() {
+    this.showViewAllModal = false;
+    this.cdr.detectChanges();
   }
 }
 

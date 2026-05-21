@@ -168,8 +168,8 @@
 .hero-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 10px;
+    align-items: center;
+    margin-bottom: 24px;
 }
 
 .badge-row {
@@ -185,6 +185,8 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
 }
 
 .badge.active {
@@ -202,7 +204,7 @@
 .tournament-title {
     font-size: 52px;
     font-weight: 800;
-    margin: 0 0 24px 0;
+    margin: 0 0 16px 0;
     font-family: 'Outfit', sans-serif;
     letter-spacing: -1px;
     line-height: 1.1;
@@ -211,7 +213,9 @@
 
 .meta-info {
     display: flex;
-    gap: 32px;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 24px;
     color: rgba(255, 255, 255, 0.6);
     font-size: 14px;
 }
@@ -1186,4 +1190,40 @@
     margin-top: 40px;
     padding-top: 24px;
     border-top: 1px solid var(--border);
+}
+
+/* Back Button Styles */
+.back-btn-hero-wrapper {
+    margin-bottom: 24px;
+    display: flex;
+}
+
+.back-to-tournament-hero-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 8px 18px;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.back-to-tournament-hero-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+}
+
+.back-to-tournament-hero-btn svg {
+    transition: transform 0.2s ease;
+}
+
+.back-to-tournament-hero-btn:hover svg {
+    transform: translateX(-3px);
 }

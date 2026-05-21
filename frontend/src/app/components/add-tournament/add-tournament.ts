@@ -56,6 +56,7 @@ export class AddTournamentComponent {
 
   loading = false;
   error = '';
+  dateErrors: { [key: string]: string } = {};
 
   constructor(
     private tournamentService: TournamentService,
@@ -147,6 +148,7 @@ export class AddTournamentComponent {
 
     if (this.activeDateField) {
       this.tournamentData[this.activeDateField] = dateStr;
+      this.validateTournamentDates(false);
     }
 
     this.isCalendarOpen = false;
@@ -154,9 +156,127 @@ export class AddTournamentComponent {
     this.cdr.detectChanges();
   }
 
-  async onSubmit() {
-    this.loading = true;
+  private parseLocalDate(dateStr: string): Date {
+    const parts = dateStr.split('-');
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const date = new Date(year, month, day);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  validateTournamentDates(onSave: boolean = false): boolean {
+    if (!this.tournamentData) return false;
+
+    this.dateErrors = {}; // Clear previous errors
     this.error = '';
+
+    const tsStr = this.tournamentData.tournamentStartDate;
+    const teStr = this.tournamentData.tournamentEndDate;
+    const rsStr = this.tournamentData.regStartDate;
+    const reStr = this.tournamentData.regEndDate;
+    const adStr = this.tournamentData.auctionDate;
+    const msStr = this.tournamentData.matchStartDate;
+    const meStr = this.tournamentData.matchEndDate;
+
+    let hasErrors = false;
+
+    if (onSave) {
+      if (!tsStr) { this.dateErrors['tournamentStartDate'] = 'Tournament Start Date is required.'; hasErrors = true; }
+      if (!teStr) { this.dateErrors['tournamentEndDate'] = 'Tournament End Date is required.'; hasErrors = true; }
+      if (!rsStr) { this.dateErrors['regStartDate'] = 'Registration Start Date is required.'; hasErrors = true; }
+      if (!reStr) { this.dateErrors['regEndDate'] = 'Registration End Date is required.'; hasErrors = true; }
+      if (!adStr) { this.dateErrors['auctionDate'] = 'Auction Date is required.'; hasErrors = true; }
+      if (!msStr) { this.dateErrors['matchStartDate'] = 'Match Start Date is required.'; hasErrors = true; }
+      if (!meStr) { this.dateErrors['matchEndDate'] = 'Match End Date is required.'; hasErrors = true; }
+    }
+
+    try {
+      const ts = tsStr ? this.parseLocalDate(tsStr) : null;
+      const te = teStr ? this.parseLocalDate(teStr) : null;
+      const rs = rsStr ? this.parseLocalDate(rsStr) : null;
+      const re = reStr ? this.parseLocalDate(reStr) : null;
+      const ad = adStr ? this.parseLocalDate(adStr) : null;
+      const ms = msStr ? this.parseLocalDate(msStr) : null;
+      const me = meStr ? this.parseLocalDate(meStr) : null;
+
+      if (ts && te && ts > te) {
+        this.dateErrors['tournamentEndDate'] = 'Tournament End Date must be after or equal to Tournament Start Date.';
+        hasErrors = true;
+      }
+
+      if (rs && ts && rs.getTime() !== ts.getTime()) {
+        this.dateErrors['regStartDate'] = 'Registration Start Date must be equal to the Tournament Start Date.';
+        hasErrors = true;
+      }
+
+      if (re) {
+        if (ts && re < ts) {
+          this.dateErrors['regEndDate'] = 'Registration End Date must be between the Tournament Start and End Dates.';
+          hasErrors = true;
+        } else if (te && re > te) {
+          this.dateErrors['regEndDate'] = 'Registration End Date must be between the Tournament Start and End Dates.';
+          hasErrors = true;
+        }
+      }
+
+      if (ad) {
+        if (ts && ad < ts) {
+          this.dateErrors['auctionDate'] = 'Auction Date must be between the Tournament Start and End Dates.';
+          hasErrors = true;
+        } else if (te && ad > te) {
+          this.dateErrors['auctionDate'] = 'Auction Date must be between the Tournament Start and End Dates.';
+          hasErrors = true;
+        } else if (re && ad <= re) {
+          this.dateErrors['auctionDate'] = 'Auction Date must be after the Registration End Date.';
+          hasErrors = true;
+        }
+      }
+
+      if (ms) {
+        if (ts && ms < ts) {
+          this.dateErrors['matchStartDate'] = 'Match Start Date must be between the Tournament Start and End Dates.';
+          hasErrors = true;
+        } else if (te && ms > te) {
+          this.dateErrors['matchStartDate'] = 'Match Start Date must be between the Tournament Start and End Dates.';
+          hasErrors = true;
+        } else if (ad && ms <= ad) {
+          this.dateErrors['matchStartDate'] = 'Match Start Date must be after the Auction Date.';
+          hasErrors = true;
+        }
+      }
+
+      if (me) {
+        if (ts && me < ts) {
+          this.dateErrors['matchEndDate'] = 'Match End Date must be between the Tournament Start and End Dates.';
+          hasErrors = true;
+        } else if (te && me > te) {
+          this.dateErrors['matchEndDate'] = 'Match End Date must be between the Tournament Start and End Dates.';
+          hasErrors = true;
+        }
+      }
+
+      if (ms && me && ms > me) {
+        this.dateErrors['matchEndDate'] = 'Match End Date must be after or equal to the Match Start Date.';
+        hasErrors = true;
+      }
+
+      return !hasErrors;
+    } catch (e) {
+      console.error('Error validating dates:', e);
+      this.error = 'Invalid date format.';
+      return false;
+    }
+  }
+
+  async onSubmit() {
+    this.error = '';
+    if (!this.validateTournamentDates(true)) {
+      return;
+    }
+
+    this.loading = true;
 
     // Calculate status based on tournamentStartDate
     if (this.tournamentData.tournamentStartDate) {

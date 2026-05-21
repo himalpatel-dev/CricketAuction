@@ -117,6 +117,10 @@ const Tournament = sequelize.define('Tournament', {
     competitionFactor: {
         type: DataTypes.FLOAT,
         defaultValue: 5,
+    },
+    isrequestedtoedit: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
     }
 }, {
     timestamps: true,

@@ -338,6 +338,53 @@ export class TeamDashboardComponent implements OnInit {
         return isNaN(num) ? '' : num.toLocaleString('en-IN');
     }
 
+    isAdmin(): boolean {
+        return this.authService.isAdmin();
+    }
+
+    isTournamentAdmin(): boolean {
+        return this.authService.isTournamentAdmin();
+    }
+
+    private parseLocalDate(dateStr: string): Date {
+        const parts = dateStr.split('-');
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const date = new Date(year, month, day);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    shouldShowAuctionButton(): boolean {
+        if (!this.tournament) return false;
+        if (this.tournamentStatus !== 'ACTIVE') return false;
+
+        // If either auctionDate or matchStartDate is not set, default to showing the button when ACTIVE
+        if (!this.tournament.auctionDate || !this.tournament.matchStartDate) {
+            return true;
+        }
+
+        try {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const auctionDate = this.parseLocalDate(this.tournament.auctionDate);
+            const matchStartDate = this.parseLocalDate(this.tournament.matchStartDate);
+            console.log(auctionDate, matchStartDate);
+
+            // Calculate matchStartDate - 1 day
+            const matchStartMinusOneDay = new Date(matchStartDate);
+            matchStartMinusOneDay.setDate(matchStartMinusOneDay.getDate() - 1);
+            matchStartMinusOneDay.setHours(0, 0, 0, 0);
+
+            return today >= auctionDate && today <= matchStartMinusOneDay;
+        } catch (e) {
+            console.error('Error parsing tournament dates:', e);
+            return true; // Fallback to true if parsing fails
+        }
+    }
+
     logout() {
         this.authService.logout();
         this.router.navigate(['/login']);

@@ -44,7 +44,7 @@
                             <button *ngIf="stats.unsoldPlayers > 0" class="btn-unsold" (click)="startUnsoldAuction()">
                                 <span class="icon-refresh">🔄</span> Unsold Auction
                             </button>
-                            <button class="btn-continue" (click)="startAuction()">
+                            <button *ngIf="shouldShowAuctionButton()" class="btn-continue" (click)="startAuction()">
                                 <span class="icon-play">▶</span> Continue Auction
                             </button>
                         </div>
@@ -104,6 +104,44 @@
                     <div class="circle circle-2"></div>
                 </div>
             </section>
+
+            <!-- Edit Request Banners -->
+            @if (isTournamentAdmin() && tournament.isrequestedtoedit > 0) {
+            <div class="edit-request-banner" [ngClass]="{'pending': tournament.isrequestedtoedit === 1, 'approved': tournament.isrequestedtoedit === 2}">
+                <div class="banner-content">
+                    <span class="banner-icon">
+                        @if (tournament.isrequestedtoedit === 1) { ⏳ }
+                        @else if (tournament.isrequestedtoedit === 2) { 🔓 }
+                    </span>
+                    <div class="banner-text">
+                        <h3>
+                            @if (tournament.isrequestedtoedit === 1) { Edit Request Pending }
+                            @else if (tournament.isrequestedtoedit === 2) { Edit Permission Active }
+                        </h3>
+                        <p>
+                            @if (tournament.isrequestedtoedit === 1) { Waiting for the main admin to approve your request to edit the tournament settings. }
+                            @else if (tournament.isrequestedtoedit === 2) { You have been granted permission to edit. Go to the Settings tab below to update the fields. }
+                        </p>
+                    </div>
+                </div>
+            </div>
+            }
+
+            @if (isAdmin() && tournament.isrequestedtoedit === 1) {
+            <div class="edit-request-banner admin-action">
+                <div class="banner-content">
+                    <span class="banner-icon">🔔</span>
+                    <div class="banner-text">
+                        <h3>Tournament Admin Requested Edit Permission</h3>
+                        <p>The tournament administrator has requested permission to modify the tournament settings. Do you want to allow them to edit?</p>
+                    </div>
+                </div>
+                <div class="banner-actions">
+                    <button type="button" class="btn btn-decline" (click)="respondToEditRequest(0)" [disabled]="saving">Decline</button>
+                    <button type="button" class="btn btn-approve" (click)="respondToEditRequest(2)" [disabled]="saving">Approve</button>
+                </div>
+            </div>
+            }
 
             <!-- Navigation Tabs -->
             <nav class="content-tabs">
@@ -878,10 +916,33 @@
             </div>
             } @else if (currentTab === 'Settings') {
             <div class="settings-tab-content">
+                @if (isTournamentAdmin() && tournament.isrequestedtoedit === 0) {
+                <div class="edit-request-banner request">
+                    <div class="banner-content">
+                        <span class="banner-icon">🔒</span>
+                        <div class="banner-text">
+                            <h3>Settings Locked</h3>
+                            <p>You must request edit permission from the main admin before modifying these settings.</p>
+                        </div>
+                    </div>
+                    <div class="banner-actions">
+                        <button type="button" class="btn btn-request" (click)="requestEditPermission()" [disabled]="saving">
+                            {{ saving ? 'Requesting...' : 'Request Edit' }}
+                        </button>
+                    </div>
+                </div>
+                }
+
                 <div class="settings-card">
                     <div class="settings-header">
                         <h2>Tournament Settings</h2>
                         <p>Configure core tournament details and auction parameters</p>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div *ngIf="settingsError" class="error-msg alert-danger m-8">
+                        <span class="icon">⚠️</span>
+                        {{ settingsError }}
                     </div>
 
                     <form (ngSubmit)="updateTournamentDetails()" #settingsForm="ngForm">
@@ -889,7 +950,7 @@
                             <div class="form-group">
                                 <label>Tournament Name</label>
                                 <input type="text" [(ngModel)]="tournament.name" name="name" required
-                                    placeholder="e.g. Mega Cricket League 2026">
+                                    placeholder="e.g. Mega Cricket League 2026" [disabled]="isFieldsDisabled()">
                             </div>
 
 
@@ -897,7 +958,7 @@
                             <div class="form-group">
                                 <label>Location</label>
                                 <input type="text" [(ngModel)]="tournament.location" name="location"
-                                    placeholder="e.g. Mumbai, India">
+                                    placeholder="e.g. Mumbai, India" [disabled]="isFieldsDisabled()">
                             </div>
 
                             <div class="form-group full">
@@ -905,7 +966,8 @@
                                 <div class="selection-grid">
                                     <div class="selection-card"
                                         [class.selected]="tournament.category === 'Franchise League'"
-                                        (click)="tournament.category = 'Franchise League'">
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && (tournament.category = 'Franchise League')">
                                         <div class="card-radio"></div>
                                         <div class="card-content">
                                             <span class="card-icon">🏟️</span>
@@ -917,7 +979,8 @@
                                     </div>
                                     <div class="selection-card"
                                         [class.selected]="tournament.category === 'Corporate League'"
-                                        (click)="tournament.category = 'Corporate League'">
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && (tournament.category = 'Corporate League')">
                                         <div class="card-radio"></div>
                                         <div class="card-content">
                                             <span class="card-icon">🌍</span>
@@ -929,7 +992,8 @@
                                     </div>
                                     <div class="selection-card"
                                         [class.selected]="tournament.category === 'Community League'"
-                                        (click)="tournament.category = 'Community League'">
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && (tournament.category = 'Community League')">
                                         <div class="card-radio"></div>
                                         <div class="card-content">
                                             <span class="card-icon">🎓</span>
@@ -946,7 +1010,8 @@
                                 <label class="section-subtitle">TOURNAMENT FORMAT *</label>
                                 <div class="selection-grid">
                                     <div class="selection-card" [class.selected]="tournament.format === 'T20'"
-                                        (click)="tournament.format = 'T20'">
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && (tournament.format = 'T20')">
                                         <div class="card-radio"></div>
                                         <div class="card-content">
                                             <span class="card-icon">🏏</span>
@@ -957,7 +1022,8 @@
                                         </div>
                                     </div>
                                     <div class="selection-card" [class.selected]="tournament.format === 'T10'"
-                                        (click)="tournament.format = 'T10'">
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && (tournament.format = 'T10')">
                                         <div class="card-radio"></div>
                                         <div class="card-content">
                                             <span class="card-icon">⚡</span>
@@ -968,7 +1034,8 @@
                                         </div>
                                     </div>
                                     <div class="selection-card" [class.selected]="tournament.format === 'ODI'"
-                                        (click)="tournament.format = 'ODI'">
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && (tournament.format = 'ODI')">
                                         <div class="card-radio"></div>
                                         <div class="card-content">
                                             <span class="card-icon">👕</span>
@@ -979,7 +1046,8 @@
                                         </div>
                                     </div>
                                     <div class="selection-card" [class.selected]="tournament.format === 'Box Cricket'"
-                                        (click)="tournament.format = 'Box Cricket'">
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && (tournament.format = 'Box Cricket')">
                                         <div class="card-radio"></div>
                                         <div class="card-content">
                                             <span class="card-icon">📦</span>
@@ -996,7 +1064,8 @@
                                 <label>Tournament Start Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('tournamentStartDate'); $event.stopPropagation()"
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && toggleCalendar('tournamentStartDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'tournamentStartDate'">
                                         <span>{{ tournament.tournamentStartDate ? (tournament.tournamentStartDate |
                                             date:'dd / MM / yyyy') : 'dd / mm / yyyy' }}</span>
@@ -1025,13 +1094,17 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div *ngIf="dateErrors['tournamentStartDate']" class="field-error-tip">
+                                    <span>⚠️</span> {{ dateErrors['tournamentStartDate'] }}
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Tournament End Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('tournamentEndDate'); $event.stopPropagation()"
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && toggleCalendar('tournamentEndDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'tournamentEndDate'">
                                         <span>{{ tournament.tournamentEndDate ? (tournament.tournamentEndDate | date:'dd
                                             / MM / yyyy') : 'dd / mm / yyyy' }}</span>
@@ -1060,12 +1133,16 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div *ngIf="dateErrors['tournamentEndDate']" class="field-error-tip">
+                                    <span>⚠️</span> {{ dateErrors['tournamentEndDate'] }}
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Registration Start Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('regStartDate')"
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && toggleCalendar('regStartDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'regStartDate'">
                                         <span>{{ tournament.regStartDate ? (tournament.regStartDate | date:'dd / MM /
                                             yyyy') : 'dd / mm / yyyy' }}</span>
@@ -1094,12 +1171,16 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div *ngIf="dateErrors['regStartDate']" class="field-error-tip">
+                                    <span>⚠️</span> {{ dateErrors['regStartDate'] }}
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label>Registration End Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('regEndDate'); $event.stopPropagation()"
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && toggleCalendar('regEndDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'regEndDate'">
                                         <span>{{ tournament.regEndDate ? (tournament.regEndDate | date:'dd / MM / yyyy')
                                             : 'dd / mm / yyyy' }}</span>
@@ -1128,13 +1209,17 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div *ngIf="dateErrors['regEndDate']" class="field-error-tip">
+                                    <span>⚠️</span> {{ dateErrors['regEndDate'] }}
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Match Start Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('matchStartDate'); $event.stopPropagation()"
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && toggleCalendar('matchStartDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'matchStartDate'">
                                         <span>{{ tournament.matchStartDate ? (tournament.matchStartDate | date:'dd / MM
                                             / yyyy') : 'dd / mm / yyyy' }}</span>
@@ -1163,13 +1248,17 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div *ngIf="dateErrors['matchStartDate']" class="field-error-tip">
+                                    <span>⚠️</span> {{ dateErrors['matchStartDate'] }}
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Match End Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('matchEndDate'); $event.stopPropagation()"
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && toggleCalendar('matchEndDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'matchEndDate'">
                                         <span>{{ tournament.matchEndDate ? (tournament.matchEndDate | date:'dd / MM /
                                             yyyy') : 'dd / mm / yyyy' }}</span>
@@ -1198,13 +1287,17 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div *ngIf="dateErrors['matchEndDate']" class="field-error-tip">
+                                    <span>⚠️</span> {{ dateErrors['matchEndDate'] }}
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Auction Date</label>
                                 <div class="date-input-wrapper">
                                     <div class="dropdown-selected rounded-input"
-                                        (click)="toggleCalendar('auctionDate'); $event.stopPropagation()"
+                                        [class.disabled]="isFieldsDisabled()"
+                                        (click)="!isFieldsDisabled() && toggleCalendar('auctionDate'); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen && activeDateField === 'auctionDate'">
                                         <span>{{ tournament.auctionDate ? (tournament.auctionDate | date:'dd / MM /
                                             yyyy') : 'dd / mm / yyyy' }}</span>
@@ -1233,18 +1326,21 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div *ngIf="dateErrors['auctionDate']" class="field-error-tip">
+                                    <span>⚠️</span> {{ dateErrors['auctionDate'] }}
+                                </div>
                             </div>
 
                             <div class="form-group">
                                 <label>Players Per Team</label>
                                 <input type="number" [(ngModel)]="tournament.playersPerTeam" name="playersPerTeam"
-                                    (ngModelChange)="onBudgetParamChange()">
+                                    (ngModelChange)="onBudgetParamChange()" [disabled]="isFieldsDisabled()">
                             </div>
 
                             <div class="form-group">
                                 <label>Min. Player Base Price (₹)</label>
                                 <input type="number" [(ngModel)]="tournament.minimumPlayerBasePrice"
-                                    name="minimumPlayerBasePrice" (ngModelChange)="onBudgetParamChange()">
+                                    name="minimumPlayerBasePrice" (ngModelChange)="onBudgetParamChange()" [disabled]="isFieldsDisabled()">
                                 <p class="input-hint" *ngIf="tournament.minimumPlayerBasePrice">
                                     <strong class="currency-preview">(₹{{ formatIndianNumber(tournament.minimumPlayerBasePrice) }})</strong>
                                 </p>
@@ -1252,7 +1348,7 @@
 
                             <div class="form-group full">
                                 <label>Team Budget (₹)</label>
-                                <input type="number" [(ngModel)]="tournament.totalAmount" name="totalAmount" placeholder="Enter total budget">
+                                <input type="number" [(ngModel)]="tournament.totalAmount" name="totalAmount" placeholder="Enter total budget" [disabled]="isFieldsDisabled()">
                                 <p class="input-hint">
                                     Default Formula: Players × Base Price × 5 (You can customize this value). 
                                     <strong *ngIf="tournament.totalAmount" class="currency-preview">(₹{{ formatIndianNumber(tournament.totalAmount) }})</strong>
@@ -1261,12 +1357,12 @@
 
                             <div class="form-group">
                                 <label>Total Players To Auction</label>
-                                <input type="number" [(ngModel)]="tournament.totalPlayers" name="totalPlayers">
+                                <input type="number" [(ngModel)]="tournament.totalPlayers" name="totalPlayers" [disabled]="isFieldsDisabled()">
                             </div>
                         </div>
 
                         <div class="settings-actions">
-                            <button type="submit" class="btn btn-primary" [disabled]="saving">
+                            <button type="submit" class="btn btn-primary" [disabled]="saving || isFieldsDisabled()">
                                 {{ saving ? 'Saving...' : 'Save Changes' }}
                             </button>
                         </div>
