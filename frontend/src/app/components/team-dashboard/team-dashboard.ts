@@ -6,7 +6,8 @@ import { AuthService } from '../../services/auth.service';
 import { TopNavComponent } from '../top-nav/top-nav';
 import { FormsModule } from '@angular/forms';
 import { PlayerCardComponent } from '../player-card/player-card.component';
-
+import { API_CONFIG } from '../../config/api.config';
+import { ImageService } from '../../services/image.service';
 @Component({
     selector: 'app-team-dashboard',
     standalone: true,
@@ -63,7 +64,8 @@ export class TeamDashboardComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private http: HttpClient,
-        private authService: AuthService
+        private authService: AuthService,
+        private imageService: ImageService
     ) { }
 
     setTab(tab: string) {
@@ -83,7 +85,7 @@ export class TeamDashboardComponent implements OnInit {
 
     fetchFullTeamInfo() {
         if (!this.teamId) return;
-        this.http.get(`http://127.0.0.1:5001/api/tournaments/${this.tournamentId}`).subscribe({
+        this.http.get(`${API_CONFIG.baseUrl}/api/tournaments/${this.tournamentId}`).subscribe({
             next: (res: any) => {
                 const team = res.teams?.find((t: any) => t.id === this.teamId);
                 if (team) {
@@ -94,7 +96,7 @@ export class TeamDashboardComponent implements OnInit {
                         budget: team.budget,
                         captainId: team.captainId
                     };
-                    this.logoPreview = team.logoUrl;
+                    this.logoPreview = this.imageService.getTeamImageUrl(team.logoUrl) as string;
                 }
             }
         });
@@ -125,11 +127,14 @@ export class TeamDashboardComponent implements OnInit {
             formData.append('logo', this.selectedLogoFile);
         }
 
-        this.http.put(`http://127.0.0.1:5001/api/teams/${this.teamId}`, formData).subscribe({
+        this.http.put(`${API_CONFIG.baseUrl}/api/teams/${this.teamId}`, formData).subscribe({
             next: (res: any) => {
                 alert('Team details updated successfully!');
                 this.teamName = res.name;
                 this.totalBudget = res.budget;
+                if (res.logoUrl) {
+                    this.logoPreview = this.imageService.getTeamImageUrl(res.logoUrl) as string;
+                }
                 this.fetchTournamentInfo(this.tournamentId!);
                 this.selectedLogoFile = null;
             },
@@ -139,7 +144,7 @@ export class TeamDashboardComponent implements OnInit {
 
     fetchBidActivity() {
         if (!this.teamId) return;
-        this.http.get(`http://127.0.0.1:5001/api/auction/team-activity/${this.teamId}`).subscribe({
+        this.http.get(`${API_CONFIG.baseUrl}/api/auction/team-activity/${this.teamId}`).subscribe({
             next: (res: any) => {
                 this.bidActivity = res;
             },
@@ -220,7 +225,7 @@ export class TeamDashboardComponent implements OnInit {
     }
 
     fetchTournamentInfo(id: number) {
-        this.http.get(`http://127.0.0.1:5001/api/tournaments/${id}`).subscribe({
+        this.http.get(`${API_CONFIG.baseUrl}/api/tournaments/${id}`).subscribe({
             next: (res: any) => {
                 this.tournament = res;
                 this.tournamentName = res.name;
@@ -235,6 +240,11 @@ export class TeamDashboardComponent implements OnInit {
                     this.totalBudget = team.budget || 10000000;
                     this.squadSize = team.players?.length || 0;
                     this.squadPlayers = team.players || [];
+
+                    // Use ImageService to build the correct logo URL from the stored filename
+                    if (team.logoUrl && !this.selectedLogoFile) {
+                        this.logoPreview = this.imageService.getTeamImageUrl(team.logoUrl) as string;
+                    }
 
                     // Calculate stats for this team
                     let hBid = 0;
@@ -337,6 +347,7 @@ export class TeamDashboardComponent implements OnInit {
         const num = Number(value);
         return isNaN(num) ? '' : num.toLocaleString('en-IN');
     }
+
 
     isAdmin(): boolean {
         return this.authService.isAdmin();

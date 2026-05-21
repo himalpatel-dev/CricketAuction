@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  baseUrl: 'http://127.0.0.1:5001',
+  baseUrl: 'https://bidwicket.krimal.in',
   playerImagePath: '/uploads/player_photo/',
-  teamImagePath: '/uploads/team_logos/',
+  teamImagePath: '/uploads/logos/',
 };

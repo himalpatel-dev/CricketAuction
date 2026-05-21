@@ -28,7 +28,8 @@ exports.updateTeam = async (req, res) => {
         const updateData = { ...req.body };
 
         if (req.file) {
-            updateData.logoUrl = `http://127.0.0.1:5001/uploads/logos/${req.file.filename}`;
+            // Store only the filename; the frontend will build the full URL using API_CONFIG
+            updateData.logoUrl = req.file.filename;
         }
 
         await team.update(updateData);

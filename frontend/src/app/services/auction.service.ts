@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { firstValueFrom } from 'rxjs';
-
+import { API_CONFIG } from '../config/api.config';
 @Injectable({
     providedIn: 'root'
 })
 export class AuctionService {
-    private apiUrl = 'http://127.0.0.1:5001/api/auction';
+    private apiUrl = `${API_CONFIG.baseUrl}/api/auction`;
 
     constructor(
         private http: HttpClient,

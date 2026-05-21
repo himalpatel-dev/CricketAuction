@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
-
+import { API_CONFIG } from '../config/api.config';
 @Injectable({
     providedIn: 'root'
 })
 export class SocketService {
     private socket: Socket | null = null;
-    private readonly baseUrl = 'http://127.0.0.1:5001';
+    private readonly baseUrl = `${API_CONFIG.baseUrl}`;
 
     get isConnected(): boolean {
         return this.socket?.connected || false;
