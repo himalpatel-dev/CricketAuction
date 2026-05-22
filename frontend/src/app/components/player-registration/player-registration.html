@@ -72,7 +72,6 @@
                                 <img *ngIf="player.image" [src]="playerImageUrl" alt="Player Preview">
                                 <div *ngIf="!player.image" class="photo-placeholder">
                                     <i>👤</i>
-                                    <span class="required-dot"></span>
                                 </div>
                             </div>
                             <div class="upload-controls">
@@ -99,7 +98,8 @@
                             <div class="form-group">
                                 <label>Date of Birth *</label>
                                 <div class="date-input-wrapper">
-                                    <div class="dropdown-selected rounded-input" (click)="toggleCalendar(); $event.stopPropagation()"
+                                    <div class="dropdown-selected rounded-input"
+                                        (click)="toggleCalendar(); $event.stopPropagation()"
                                         [class.active]="isCalendarOpen">
                                         <span>{{ player.dob ? (player.dob | date:'dd / MM / yyyy') : 'dd / mm / yyyy'
                                             }}</span>

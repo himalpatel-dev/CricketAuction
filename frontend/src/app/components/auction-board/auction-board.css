@@ -627,13 +627,254 @@
     text-align: center;
 }
 
+/* Mobile and Tablet Responsiveness (Mobile-First Flow) */
 @media (max-width: 1200px) {
     .auction-grid {
-        grid-template-columns: 1fr;
-        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
         height: auto;
+        overflow-y: auto;
+        padding: 16px;
+        gap: 16px;
+    }
+
+    /* custom ordering flow */
+    .auction-main {
+        order: 1; /* Player Showcase at the top */
+    }
+
+    .side-panel:not(.right-column) {
+        order: 2; /* Left panel: Bid Display & Bidding History */
+        height: auto;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .side-panel:not(.right-column) > .current-bid-display-left {
+        order: 1; /* Bid Display above Bidding History list */
+    }
+
+    .side-panel:not(.right-column) > .panel-card {
+        order: 2; /* Bidding History list below */
+    }
+
+    .side-panel.right-column {
+        order: 3; /* Controls (Admin Bidding Grid / Owner Purse) & Squad list */
+        height: auto;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .scroll-list {
+        max-height: 280px;
+    }
+
+    /* Player Showcase glassmorphic card design */
+    .player-showcase {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 32px 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     }
 }
+
+@media (max-width: 992px) {
+    .auction-header {
+        padding: 0 20px;
+    }
+
+    .avatar-circle {
+        width: min(240px, 70vw);
+        height: min(240px, 70vw);
+        border-radius: 20px;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .player-info h2 {
+        font-size: 40px;
+        letter-spacing: -1px;
+    }
+
+    .player-role-label {
+        font-size: 15px;
+        letter-spacing: 2px;
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .auction-header {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        padding: 16px;
+        gap: 12px;
+        align-items: center;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .header-left, 
+    .header-right {
+        justify-content: center;
+        width: 100%;
+        gap: 12px;
+    }
+
+    .header-right {
+        flex-wrap: wrap;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .main-display-area {
+        padding: 10px 0;
+    }
+
+    .player-showcase {
+        padding: 24px 16px;
+    }
+
+    .avatar-circle {
+        width: min(180px, 60vw);
+        height: min(180px, 60vw);
+    }
+
+    .player-info h2 {
+        font-size: 32px;
+    }
+
+    .player-role-label {
+        font-size: 13px;
+        letter-spacing: 1.5px;
+        margin-top: 6px;
+    }
+
+    /* Redesign current bid display to premium card banner */
+    .current-bid-display-left {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .bid-amount-sidebar {
+        font-size: 36px;
+        font-weight: 900;
+        color: #065f46;
+        letter-spacing: -0.5px;
+    }
+
+    .leading-chip-sidebar {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        padding: 8px 16px;
+        border-radius: 100px;
+        font-size: 12px;
+        margin-top: 8px;
+        display: inline-flex;
+        width: 100%;
+        max-width: 280px;
+        box-sizing: border-box;
+        justify-content: center;
+    }
+
+    .control-panel-sidebar, 
+    .panel-card {
+        border-radius: 24px;
+        padding: 20px;
+        background: #ffffff;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .teams-grid-sidebar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .team-bid-btn-sidebar {
+        padding: 8px;
+        border-radius: 8px;
+        gap: 4px;
+    }
+
+    .team-bid-btn-sidebar .code {
+        font-size: 12px;
+    }
+
+    .team-bid-btn-sidebar .slots {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+
+    .team-bid-btn-sidebar .purse,
+    .team-bid-btn-sidebar .max-bid {
+        font-size: 8px;
+    }
+
+    .increment-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .inc-pill-sidebar {
+        padding: 10px;
+        font-size: 12px;
+        border-radius: 8px;
+    }
+
+    .btn-sidebar {
+        padding: 12px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+
+    .stamp {
+        font-size: 28px;
+        border-width: 6px;
+        padding: 8px 20px;
+    }
+}
+
+@media (max-width: 580px) {
+    .scroll-list {
+        max-height: 180px;
+    }
+
+    .empty-state-center h2 {
+        font-size: 24px;
+    }
+
+    .no-players-alert h2 {
+        font-size: 18px !important;
+    }
+
+    .status-chip {
+        font-size: 10px;
+        padding: 4px 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .teams-grid-sidebar {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 @keyframes blink {
 

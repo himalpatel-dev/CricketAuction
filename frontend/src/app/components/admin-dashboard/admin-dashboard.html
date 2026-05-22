@@ -189,7 +189,11 @@
                                 <div class="avatar-sq">{{ team.code[0] }}</div>
                                 <div>
                                     <p class="item-bold">{{ team.name }}</p>
-                                    <p class="item-tiny">{{ team.playersCount }} players • {{ team.tournamentName }}</p>
+                                    <div class="item-meta">
+                                        <span class="item-tiny">{{ team.playersCount }} players</span>
+                                        <span class="meta-separator">•</span>
+                                        <span class="tournament-chip">{{ team.tournamentName }}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="rank-price">
@@ -217,8 +221,11 @@
                                 <div class="avatar-pill">{{ p.name[0] }}</div>
                                 <div>
                                     <p class="item-bold">{{ p.name }}</p>
-                                    <p class="item-tiny uppercase">{{ p.role }} • {{ p.ownerTeam }} • {{
-                                        p.tournamentName }}</p>
+                                    <div class="item-meta">
+                                        <span class="item-tiny uppercase">{{ p.role }} • {{ p.ownerTeam }}</span>
+                                        <span class="meta-separator">•</span>
+                                        <span class="tournament-chip">{{ p.tournamentName }}</span>
+                                    </div>
                                 </div>
                             </div>
                             <p class="price-green">₹{{ (p.soldPrice / 100000).toFixed(0) }}L</p>
@@ -286,8 +293,11 @@
                                     <div class="avatar-sq">{{ team.code[0] }}</div>
                                     <div>
                                         <p class="item-bold">{{ team.name }}</p>
-                                        <p class="item-tiny">{{ team.playersCount }} players • {{ team.tournamentName }}
-                                        </p>
+                                        <div class="item-meta">
+                                            <span class="item-tiny">{{ team.playersCount }} players</span>
+                                            <span class="meta-separator">•</span>
+                                            <span class="tournament-chip">{{ team.tournamentName }}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="rank-price">
@@ -306,13 +316,15 @@
                                     <div class="avatar-pill">{{ p.name[0] }}</div>
                                     <div>
                                         <p class="item-bold">{{ p.name }}</p>
-                                        <p class="item-tiny uppercase">{{ p.role }} • {{ p.ownerTeam }} • {{
-                                            p.tournamentName }}</p>
+                                        <div class="item-meta">
+                                            <span class="item-tiny uppercase">{{ p.role }} • {{ p.ownerTeam }}</span>
+                                            <span class="meta-separator">•</span>
+                                            <span class="tournament-chip">{{ p.tournamentName }}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="rank-price">
                                     <p class="price-green">₹{{ formatCurrency(p.soldPrice) }}</p>
-                                    <p class="item-tiny">SOLD PRICE</p>
                                 </div>
                             </div>
                             }

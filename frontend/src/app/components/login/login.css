@@ -396,16 +396,120 @@
 }
 
 @media (max-width: 580px) {
-    .login-card {
-        padding: 32px 24px;
+    .login-container {
+        padding: 30px 24px;
     }
 
-    .hero-text h1 {
+    .login-card {
+        padding: 32px 24px;
+        border-radius: 24px;
+    }
+
+    .main-logo-wrapper {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        text-align: center;
+    }
+
+    .logo-accent-glow {
+        width: 200px;
+        height: 200px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .brand-main-logo {
+        width: 130px;
+    }
+
+    .brand-name {
+        font-size: 36px;
+        letter-spacing: -1.5px;
+    }
+
+    .brand-tagline {
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
+    .branding-divider {
+        margin-top: 24px;
+        margin-bottom: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        margin-bottom: 8px;
+    }
+
+    .input-wrapper input {
+        padding: 14px 16px 14px 48px;
+        font-size: 14px;
+        border-radius: 12px;
+    }
+
+    .input-icon {
+        left: 16px;
+    }
+
+    .password-toggle {
+        right: 16px;
+    }
+
+    .btn-signin {
+        padding: 14px;
+        font-size: 16px;
+        border-radius: 12px;
+    }
+
+    .divider {
+        margin: 20px 0;
+    }
+
+    .btn-register {
+        padding: 14px;
+        font-size: 14px;
+        border-radius: 12px;
+    }
+}
+
+@media (max-width: 380px) {
+    .login-container {
+        padding: 20px 16px;
+    }
+
+    .login-card {
+        padding: 24px 16px;
+        border-radius: 20px;
+    }
+
+    .brand-main-logo {
+        width: 110px;
+    }
+
+    .brand-name {
         font-size: 32px;
     }
 
-    .feature-footer {
-        grid-template-columns: 1fr;
-        gap: 20px;
+    .brand-tagline {
+        font-size: 12px;
+    }
+
+    .input-wrapper input {
+        padding: 12px 14px 12px 42px;
+        font-size: 13px;
+    }
+
+    .input-icon {
+        left: 14px;
+    }
+
+    .password-toggle {
+        right: 14px;
     }
 }

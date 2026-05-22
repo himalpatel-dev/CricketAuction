@@ -1403,4 +1403,251 @@
     letter-spacing: 0.5px;
     margin: 0;
     text-align: center;
+}
+
+/* ================================================
+   Mobile & Tablet Responsiveness Breakpoints
+   ================================================ */
+
+@media (max-width: 1200px) {
+    .players-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .premium-hero-card {
+        margin: 16px;
+        padding: 24px 32px;
+    }
+    
+    .tournament-title {
+        font-size: 36px;
+    }
+    
+    .main-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 0 16px 16px 16px;
+    }
+    
+    .overview-content .card {
+        height: auto !important;
+        min-height: auto;
+    }
+    
+    .players-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .premium-hero-card {
+        padding: 20px 16px;
+        margin: 12px;
+    }
+    
+    .hero-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    
+    .hero-actions {
+        width: 100%;
+    }
+    
+    .hero-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .tournament-title {
+        font-size: 26px;
+    }
+    
+    .hero-stats-panel {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px 8px;
+        padding-top: 16px;
+    }
+    
+    .stat-divider {
+        display: none;
+    }
+    
+    .stat-column {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .stat-main {
+        justify-content: center;
+    }
+    
+    .content-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        display: flex;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 12px 16px 12px;
+        padding: 4px;
+        gap: 8px;
+    }
+    
+    .content-tabs::-webkit-scrollbar {
+        display: none; /* Hide scrollbar for clean look */
+    }
+    
+    .content-tabs button {
+        flex: 0 0 auto;
+        padding: 10px 16px;
+        font-size: 13px;
+        justify-content: center;
+    }
+    
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 0 12px 12px 12px;
+    }
+    
+    .players-tab-content {
+        padding: 0 12px 12px 12px;
+    }
+    
+    .tab-header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        padding: 16px;
+    }
+    
+    .role-filters {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+        width: 100%;
+    }
+    
+    .role-filters::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .role-filters button {
+        flex: 0 0 auto;
+        padding: 6px 14px;
+    }
+    
+    .header-actions {
+        width: 100%;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+    
+    .search-box input {
+        width: 100%;
+    }
+    
+    .players-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .settings-tab-content {
+        padding: 0 12px 24px 12px;
+    }
+    
+    .settings-form {
+        padding: 20px;
+    }
+    
+    .logo-upload-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+        padding: 16px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .full-width {
+        grid-column: span 1;
+    }
+    
+    .settings-actions {
+        justify-content: stretch;
+        flex-direction: column-reverse;
+        gap: 10px;
+        margin-top: 24px;
+        padding-top: 16px;
+    }
+    
+    .settings-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 580px) {
+    .premium-hero-card {
+        padding: 16px 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-stats-panel {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .tournament-title {
+        font-size: 22px;
+    }
+    
+    .stat-value {
+        font-size: 28px;
+    }
+    
+    .stat-unit {
+        font-size: 16px;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .players-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .item-right {
+        text-align: left;
+        width: 100%;
+        padding-left: 56px; /* Align with info text */
+    }
+
+    .unified-composition-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px 0;
+    }
+
+    .stat-item:nth-child(2n)::after {
+        display: none; /* Hide dividers for right column items */
+    }
 }

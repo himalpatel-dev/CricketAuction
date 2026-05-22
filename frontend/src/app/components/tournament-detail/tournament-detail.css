@@ -3032,3 +3032,449 @@ select[disabled] {
     from { opacity: 0; transform: translateY(-4px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   Responsive Layout & Mobile View Adjustments
+   ========================================================================== */
+
+/* Breakpoint 1: Large Tablets / Small Laptops (max-width: 1200px) */
+@media (max-width: 1200px) {
+    .players-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+}
+
+/* Breakpoint 2: Medium Tablets (max-width: 992px) */
+@media (max-width: 992px) {
+    .overview-budget-grid {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 0 16px 16px 16px;
+        gap: 16px;
+    }
+
+    .main-grid {
+        grid-template-columns: 1fr;
+        padding: 0 16px 16px 16px;
+        gap: 20px;
+    }
+
+    .main-grid .card {
+        height: auto !important; /* Allow cards to height-auto when stacked */
+        min-height: auto;
+    }
+
+    .scrollable-activity-container {
+        max-height: 380px;
+    }
+
+    .teams-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .players-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .budget-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 0 0 16px 0;
+        gap: 16px;
+    }
+
+    .team-budgets-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .teams-tab-content,
+    .players-tab-content,
+    .budget-tab-content,
+    .settings-tab-content {
+        padding: 0 16px 20px 16px;
+    }
+
+    .settings-card {
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+}
+
+/* Breakpoint 3: Small Tablets / Mobile Viewports (max-width: 768px) */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 12px 16px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
+    .search-box {
+        flex: 1;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
+
+    /* Premium Hero Card */
+    .premium-hero-card {
+        margin: 12px 16px;
+        padding: 20px 16px 16px 16px;
+        border-radius: 16px;
+    }
+
+    .hero-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .tournament-title {
+        font-size: 26px;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        line-height: 1.2;
+    }
+
+    .meta-info {
+        flex-direction: column;
+        gap: 8px;
+        font-size: 13px;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .hero-actions button {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 16px;
+        font-size: 13px;
+        border-radius: 10px;
+    }
+
+    .hero-stats-panel {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px 12px;
+        padding-top: 14px;
+        margin-top: 12px;
+    }
+
+    .stat-column {
+        width: auto;
+        text-align: left;
+    }
+
+    .stat-label {
+        margin-bottom: 4px;
+    }
+
+    .stat-main {
+        margin-bottom: 2px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+    }
+
+    .stat-divider {
+        display: none; /* Hide vertical lines on stacked view */
+    }
+
+    .badge-row {
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    /* Navigation Tabs */
+    .content-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        display: flex;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 16px 16px 16px;
+        padding: 4px;
+        gap: 6px;
+        border-radius: 10px;
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .content-tabs::-webkit-scrollbar {
+        display: none; /* Safari and Chrome */
+    }
+
+    .content-tabs button {
+        flex: 0 0 auto;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    /* Overview Tab Elements */
+    .overview-budget-grid,
+    .budget-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .detail-item.full {
+        grid-column: span 2;
+    }
+
+    /* Teams & Players Headers */
+    .tab-header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .tab-header-row .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .tab-header-row .search-box {
+        width: 100%;
+    }
+
+    .tab-header-row .search-box input {
+        width: 100%;
+    }
+
+    .tab-header-row .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Grid Resizing */
+    .teams-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .players-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .team-budgets-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    /* Forms & Settings Tab */
+    .form-grid,
+    .form-grid-3,
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .form-group.full {
+        grid-column: span 1;
+    }
+
+    .settings-card {
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+    }
+
+    .settings-header {
+        margin-bottom: 20px;
+    }
+
+    .settings-header h2 {
+        font-size: 18px;
+    }
+
+    .settings-actions {
+        flex-direction: column-reverse;
+        gap: 8px;
+        padding-top: 16px;
+    }
+
+    .settings-actions button {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+    }
+
+    /* Banner for edit requests */
+    .edit-request-banner {
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px;
+        margin: 12px 16px;
+        text-align: center;
+    }
+
+    .banner-content {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .banner-actions {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .banner-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Add Player Form (Global Picker) */
+    .filter-bar {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .global-player-row {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .global-player-row .p-avatar {
+        margin: 0 auto;
+    }
+
+    .global-player-row .p-actions {
+        margin-left: 0;
+    }
+
+    .global-player-row .btn-add-mini {
+        width: 100%;
+        padding: 10px;
+    }
+
+    /* Tournament Schedule / Timeline mobile styling */
+    .tournament-timeline-section {
+        margin: 0 16px 16px 16px;
+    }
+
+    .timeline-container.scrollable {
+        overflow-x: hidden;
+        padding: 24px 20px;
+    }
+
+    .timeline-line {
+        top: 40px;
+        bottom: 40px;
+        left: 36px;
+        width: 2px;
+        height: auto;
+        right: auto;
+        transform: none;
+    }
+
+    .timeline-items {
+        flex-direction: column;
+        align-items: stretch;
+        min-width: 0;
+        gap: 24px;
+    }
+
+    .timeline-node {
+        display: grid;
+        grid-template-columns: 32px 1fr;
+        grid-template-rows: auto;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+        height: auto;
+    }
+
+    .node-marker {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .node-content.top,
+    .node-content.bottom {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .node-content.top:not(:has(.node-info)),
+    .node-content.bottom:not(:has(.node-info)) {
+        display: none !important;
+    }
+
+    .node-info {
+        order: 1;
+        text-align: left;
+        align-items: flex-start;
+    }
+
+    .status-top,
+    .status-bottom {
+        order: 2;
+        margin: 4px 0 0 0 !important;
+    }
+}
+
+
+/* Breakpoint 4: Small Mobiles (max-width: 480px) */
+@media (max-width: 480px) {
+    .premium-hero-card {
+        margin: 8px 12px;
+    }
+
+    .tournament-title {
+        font-size: 22px;
+    }
+
+    .players-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-counts {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .photo-upload-row {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+    }
+}

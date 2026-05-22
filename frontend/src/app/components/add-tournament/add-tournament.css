@@ -309,9 +309,33 @@
     gap: 12px;
 }
 
+/* Match Start + End side by side */
+.match-dates-row {
+    padding: 0;
+}
+
+.match-date-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
 @media (max-width: 768px) {
+    .main-content-wrapper {
+        padding: 20px 16px;
+    }
+
+    .card-header {
+        padding: 24px 28px;
+    }
+
+    .form-body {
+        padding: 24px 28px;
+    }
+
     .form-grid {
         grid-template-columns: 1fr;
+        gap: 24px;
     }
 
     .full-width {
@@ -320,6 +344,103 @@
 
     .section-title {
         grid-column: span 1;
+    }
+
+    .match-date-pair {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 580px) {
+    .card-header {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 16px;
+        padding: 20px 16px;
+    }
+
+    .card-header h1 {
+        font-size: 22px;
+    }
+
+    .card-header p {
+        font-size: 13px;
+    }
+
+    .form-body {
+        padding: 20px 16px;
+    }
+
+    .form-grid {
+        gap: 20px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .dropdown-selected {
+        padding: 14px 16px;
+        font-size: 14px;
+        min-height: 48px;
+    }
+
+    .selection-grid {
+        gap: 12px;
+    }
+
+    .settings-actions {
+        padding: 20px 16px;
+    }
+
+    .settings-actions button {
+        width: 100%;
+        text-align: center;
+        padding: 14px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content-wrapper {
+        padding: 12px 8px;
+    }
+
+    .form-card {
+        border-radius: 12px;
+    }
+
+    .card-header {
+        padding: 16px 12px;
+        gap: 12px;
+    }
+
+    .form-body {
+        padding: 16px 12px;
+    }
+
+    .selection-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .selection-card {
+        padding: 12px;
+    }
+
+    .card-title {
+        font-size: 13px;
+    }
+
+    .settings-actions {
+        padding: 16px 12px;
+    }
+}
+
+@media (max-width: 380px) {
+    .custom-calendar-popup {
+        width: 100%;
+        max-width: 270px;
+        padding: 10px;
     }
 }
 
@@ -503,17 +624,13 @@
 }
 
 @keyframes fieldErrorFadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
 
-/* Match Start + End side by side */
-.match-dates-row {
-    padding: 0;
-}
-
-.match-date-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

@@ -257,7 +257,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   openViewAllTeams() {
-    this.modalTitle = 'All Teams - Budget Standings';
+    this.modalTitle = 'All Teams - Budget';
     this.modalDataType = 'teams';
     this.modalDataList = this.allSortedTeams;
     this.showViewAllModal = true;
@@ -265,7 +265,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   openViewAllPlayers() {
-    this.modalTitle = 'All Players - Highest Sold';
+    this.modalTitle = 'Highest Sold Players';
     this.modalDataType = 'players';
     this.modalDataList = this.allSortedPlayers;
     this.showViewAllModal = true;
