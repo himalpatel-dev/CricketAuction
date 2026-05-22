@@ -15,6 +15,7 @@ import { TopNavComponent } from '../top-nav/top-nav';
 export class AddTournamentComponent {
   tournamentData: any = {
     name: '',
+    email: '',
     tournamentStartDate: '',
     tournamentEndDate: '',
     matchStartDate: '',
@@ -31,6 +32,15 @@ export class AddTournamentComponent {
     category: 'Franchise League',
     status: 'UPCOMING'
   };
+
+  // Credentials Modal State
+  showCredentialsModal = false;
+  createdCredentials = {
+    username: '',
+    password: '',
+    role: 'Tournament Admin'
+  };
+  copied = false;
 
   // Calendar State
   isCalendarOpen = false;
@@ -272,6 +282,10 @@ export class AddTournamentComponent {
 
   async onSubmit() {
     this.error = '';
+    if (!this.tournamentData.email) {
+      this.error = 'Admin Email is required.';
+      return;
+    }
     if (!this.validateTournamentDates(true)) {
       return;
     }
@@ -297,14 +311,41 @@ export class AddTournamentComponent {
     }
 
     try {
-      await this.tournamentService.create(this.tournamentData);
-      this.router.navigate(['/tournaments']);
+      const response: any = await this.tournamentService.create(this.tournamentData);
+      
+      if (response && response.defaultAdminCredentials) {
+        this.createdCredentials = {
+          username: response.defaultAdminCredentials.username,
+          password: response.defaultAdminCredentials.password,
+          role: 'Tournament Admin'
+        };
+        this.showCredentialsModal = true;
+      } else {
+        this.router.navigate(['/tournaments']);
+      }
     } catch (err: any) {
       console.error('Create Tournament Error:', err);
-      this.error = 'Failed to create tournament. Please try again.';
+      this.error = err.error?.error || err.error?.message || 'Failed to create tournament. Please try again.';
     } finally {
       this.loading = false;
+      this.cdr.detectChanges();
     }
+  }
+
+  copyCredentials() {
+    const text = `BidWicket Login Credentials\n---------------------------\nRole: ${this.createdCredentials.role}\nUsername: ${this.createdCredentials.username}\nPassword: ${this.createdCredentials.password}\n---------------------------\nChange your password on first login.`;
+    navigator.clipboard.writeText(text).then(() => {
+      this.copied = true;
+      setTimeout(() => this.copied = false, 2000);
+      this.cdr.detectChanges();
+    }).catch(err => {
+      console.error('Could not copy credentials:', err);
+    });
+  }
+
+  closeCredentialsModal() {
+    this.showCredentialsModal = false;
+    this.router.navigate(['/tournaments']);
   }
 
   onParamChange() {

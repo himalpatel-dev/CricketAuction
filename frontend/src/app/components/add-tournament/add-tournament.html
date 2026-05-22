@@ -34,9 +34,16 @@
                         <div class="section-title">🏆 Tournament Core Details</div>
 
                         <div class="form-group full-width">
-                            <label>Tournament Name</label>
+                            <label>Tournament Name *</label>
                             <input type="text" name="name" [(ngModel)]="tournamentData.name"
                                 placeholder="e.g. Mega Cricket League 2026" required>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Admin Email *</label>
+                            <input type="email" name="email" [(ngModel)]="tournamentData.email"
+                                placeholder="e.g. admin@megacricket.com" required email>
+                            <span class="input-hint">The admin credentials for managing this tournament will be sent to this email address.</span>
                         </div>
 
                         <div class="form-group full-width">
@@ -475,6 +482,40 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Credentials Modal Overlay -->
+    <div class="credentials-modal-overlay" *ngIf="showCredentialsModal">
+        <div class="credentials-card">
+            <div class="card-icon-container">
+                <span class="lock-icon">🔒</span>
+            </div>
+            <h2>Tournament Admin Created!</h2>
+            <p class="subtitle">An email has been sent to <strong>{{ tournamentData.email }}</strong> with their login details.</p>
+            
+            <div class="credentials-box">
+                <div class="cred-field">
+                    <span class="label">Username:</span>
+                    <span class="value">{{ createdCredentials.username }}</span>
+                </div>
+                <div class="cred-field">
+                    <span class="label">Password:</span>
+                    <span class="value">{{ createdCredentials.password }}</span>
+                </div>
+                <div class="cred-field text-center">
+                    <span class="hint">⚠️ Change password required on first login</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" (click)="copyCredentials()" class="btn btn-secondary flex items-center justify-center gap-2">
+                    <span>{{ copied ? '✅ Copied!' : '📋 Copy Details' }}</span>
+                </button>
+                <button type="button" (click)="closeCredentialsModal()" class="btn btn-primary">
+                    Done & Go to Tournaments
+                </button>
+            </div>
         </div>
     </div>
 </div>

@@ -39,8 +39,25 @@ export class TournamentDetailComponent implements OnInit {
     name: '',
     code: '',
     ownerName: '',
+    email: '',
     logoUrl: ''
   };
+
+  // Credentials Modal State
+  showCredentialsModal = false;
+  createdCredentials = {
+    username: '',
+    password: '',
+    email: '',
+    role: 'Team Owner'
+  };
+  copied = false;
+
+  // Registration link modal state
+  showRegistrationModal = false;
+  registrationUrl: string = '';
+  copiedRegistration = false;
+  qrCodeUrl = '';
 
   showAddPlayerForm = false;
   newPlayer: any = {
@@ -97,12 +114,12 @@ export class TournamentDetailComponent implements OnInit {
   async toggleGlobalDatabase() {
     console.log('Toggling Global Database. Current state:', this.showGlobalDatabase);
     this.showGlobalDatabase = !this.showGlobalDatabase;
-    
+
     if (this.showGlobalDatabase) {
       await this.loadGlobalPlayers();
     } else {
       // Refresh local players just in case
-      this.onSearch(); 
+      this.onSearch();
     }
     this.cdr.detectChanges();
   }
@@ -127,11 +144,11 @@ export class TournamentDetailComponent implements OnInit {
     if (!confirm(`Are you sure you want to add ${player.name} to this tournament?`)) {
       return;
     }
-    
+
     try {
       this.saving = true;
-      const payload = { 
-        ...player, 
+      const payload = {
+        ...player,
         basePrice: this.tournament?.minimumPlayerBasePrice || 0,
         status: 'UPCOMING'
       };
@@ -153,19 +170,19 @@ export class TournamentDetailComponent implements OnInit {
     try {
       this.saving = true;
       await this.tournamentService.removePlayer(this.tournament.id, player.id);
-      
+
       // Manually remove from local array to ensure immediate UI update
       if (this.tournament && this.tournament.players) {
         this.tournament.players = this.tournament.players.filter((p: any) => p.id !== player.id);
       }
-      
+
       alert('Player removed successfully');
-      
+
       // Recalculate everything locally for instant UI response
       this.processTeams();
       this.calculateLocalStats();
       this.processBudgetTab();
-      
+
       // Then sync with server
       await this.loadTournament(this.tournament.id.toString(), true);
     } catch (err: any) {
@@ -295,6 +312,7 @@ export class TournamentDetailComponent implements OnInit {
         name: '',
         code: '',
         ownerName: '',
+        email: '',
         logoUrl: ''
       };
     }
@@ -344,21 +362,21 @@ export class TournamentDetailComponent implements OnInit {
   // --- Custom Calendar Logic ---
   toggleCalendar(field: string | null = null) {
     if (field && this.activeDateField === field) {
-        this.isCalendarOpen = false;
-        this.activeDateField = null;
-        return;
+      this.isCalendarOpen = false;
+      this.activeDateField = null;
+      return;
     }
 
     this.isCalendarOpen = true;
     this.activeDateField = field;
-    
+
     let dateToUse = new Date();
     if (field === 'dob' && this.newPlayer.dob && !isNaN(new Date(this.newPlayer.dob).getTime())) {
-        dateToUse = new Date(this.newPlayer.dob);
+      dateToUse = new Date(this.newPlayer.dob);
     } else if (field && this.tournament?.[field] && !isNaN(new Date(this.tournament[field]).getTime())) {
-        dateToUse = new Date(this.tournament[field]);
+      dateToUse = new Date(this.tournament[field]);
     }
-    
+
     this.calendarDate = dateToUse;
     this.generateCalendar();
   }
@@ -373,7 +391,7 @@ export class TournamentDetailComponent implements OnInit {
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     // Adjust for Monday start (0 is Sunday in JS, we want 0 for Monday)
     let startingDay = firstDay === 0 ? 6 : firstDay - 1;
 
@@ -419,10 +437,10 @@ export class TournamentDetailComponent implements OnInit {
     const dateStr = `${year}-${month}-${d}`;
 
     if (this.activeDateField === 'dob') {
-        this.newPlayer.dob = dateStr;
+      this.newPlayer.dob = dateStr;
     } else if (this.activeDateField && this.tournament) {
-        this.tournament[this.activeDateField] = dateStr;
-        this.validateTournamentDates(false);
+      this.tournament[this.activeDateField] = dateStr;
+      this.validateTournamentDates(false);
     }
 
     this.isCalendarOpen = false;
@@ -490,8 +508,8 @@ export class TournamentDetailComponent implements OnInit {
         const existing = await this.tournamentService.checkPlayerByMobile(this.newPlayer.mobileNo);
         if (existing) {
           // Merge existing data into the current newPlayer object
-          this.newPlayer = { 
-            ...this.newPlayer, 
+          this.newPlayer = {
+            ...this.newPlayer,
             ...existing,
             // Format DOB for the form
             dob: existing.dob ? existing.dob.split('T')[0] : ''
@@ -514,7 +532,7 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   async submitAddTeam() {
-    if (!this.newTeam.name || !this.newTeam.code || this.saving) return;
+    if (!this.newTeam.name || !this.newTeam.code || !this.newTeam.email || this.saving) return;
 
     this.saving = true;
     try {
@@ -522,17 +540,78 @@ export class TournamentDetailComponent implements OnInit {
       this.showAddTeamForm = false;
       this.currentTab = 'Teams'; // Stay on teams tab
       await this.loadTournament(this.tournament.id.toString(), true); // Silent reload
-      
+
       if (response && response.defaultPassword) {
-        alert(`Team added successfully!\n\nLOGIN CREDENTIALS:\nUsername: ${response.code.toLowerCase()}\nPassword: ${response.defaultPassword}\n\nPlease share these with the team owner.`);
+        this.createdCredentials = {
+          username: response.code.toLowerCase(),
+          password: response.defaultPassword,
+          email: this.newTeam.email,
+          role: 'Team Owner'
+        };
+        this.showCredentialsModal = true;
       }
+
+      this.newTeam = {
+        name: '',
+        code: '',
+        ownerName: '',
+        email: '',
+        logoUrl: ''
+      };
     } catch (err: any) {
       console.error('Error adding team:', err);
-      alert('Failed to add team. Check if team code is unique.');
+      const errorMsg = err.error?.error || err.error?.message || 'Failed to add team. Check if team code is unique.';
+      alert(errorMsg);
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
     }
+  }
+
+  copyCredentials() {
+    const text = `BidWicket Login Credentials\n---------------------------\nRole: ${this.createdCredentials.role}\nUsername: ${this.createdCredentials.username}\nPassword: ${this.createdCredentials.password}\n---------------------------\nChange your password on first login.`;
+    navigator.clipboard.writeText(text).then(() => {
+      this.copied = true;
+      setTimeout(() => this.copied = false, 2000);
+      this.cdr.detectChanges();
+    }).catch(err => {
+      console.error('Could not copy credentials:', err);
+    });
+  }
+
+  closeCredentialsModal() {
+    this.showCredentialsModal = false;
+    this.cdr.detectChanges();
+  }
+
+  openRegistrationLinkModal() {
+    const origin = window.location.origin || '';
+    const tournamentIdPart = this.tournament && this.tournament.id ? `?tournamentId=${this.tournament.id}` : '';
+    this.registrationUrl = `${origin}/register${tournamentIdPart}`;
+    this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(this.registrationUrl)}`;
+    this.showRegistrationModal = true;
+    this.copiedRegistration = false;
+    this.cdr.detectChanges();
+  }
+
+  copyRegistrationLink() {
+    if (!this.registrationUrl) return;
+    navigator.clipboard.writeText(this.registrationUrl).then(() => {
+      this.copiedRegistration = true;
+      this.cdr.detectChanges();
+      setTimeout(() => {
+        this.copiedRegistration = false;
+        this.cdr.detectChanges();
+      }, 2000);
+    }).catch(err => {
+      console.error('Could not copy registration link:', err);
+      alert('Could not copy link to clipboard');
+    });
+  }
+
+  closeRegistrationModal() {
+    this.showRegistrationModal = false;
+    this.cdr.detectChanges();
   }
 
   async submitAddPlayer() {
@@ -553,7 +632,7 @@ export class TournamentDetailComponent implements OnInit {
 
       // Ensure basePrice is set from tournament
       this.newPlayer.basePrice = this.tournament?.minimumPlayerBasePrice || 0;
-      
+
       if (this.editingPlayerId) {
         await this.tournamentService.updatePlayer(this.tournament.id, this.editingPlayerId, this.newPlayer);
       } else {
@@ -609,10 +688,10 @@ export class TournamentDetailComponent implements OnInit {
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private imageService: ImageService
-  ) { 
+  ) {
     const currentYear = new Date().getFullYear();
-    for(let i = currentYear - 60; i <= currentYear + 5; i++) {
-        this.years.push(i);
+    for (let i = currentYear - 60; i <= currentYear + 5; i++) {
+      this.years.push(i);
     }
     this.years.reverse();
   }
@@ -993,17 +1072,17 @@ export class TournamentDetailComponent implements OnInit {
     this.saving = true;
     try {
       this.computeAndSetStatus();
-      
+
       // If budget is not defined or is 0/empty, set it to the default projected formula
       if (!this.tournament.totalAmount) {
         this.tournament.totalAmount = this.getProjectedBudget();
       }
-      
+
       // Reset edit permission flag to 0 on saving details
       if (this.tournament.isrequestedtoedit === 2) {
         this.tournament.isrequestedtoedit = 0;
       }
-      
+
       await this.tournamentService.update(this.tournament.id, this.tournament);
       alert('Tournament updated successfully!');
       this.setTab('Overview');

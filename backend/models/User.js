@@ -20,6 +20,14 @@ const User = sequelize.define('User', {
         type: DataTypes.ENUM('ADMIN', 'TEAM', 'TOURNAMENT_ADMIN'),
         defaultValue: 'TEAM',
     },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    mustChangePassword: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+    },
     // If role is TEAM, this links to the Team table
     teamId: {
         type: DataTypes.INTEGER,

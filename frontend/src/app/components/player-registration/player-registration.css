@@ -1267,3 +1267,21 @@ select {
     border-radius: 50%;
     border: 2px solid white;
 }
+
+/* Disabled custom dropdown styles */
+.custom-dropdown.disabled .dropdown-selected {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+    cursor: not-allowed;
+    box-shadow: none !important;
+}
+
+.custom-dropdown.disabled .dropdown-selected:hover {
+    border-color: #cbd5e1;
+}
+
+.custom-dropdown.disabled .lock-icon {
+    font-size: 14px;
+    opacity: 0.75;
+}

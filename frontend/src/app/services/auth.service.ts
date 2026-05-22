@@ -69,6 +69,17 @@ export class AuthService {
         return this.getUser();
     }
 
+    async changePassword(newPassword: string) {
+        try {
+            const token = this.getToken();
+            const headers = { Authorization: `Bearer ${token}` };
+            return await firstValueFrom(this.http.post(`${this.apiUrl}/change-password`, { newPassword }, { headers }));
+        } catch (error) {
+            console.error("Change Password Error:", error);
+            throw error;
+        }
+    }
+
     logout() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

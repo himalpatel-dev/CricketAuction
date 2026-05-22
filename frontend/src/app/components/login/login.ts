@@ -19,6 +19,12 @@ export class LoginComponent {
   error = '';
   loading = false;
 
+  // Force Password Reset Flow
+  mustChange = false;
+  newPassword = '';
+  confirmPassword = '';
+  tempSessionData: any = null;
+
   constructor(
     private authService: AuthService,
     private router: Router
@@ -35,6 +41,15 @@ export class LoginComponent {
 
     try {
       const data = await this.authService.login(this.credentials);
+
+      if (data.mustChangePassword) {
+        this.mustChange = true;
+        this.tempSessionData = data;
+        // Temporarily store token/user to allow authorized requests
+        this.authService.saveSession(data.token, data.user);
+        this.loading = false;
+        return;
+      }
 
       if (data.token) {
         // Redirect based on role
@@ -54,10 +69,61 @@ export class LoginComponent {
         this.error = data.message || 'Login failed';
       }
     } catch (err: any) {
-      this.error = 'Unable to connect to server';
+      this.error = err.error?.message || 'Unable to connect to server';
       console.error(err);
     } finally {
       this.loading = false;
     }
+  }
+
+  async onSubmitNewPassword() {
+    if (!this.newPassword || this.newPassword.length < 6) {
+      this.error = 'Password must be at least 6 characters long';
+      return;
+    }
+    if (this.newPassword !== this.confirmPassword) {
+      this.error = 'Passwords do not match';
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+
+    try {
+      await this.authService.changePassword(this.newPassword);
+      
+      const user = this.tempSessionData.user;
+      
+      // Update local storage representation so mustChangePassword matches false
+      user.mustChangePassword = false;
+      this.authService.saveSession(this.tempSessionData.token, user);
+
+      alert('Password updated successfully! Redirecting...');
+      
+      if (user.role === 'ADMIN') {
+        this.router.navigate(['/admin']);
+      } else if (user.role === 'TOURNAMENT_ADMIN') {
+        if (user.tournamentId) {
+          this.router.navigate(['/tournament-detail', user.tournamentId]);
+        } else {
+          this.error = 'No tournament assigned to this admin.';
+        }
+      } else {
+        this.router.navigate(['/team-dashboard']);
+      }
+    } catch (err: any) {
+      this.error = err.error?.message || 'Failed to update password';
+      console.error(err);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  cancelPasswordReset() {
+    this.mustChange = false;
+    this.newPassword = '';
+    this.confirmPassword = '';
+    this.tempSessionData = null;
+    this.authService.logout();
   }
 }

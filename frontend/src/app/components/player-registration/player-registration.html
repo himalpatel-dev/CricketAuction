@@ -49,20 +49,20 @@
 
                         <div class="form-group full">
                             <label>Select Tournament *</label>
-                            <div class="custom-dropdown" [class.open]="isDropdownOpen">
+                            <div class="custom-dropdown" [class.open]="isDropdownOpen" [class.disabled]="isTournamentFixed">
                                 <div class="dropdown-selected rounded-input" (click)="toggleDropdown()">
                                     <span>{{ selectedTournamentName }}</span>
-                                    <i class="caret"></i>
+                                    <i class="caret" *ngIf="!isTournamentFixed"></i>
+                                    <span class="lock-icon" *ngIf="isTournamentFixed" title="Tournament is pre-selected and locked">🔒</span>
                                 </div>
-                                <div class="dropdown-list" *ngIf="isDropdownOpen">
+                                <div class="dropdown-list" *ngIf="isDropdownOpen && !isTournamentFixed">
                                     <div class="dropdown-item" *ngFor="let t of tournaments"
                                         (click)="selectTournament(t)">
                                         <span class="t-name">{{ t.name }}</span>
                                         <span class="t-status" [class]="t.status.toLowerCase()">{{ t.status }}</span>
                                     </div>
-                                    <div class="dropdown-item no-data" *ngIf="tournaments.length === 0">
-                                        No active tournaments found
-                                    </div>
+                                    <div class="dropdown-item no-data" *ngIf="tournaments.length === 0">No active
+                                        tournaments found</div>
                                 </div>
                             </div>
                         </div>

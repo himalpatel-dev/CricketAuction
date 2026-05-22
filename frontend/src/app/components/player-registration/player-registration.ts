@@ -1,7 +1,7 @@
 import { Component, ChangeDetectorRef, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ImageService } from '../../services/image.service';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { TournamentService } from '../../services/tournament.service';
@@ -65,6 +65,9 @@ export class PlayerRegistrationComponent {
   tournaments: any[] = [];
   selectedTournamentId: any = '';
   basePrice = 0;
+  // When opened from a tournament, lock the tournament selection
+  isTournamentFixed: boolean = false;
+  preselectedTournamentId: any = null;
 
   get isFormValid(): boolean {
     return !!(
@@ -84,14 +87,23 @@ export class PlayerRegistrationComponent {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private tournamentService: TournamentService,
     private imageService: ImageService,
     private cdr: ChangeDetectorRef
   ) {
-    this.fetchOpenTournaments();
+    // Read query params first, then load tournaments so we can preselect and lock if requested
+    this.route.queryParams.subscribe(params => {
+      if (params['tournamentId']) {
+        this.preselectedTournamentId = params['tournamentId'];
+        this.isTournamentFixed = true;
+      }
+      if (params['fromTournament']) this.isTournamentFixed = (params['fromTournament'] === 'true' || params['fromTournament'] === true);
+      this.fetchOpenTournaments();
+    });
     const currentYear = new Date().getFullYear();
-    for(let i = currentYear - 60; i <= currentYear + 5; i++) {
-        this.years.push(i);
+    for (let i = currentYear - 60; i <= currentYear + 5; i++) {
+      this.years.push(i);
     }
     this.years.reverse();
   }
@@ -99,7 +111,7 @@ export class PlayerRegistrationComponent {
   onPlayerPhotoSelected(event: any) {
     if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
-      
+
       // Check file size (2MB = 2 * 1024 * 1024 bytes)
       if (file.size > 2 * 1024 * 1024) {
         alert('Image size is more than 2MB. Please select a smaller file.');
@@ -191,6 +203,19 @@ export class PlayerRegistrationComponent {
       const res = await this.tournamentService.getOpenTournaments();
       this.tournaments = res;
       if (this.tournaments.length > 0) {
+        // If a tournament was passed via query param, try to preselect it
+        if (this.preselectedTournamentId) {
+          const found = this.tournaments.find(t => String(t.id) === String(this.preselectedTournamentId));
+          if (found) {
+            this.selectedTournamentId = found.id;
+            this.selectedTournamentName = `${found.name} (${found.status})`;
+            this.updateBasePrice();
+            // keep dropdown closed when opened from tournament link
+            if (this.isTournamentFixed) this.isDropdownOpen = false;
+            return;
+          }
+        }
+
         // Select first one by default
         const first = this.tournaments[0];
         this.selectedTournamentId = first.id;
@@ -204,10 +229,12 @@ export class PlayerRegistrationComponent {
   }
 
   toggleDropdown() {
+    if (this.isTournamentFixed) return;
     this.isDropdownOpen = !this.isDropdownOpen;
   }
 
   selectTournament(tournament: any) {
+    if (this.isTournamentFixed) return;
     this.selectedTournamentId = tournament.id;
     this.selectedTournamentName = `${tournament.name} (${tournament.status})`;
     this.isDropdownOpen = false;
@@ -237,7 +264,7 @@ export class PlayerRegistrationComponent {
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     // Adjust for Monday start (0 is Sunday in JS, we want 0 for Monday)
     let startingDay = firstDay === 0 ? 6 : firstDay - 1;
 
@@ -342,8 +369,8 @@ export class PlayerRegistrationComponent {
         if (existing) {
           // Merge existing data into the current player object
           // We keep the current tournamentId but update personal/professional details
-          this.player = { 
-            ...this.player, 
+          this.player = {
+            ...this.player,
             ...existing,
             // Format DOB for the form if it comes as a full date string
             dob: existing.dob ? existing.dob.split('T')[0] : ''
@@ -351,7 +378,7 @@ export class PlayerRegistrationComponent {
 
           this.message = `Welcome back, ${existing.name}! We've pre-filled your details.`;
           this.success = true;
-          
+
           // Clear message after some time
           setTimeout(() => {
             if (this.success) {
@@ -393,7 +420,7 @@ export class PlayerRegistrationComponent {
 
     try {
       this.player.basePrice = this.basePrice;
-      
+
       // Ensure we don't send blob URLs to backend
       if (this.player.image && this.player.image.startsWith('blob:')) {
         console.log('Converting blob URL to base64 before upload...');

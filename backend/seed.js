@@ -59,7 +59,8 @@ async function seed() {
         await User.create({
             username: 'admin',
             password: adminPassword,
-            role: 'ADMIN'
+            role: 'ADMIN',
+            mustChangePassword: false
         });
 
         for (const team of teams) {
@@ -67,7 +68,8 @@ async function seed() {
                 username: team.code.toLowerCase(), // rcb, csk, etc.
                 password: teamPassword,
                 role: 'TEAM',
-                teamId: team.id
+                teamId: team.id,
+                mustChangePassword: false
             });
         }
 
@@ -76,7 +78,8 @@ async function seed() {
             username: 'tournament_admin',
             password: adminPassword,
             role: 'TOURNAMENT_ADMIN',
-            tournamentId: tournament.id
+            tournamentId: tournament.id,
+            mustChangePassword: false
         });
 
         // 5. Create Players with full details

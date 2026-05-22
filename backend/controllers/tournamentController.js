@@ -2,11 +2,46 @@ const { Tournament, Team, Player, User, sequelize } = require('../models');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const { saveBase64Image } = require('../utils/imageUpload');
+const { sendCredentialsEmail } = require('../utils/mailer');
+const crypto = require('crypto');
 
 exports.createTournament = async (req, res) => {
     try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'Tournament admin email is required.' });
+        }
+
         const tournament = await Tournament.create(req.body);
-        res.status(201).json(tournament);
+
+        // Auto-generate tournament admin credentials
+        const defaultPassword = "Admin" + crypto.randomBytes(3).toString('hex').toUpperCase(); // e.g. AdminA1B2C3
+        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+        const username = `admin_${tournament.id}`;
+
+        await User.create({
+            username,
+            password: hashedPassword,
+            role: 'TOURNAMENT_ADMIN',
+            email,
+            mustChangePassword: true,
+            tournamentId: tournament.id
+        });
+
+        // Send email notification
+        try {
+            await sendCredentialsEmail(email, tournament.name, 'Tournament Admin', username, defaultPassword);
+        } catch (mailErr) {
+            console.error('Failed to send tournament admin credentials email:', mailErr);
+        }
+
+        res.status(201).json({
+            ...tournament.toJSON(),
+            defaultAdminCredentials: {
+                username,
+                password: defaultPassword
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -19,15 +54,15 @@ exports.getAllTournaments = async (req, res) => {
                 {
                     model: Team,
                     as: 'teams',
-                    include: [{ 
-                        model: Player, 
+                    include: [{
+                        model: Player,
                         as: 'players',
                         where: { status: { [Op.ne]: 'WITHDRAWN' } },
                         required: false
                     }]
                 },
-                { 
-                    model: Player, 
+                {
+                    model: Player,
                     as: 'players',
                     where: { status: { [Op.ne]: 'WITHDRAWN' } },
                     required: false
@@ -47,15 +82,15 @@ exports.getTournamentById = async (req, res) => {
                 {
                     model: Team,
                     as: 'teams',
-                    include: [{ 
-                        model: Player, 
+                    include: [{
+                        model: Player,
                         as: 'players',
                         where: { status: { [Op.ne]: 'WITHDRAWN' } },
                         required: false
                     }]
                 },
-                { 
-                    model: Player, 
+                {
+                    model: Player,
                     as: 'players',
                     where: { status: { [Op.ne]: 'WITHDRAWN' } },
                     required: false
@@ -126,11 +161,16 @@ exports.updateTournament = async (req, res) => {
 exports.addTeam = async (req, res) => {
     try {
         const { id } = req.params;
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'Team owner email is required.' });
+        }
+
         const tournament = await Tournament.findByPk(id);
         if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
 
-        const teamBudget = req.body.budget !== undefined 
-            ? parseFloat(req.body.budget) 
+        const teamBudget = req.body.budget !== undefined
+            ? parseFloat(req.body.budget)
             : (tournament.totalAmount || 0);
 
         const teamData = {
@@ -145,17 +185,27 @@ exports.addTeam = async (req, res) => {
         const team = await Team.create(teamData);
 
         // Automatically create a user account for the team
-        const defaultPassword = "Team" + (req.body.code || "123");
+        const defaultPassword = "Team" + (req.body.code || "123") + Math.floor(100 + Math.random() * 900); // e.g. TeamRCB472
         const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+        const username = (req.body.code || team.id).toString().toLowerCase() + + Math.floor(100 + Math.random() * 900);
 
         try {
             await User.create({
-                username: (req.body.code || team.id).toString().toLowerCase(),
+                username,
                 password: hashedPassword,
                 role: 'TEAM',
+                email,
+                mustChangePassword: true,
                 teamId: team.id
             });
             console.log(`User account created for team ${team.name}: ${team.code}`);
+
+            // Send welcome credentials email
+            try {
+                await sendCredentialsEmail(email, team.ownerName || team.name, 'Team Owner', username, defaultPassword);
+            } catch (mailErr) {
+                console.error('Failed to send team owner credentials email:', mailErr);
+            }
         } catch (userError) {
             console.error("Could not create team user account:", userError);
             // We don't fail the team creation if user creation fails (e.g. duplicate username)
@@ -309,7 +359,7 @@ exports.getGlobalPlayers = async (req, res) => {
         // Exclude players already in the specified tournament
         if (excludeTournamentId) {
             const existingPlayers = await Player.findAll({
-                where: { 
+                where: {
                     tournamentId: excludeTournamentId,
                     status: { [Op.ne]: 'WITHDRAWN' }
                 },
