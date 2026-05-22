@@ -19,11 +19,28 @@ export class LoginComponent {
   error = '';
   loading = false;
 
+  // Password Visibility Toggle States
+  showPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
+
   // Force Password Reset Flow
   mustChange = false;
   newPassword = '';
   confirmPassword = '';
   tempSessionData: any = null;
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleNewPasswordVisibility() {
+    this.showNewPassword = !this.showNewPassword;
+  }
+
+  toggleConfirmPasswordVisibility() {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
 
   constructor(
     private authService: AuthService,
@@ -92,25 +109,18 @@ export class LoginComponent {
     try {
       await this.authService.changePassword(this.newPassword);
       
-      const user = this.tempSessionData.user;
-      
-      // Update local storage representation so mustChangePassword matches false
-      user.mustChangePassword = false;
-      this.authService.saveSession(this.tempSessionData.token, user);
+      // Clear temporary session so they have to log in again
+      this.authService.logout();
 
-      alert('Password updated successfully! Redirecting...');
+      alert('Password updated successfully! Please sign in using your new password.');
       
-      if (user.role === 'ADMIN') {
-        this.router.navigate(['/admin']);
-      } else if (user.role === 'TOURNAMENT_ADMIN') {
-        if (user.tournamentId) {
-          this.router.navigate(['/tournament-detail', user.tournamentId]);
-        } else {
-          this.error = 'No tournament assigned to this admin.';
-        }
-      } else {
-        this.router.navigate(['/team-dashboard']);
-      }
+      // Reset form states
+      this.mustChange = false;
+      this.newPassword = '';
+      this.confirmPassword = '';
+      this.tempSessionData = null;
+      // Clear credentials password
+      this.credentials.password = '';
     } catch (err: any) {
       this.error = err.error?.message || 'Failed to update password';
       console.error(err);

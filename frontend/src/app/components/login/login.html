@@ -49,13 +49,20 @@
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                     </span>
-                    <input type="password" name="password" [(ngModel)]="credentials.password" placeholder="••••••••"
-                        required>
-                    <span class="password-toggle">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <input [type]="showPassword ? 'text' : 'password'" name="password"
+                        [(ngModel)]="credentials.password" placeholder="••••••••" required>
+                    <span class="password-toggle" (click)="togglePasswordVisibility()">
+                        <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                             <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                            </path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
                         </svg>
                     </span>
                 </div>
@@ -69,9 +76,12 @@
 
         <!-- First Time Password Reset Form -->
         <form *ngIf="mustChange" (ngSubmit)="onSubmitNewPassword()" #resetForm="ngForm" class="login-form">
-            <div style="text-align: center; margin-bottom: 25px; background: rgba(96, 165, 250, 0.1); border: 1px solid rgba(96, 165, 250, 0.2); padding: 15px; border-radius: 10px;">
-                <h3 style="color: #60a5fa; margin: 0 0 5px 0; font-size: 16px; letter-spacing: 0.5px;">First Time Login</h3>
-                <p style="font-size: 12px; color: #94a3b8; margin: 0;">For your security, you must change your temporary password before proceeding.</p>
+            <div
+                style="text-align: center; margin-bottom: 25px; background: rgba(96, 165, 250, 0.1); border: 1px solid rgba(96, 165, 250, 0.2); padding: 15px; border-radius: 10px;">
+                <h3 style="color: #60a5fa; margin: 0 0 5px 0; font-size: 16px; letter-spacing: 0.5px;">First Time Login
+                </h3>
+                <p style="font-size: 12px; color: #94a3b8; margin: 0;">For your security, you must change your temporary
+                    password before proceeding.</p>
             </div>
 
             <div class="form-group">
@@ -84,7 +94,22 @@
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                     </span>
-                    <input type="password" name="newPassword" [(ngModel)]="newPassword" placeholder="Minimum 6 characters" required>
+                    <input [type]="showNewPassword ? 'text' : 'password'" name="newPassword" [(ngModel)]="newPassword"
+                        placeholder="Minimum 6 characters" required>
+                    <span class="password-toggle" (click)="toggleNewPasswordVisibility()">
+                        <svg *ngIf="!showNewPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg *ngIf="showNewPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                            </path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </span>
                 </div>
             </div>
 
@@ -98,16 +123,33 @@
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
                     </span>
-                    <input type="password" name="confirmPassword" [(ngModel)]="confirmPassword" placeholder="Repeat password" required>
+                    <input [type]="showConfirmPassword ? 'text' : 'password'" name="confirmPassword"
+                        [(ngModel)]="confirmPassword" placeholder="Repeat password" required>
+                    <span class="password-toggle" (click)="toggleConfirmPasswordVisibility()">
+                        <svg *ngIf="!showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg *ngIf="showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                            </path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </span>
                 </div>
             </div>
 
-            <button type="submit" class="btn-signin" [disabled]="loading" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);">
+            <button type="submit" class="btn-signin" [disabled]="loading"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);">
                 <span *ngIf="!loading">Update Password <i class="arrow-right">→</i></span>
                 <span *ngIf="loading">Updating...</span>
             </button>
 
-            <button type="button" class="btn-signin" (click)="cancelPasswordReset()" style="margin-top: 12px; background: transparent; border: 1px solid #334155; color: #94a3b8; box-shadow: none;">
+            <button type="button" class="btn-signin" (click)="cancelPasswordReset()"
+                style="margin-top: 12px; background: transparent; border: 1px solid #334155; color: #94a3b8; box-shadow: none;">
                 Cancel
             </button>
         </form>

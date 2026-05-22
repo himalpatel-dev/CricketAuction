@@ -33,6 +33,11 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
   teamPlayers: any[] = [];
   private initialAutoStartDone = false;
 
+  // Countdown timer properties
+  secondsRemaining: number | null = null;
+  timerInterval: any = null;
+  isPaused = false;
+
   constructor(
     private route: ActivatedRoute,
     private auctionService: AuctionService,
@@ -127,12 +132,20 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
         validPlayer = null;
       }
 
+      this.isPaused = !!state.isPaused;
+
       this.auctionState = {
         currentPlayer: validPlayer,
         currentBid: state.currentBid,
         leadingTeam: state.highestBidderTeam,
         status: validPlayer ? 'BIDDING' : 'IDLE'
       };
+
+      if (validPlayer && state.secondsRemaining !== null && state.secondsRemaining > 0) {
+        this.startClientTimer(state.secondsRemaining);
+      } else {
+        this.clearClientTimer();
+      }
 
       if (state.bids) {
         this.history = state.bids.map((b: any) => ({
@@ -176,10 +189,11 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
   setupSocket() {
     if (!this.tournamentId) return;
 
-    this.socketService.connectToTournament(this.tournamentId);
+    this.socketService.connectToTournament(this.tournamentId, this.isAdmin);
 
     this.socketService.on('auction_started', (data: any) => {
       console.log('Auction Started:', data);
+      this.isPaused = false;
       this.auctionState = {
         currentPlayer: data.player,
         currentBid: data.player.basePrice,
@@ -187,11 +201,13 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
         status: 'BIDDING'
       };
       this.history = [];
+      this.startClientTimer(30);
       this.cdr.detectChanges();
     });
 
     this.socketService.on('new_bid', (data: any) => {
       console.log('New Bid:', data);
+      this.isPaused = false;
       this.auctionState.currentBid = data.amount;
       this.auctionState.leadingTeam = data.team;
       this.history.unshift({
@@ -199,19 +215,38 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
         amount: data.amount,
         time: new Date()
       });
+      // Reset client timer to exactly 30 seconds on a new bid
+      this.startClientTimer(30);
       this.cdr.detectChanges();
     });
 
     this.socketService.on('player_sold', (data: any) => {
       console.log('Sold:', data);
+      this.isPaused = false;
       this.auctionState.status = 'SOLD';
+      this.clearClientTimer();
       setTimeout(() => this.loadInitialData(false), 3000); // Reload after 3s to show next (background sync)
     });
 
     this.socketService.on('player_unsold', (data: any) => {
       console.log('Unsold:', data);
+      this.isPaused = false;
       this.auctionState.status = 'UNSOLD';
+      this.clearClientTimer();
       setTimeout(() => this.loadInitialData(false), 3000);
+    });
+
+    this.socketService.on('timer_tick', (data: any) => {
+      if (data.secondsRemaining !== undefined && this.auctionState.status === 'BIDDING') {
+        this.secondsRemaining = data.secondsRemaining;
+        this.isPaused = !!data.isPaused;
+        if (this.isPaused) {
+          this.clearClientTimerIntervalOnly();
+        } else if (!this.timerInterval && this.secondsRemaining !== null) {
+          this.startClientTimer(this.secondsRemaining);
+        }
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -269,6 +304,12 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     const team = this.tournament.teams.find((t: any) => t.id === teamId);
 
     // Frontend Check
+    const remainingSlots = this.getRemainingSlots(teamId);
+    if (remainingSlots <= 0) {
+      alert(`This team has already completed its squad! Cannot bid.`);
+      return;
+    }
+
     const maxAllowed = this.getMaxAllowedBid(teamId);
     if (nextBid > maxAllowed) {
       alert(`Bid exceeds maximum allowed bid for this team. \nMax Allowed: ₹${this.formatPrice(maxAllowed)} \n(Reserved for squad completion)`);
@@ -336,9 +377,11 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     const team = this.tournament?.teams?.find((t: any) => t.id === teamId);
     if (!this.tournament || !team) return 0;
 
+    const remainingSlots = this.getRemainingSlots(teamId);
+    if (remainingSlots <= 0) return 0;
+
     // RemainingSlots * MinimumPlayerBasePrice is our reserve amount
     // But one slot is the one we are bidding for right now!
-    const remainingSlots = this.getRemainingSlots(teamId);
     const reserveAmount = (remainingSlots - 1) * this.tournament.minimumPlayerBasePrice;
 
     return team.remainingBudget - reserveAmount;
@@ -361,12 +404,41 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     return amount.toLocaleString('en-IN');
   }
 
+  startClientTimer(seconds: number) {
+    this.clearClientTimerIntervalOnly();
+    this.secondsRemaining = seconds;
+    if (!this.isPaused) {
+      this.timerInterval = setInterval(() => {
+        if (this.secondsRemaining !== null && this.secondsRemaining > 0) {
+          this.secondsRemaining--;
+          this.cdr.detectChanges();
+        } else {
+          this.clearClientTimer();
+        }
+      }, 1000);
+    }
+  }
+
+  clearClientTimer() {
+    this.clearClientTimerIntervalOnly();
+    this.secondsRemaining = null;
+    this.cdr.detectChanges();
+  }
+
+  clearClientTimerIntervalOnly() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+  }
+
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
   }
 
   ngOnDestroy() {
+    this.clearClientTimer();
     this.socketService.disconnect();
   }
 }

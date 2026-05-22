@@ -16,6 +16,10 @@ const io = socketIo(server, {
     }
 });
 
+// Pass io to auctionController for async/timer actions
+const auctionController = require('./controllers/auctionController');
+auctionController.setIo(io);
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -44,13 +48,46 @@ io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
 
     // Join tournament room
-    socket.on('join_tournament', (tournamentId) => {
+    socket.on('join_tournament', (data) => {
+        let tournamentId;
+        let isAdmin = false;
+        if (data && typeof data === 'object') {
+            tournamentId = data.tournamentId;
+            isAdmin = !!data.isAdmin;
+        } else {
+            tournamentId = data;
+        }
+
+        socket.tournamentId = tournamentId;
+        socket.isAdmin = isAdmin;
         socket.join(`tournament_${tournamentId}`);
-        console.log(`Socket ${socket.id} joined tournament_${tournamentId}`);
+        console.log(`Socket ${socket.id} (Admin: ${isAdmin}) joined tournament_${tournamentId}`);
+
+        if (isAdmin) {
+            auctionController.resumeTimer(tournamentId);
+        }
     });
 
     socket.on('disconnect', () => {
         console.log('Client disconnected:', socket.id);
+        if (socket.tournamentId && socket.isAdmin) {
+            const roomName = `tournament_${socket.tournamentId}`;
+            const roomSockets = io.sockets.adapter.rooms.get(roomName);
+            let adminCount = 0;
+            if (roomSockets) {
+                for (const socketId of roomSockets) {
+                    if (socketId === socket.id) continue;
+                    const s = io.sockets.sockets.get(socketId);
+                    if (s && s.isAdmin) {
+                        adminCount++;
+                    }
+                }
+            }
+            if (adminCount === 0) {
+                console.log(`No active admins left in room ${roomName}. Pausing timer.`);
+                auctionController.pauseTimer(socket.tournamentId);
+            }
+        }
     });
 });
 

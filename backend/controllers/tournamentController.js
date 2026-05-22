@@ -187,7 +187,7 @@ exports.addTeam = async (req, res) => {
         // Automatically create a user account for the team
         const defaultPassword = "Team" + (req.body.code || "123") + Math.floor(100 + Math.random() * 900); // e.g. TeamRCB472
         const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-        const username = (req.body.code || team.id).toString().toLowerCase() + + Math.floor(100 + Math.random() * 900);
+        const username = (req.body.code || team.id).toString().toLowerCase() + Math.floor(100 + Math.random() * 900);
 
         try {
             await User.create({
@@ -213,6 +213,7 @@ exports.addTeam = async (req, res) => {
 
         res.status(201).json({
             ...team.toJSON(),
+            username: username,
             defaultPassword: defaultPassword // Send back so admin knows the initial password
         });
     } catch (error) {

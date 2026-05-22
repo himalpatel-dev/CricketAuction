@@ -104,6 +104,7 @@ export class TournamentDetailComponent implements OnInit {
   // Global Player Database State
   showGlobalDatabase = false;
   globalPlayers: any[] = [];
+  selectedGlobalPlayers: any[] = [];
   globalFilters = {
     search: '',
     role: 'All',
@@ -116,6 +117,7 @@ export class TournamentDetailComponent implements OnInit {
     this.showGlobalDatabase = !this.showGlobalDatabase;
 
     if (this.showGlobalDatabase) {
+      this.selectedGlobalPlayers = []; // Reset selection on open
       await this.loadGlobalPlayers();
     } else {
       // Refresh local players just in case
@@ -140,11 +142,39 @@ export class TournamentDetailComponent implements OnInit {
     }
   }
 
-  async addGlobalPlayerToTournament(player: any) {
-    if (!confirm(`Are you sure you want to add ${player.name} to this tournament?`)) {
-      return;
-    }
+  isGlobalPlayerSelected(player: any): boolean {
+    return this.selectedGlobalPlayers.some(p => p.mobileNo === player.mobileNo);
+  }
 
+  toggleGlobalPlayerSelection(player: any) {
+    const index = this.selectedGlobalPlayers.findIndex(p => p.mobileNo === player.mobileNo);
+    if (index > -1) {
+      this.selectedGlobalPlayers.splice(index, 1);
+    } else {
+      this.selectedGlobalPlayers.push(player);
+    }
+  }
+
+  toggleAllGlobalPlayers(event: any) {
+    const checked = event.target.checked;
+    if (checked) {
+      this.globalPlayers.forEach(p => {
+        if (!this.isGlobalPlayerSelected(p)) {
+          this.selectedGlobalPlayers.push(p);
+        }
+      });
+    } else {
+      const visibleMobiles = this.globalPlayers.map(p => p.mobileNo);
+      this.selectedGlobalPlayers = this.selectedGlobalPlayers.filter(p => !visibleMobiles.includes(p.mobileNo));
+    }
+  }
+
+  isAllGlobalPlayersSelected(): boolean {
+    if (this.globalPlayers.length === 0) return false;
+    return this.globalPlayers.every(p => this.isGlobalPlayerSelected(p));
+  }
+
+  async addGlobalPlayerToTournament(player: any) {
     try {
       this.saving = true;
       const payload = {
@@ -155,7 +185,60 @@ export class TournamentDetailComponent implements OnInit {
       await this.tournamentService.addPlayer(this.tournament.id, payload);
       await this.loadTournament(this.tournament.id.toString(), true);
       alert(`${player.name} added successfully to this tournament!`);
+      
+      // Remove from selected list if it was selected
+      const sIndex = this.selectedGlobalPlayers.findIndex(p => p.mobileNo === player.mobileNo);
+      if (sIndex > -1) {
+        this.selectedGlobalPlayers.splice(sIndex, 1);
+      }
+      
       await this.loadGlobalPlayers(); // Refresh the list so the added player disappears
+    } catch (err: any) {
+      console.error('Error adding global player:', err);
+      const errMsg = err.error?.error || err.error?.message || 'Failed to add player.';
+      alert(errMsg);
+    } finally {
+      this.saving = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async addSelectedGlobalPlayers() {
+    if (this.selectedGlobalPlayers.length === 0) return;
+
+    this.saving = true;
+    let addedCount = 0;
+    let failedCount = 0;
+    let failedNames: string[] = [];
+
+    try {
+      for (const player of this.selectedGlobalPlayers) {
+        try {
+          const payload = {
+            ...player,
+            basePrice: this.tournament?.minimumPlayerBasePrice || 0,
+            status: 'UPCOMING'
+          };
+          await this.tournamentService.addPlayer(this.tournament.id, payload);
+          addedCount++;
+        } catch (err: any) {
+          console.error(`Failed to add player ${player.name}:`, err);
+          failedCount++;
+          failedNames.push(player.name);
+        }
+      }
+
+      await this.loadTournament(this.tournament.id.toString(), true);
+      await this.loadGlobalPlayers(); // Refresh the list
+      
+      // Clear selection
+      this.selectedGlobalPlayers = [];
+
+      if (failedCount === 0) {
+        alert(`Successfully added ${addedCount} player(s) to this tournament!`);
+      } else {
+        alert(`Added ${addedCount} player(s). Failed to add ${failedCount} player(s): ${failedNames.join(', ')}.`);
+      }
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -543,7 +626,7 @@ export class TournamentDetailComponent implements OnInit {
 
       if (response && response.defaultPassword) {
         this.createdCredentials = {
-          username: response.code.toLowerCase(),
+          username: response.username || response.code.toLowerCase(),
           password: response.defaultPassword,
           email: this.newTeam.email,
           role: 'Team Owner'

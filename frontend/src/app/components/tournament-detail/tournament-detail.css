@@ -2814,6 +2814,129 @@
     padding: 40px;
 }
 
+/* Global DB Selection & Custom Checkboxes */
+.p-selection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 4px;
+}
+
+.selection-action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    gap: 16px;
+}
+
+.select-all-container {
+    display: flex;
+    align-items: center;
+}
+
+.selection-summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.selection-summary span {
+    font-size: 13px;
+    font-weight: 700;
+    color: #047857;
+}
+
+.btn-add-selected {
+    background: #133b33;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(19, 59, 51, 0.15);
+}
+
+.btn-add-selected:hover:not(:disabled) {
+    background: #0f3029;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(19, 59, 51, 0.25);
+}
+
+.btn-add-selected:disabled {
+    background: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* Custom Premium Checkbox Styling */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+    user-select: none;
+    gap: 10px;
+}
+
+.checkbox-label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.custom-checkbox {
+    position: relative;
+    height: 20px;
+    width: 20px;
+    background-color: #f8fafc;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.checkbox-label:hover input ~ .custom-checkbox {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.checkbox-label input:checked ~ .custom-checkbox {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+
+.custom-checkbox:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.checkbox-label input:checked ~ .custom-checkbox:after {
+    display: block;
+}
+
+.checkbox-label .custom-checkbox:after {
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
 .custom-calendar-popup.open-up {
     top: auto !important;
     bottom: calc(100% + 8px) !important;
@@ -3357,12 +3480,31 @@ select[disabled] {
         width: 100%;
     }
 
+    .selection-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 12px;
+    }
+    
+    .selection-summary {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
     .global-player-row {
         flex-direction: column;
         align-items: stretch;
         text-align: center;
         gap: 12px;
         padding: 16px;
+    }
+
+    .global-player-row .p-selection {
+        justify-content: center;
+        padding-right: 0;
     }
 
     .global-player-row .p-avatar {

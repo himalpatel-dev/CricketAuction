@@ -1,5 +1,205 @@
 const { Player, Team, Bid, Tournament, sequelize } = require('../models');
 
+// Global timer registry
+const activeTimers = {};
+let ioInstance = null;
+
+// Set io instance from server.js
+exports.setIo = (io) => {
+    ioInstance = io;
+};
+
+// Auto-resolve when timer expires
+const autoResolveAuction = async (tournamentId, playerId) => {
+    try {
+        const player = await Player.findByPk(playerId);
+        const tournament = await Tournament.findByPk(tournamentId);
+        if (!tournament || tournament.currentPlayerId != player.id) {
+            return;
+        }
+
+        // Find highest bid
+        const finalBid = await Bid.findOne({
+            where: { playerId },
+            order: [['amount', 'DESC']],
+            include: [{ model: Team, as: 'team' }]
+        });
+
+        if (finalBid) {
+            // Sell player
+            player.status = 'SOLD';
+            player.soldPrice = finalBid.amount;
+            player.soldTo = finalBid.teamId;
+            await player.save();
+
+            // Clear current player tracking
+            const tournament = await Tournament.findByPk(tournamentId);
+            if (tournament) {
+                tournament.currentPlayerId = null;
+                await tournament.save();
+            }
+
+            const team = finalBid.team;
+            team.spentAmount += finalBid.amount;
+            team.remainingBudget -= finalBid.amount;
+            team.playersBought += 1;
+            await team.save();
+
+            if (ioInstance) {
+                ioInstance.to(`tournament_${tournamentId}`).emit('player_sold', {
+                    player,
+                    team,
+                    amount: finalBid.amount
+                });
+            }
+
+            // Auto Pick Next Random Player
+            pickNextRandomPlayer(tournamentId, ioInstance);
+        } else {
+            // Unsold player
+            player.status = 'UNSOLD';
+            player.soldPrice = 0;
+            player.soldTo = null;
+            await player.save();
+
+            // Clear current player tracking
+            const tournament = await Tournament.findByPk(tournamentId);
+            if (tournament) {
+                tournament.currentPlayerId = null;
+                await tournament.save();
+            }
+
+            if (ioInstance) {
+                ioInstance.to(`tournament_${tournamentId}`).emit('player_unsold', {
+                    player
+                });
+            }
+
+            // Auto Pick Next Random Player
+            pickNextRandomPlayer(tournamentId, ioInstance);
+        }
+    } catch (error) {
+        console.error('Error auto-resolving auction:', error);
+    }
+};
+
+// Timer Helper Functions
+const startTournamentTimer = (tournamentId, playerId, initialSeconds = 30) => {
+    stopTournamentTimer(tournamentId);
+
+    // Check if there is at least one admin socket in the room
+    let hasAdmin = false;
+    if (ioInstance) {
+        const roomName = `tournament_${tournamentId}`;
+        const roomSockets = ioInstance.sockets.adapter.rooms.get(roomName);
+        if (roomSockets) {
+            for (const socketId of roomSockets) {
+                const s = ioInstance.sockets.sockets.get(socketId);
+                if (s && s.isAdmin) {
+                    hasAdmin = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    activeTimers[tournamentId] = {
+        secondsRemaining: initialSeconds,
+        playerId: playerId,
+        intervalId: null,
+        paused: !hasAdmin
+    };
+
+    if (ioInstance) {
+        ioInstance.to(`tournament_${tournamentId}`).emit('timer_tick', {
+            secondsRemaining: initialSeconds,
+            playerId: playerId,
+            isPaused: !hasAdmin
+        });
+    }
+
+    if (hasAdmin) {
+        activeTimers[tournamentId].intervalId = setInterval(async () => {
+            const timer = activeTimers[tournamentId];
+            if (!timer) return;
+
+            timer.secondsRemaining--;
+
+            if (timer.secondsRemaining <= 0) {
+                clearInterval(timer.intervalId);
+                delete activeTimers[tournamentId];
+                await autoResolveAuction(tournamentId, playerId);
+            } else {
+                if (ioInstance) {
+                    ioInstance.to(`tournament_${tournamentId}`).emit('timer_tick', {
+                        secondsRemaining: timer.secondsRemaining,
+                        playerId: playerId,
+                        isPaused: false
+                    });
+                }
+            }
+        }, 1000);
+    } else {
+        console.log(`Tournament ${tournamentId} timer started in PAUSED state (no admin present)`);
+    }
+};
+
+const resetTournamentTimer = (tournamentId, playerId, resetSeconds = 30) => {
+    const timer = activeTimers[tournamentId];
+    if (timer && timer.playerId === playerId) {
+        timer.secondsRemaining = resetSeconds;
+        timer.paused = false;
+        if (ioInstance) {
+            ioInstance.to(`tournament_${tournamentId}`).emit('timer_tick', {
+                secondsRemaining: timer.secondsRemaining,
+                playerId: playerId,
+                isPaused: false
+            });
+        }
+    } else {
+        startTournamentTimer(tournamentId, playerId, resetSeconds);
+    }
+};
+
+const stopTournamentTimer = (tournamentId) => {
+    const timer = activeTimers[tournamentId];
+    if (timer) {
+        if (timer.intervalId) {
+            clearInterval(timer.intervalId);
+        }
+        delete activeTimers[tournamentId];
+    }
+};
+
+// Pause & Resume exports for active session tracking
+exports.pauseTimer = (tournamentId) => {
+    const timer = activeTimers[tournamentId];
+    if (timer && !timer.paused) {
+        if (timer.intervalId) {
+            clearInterval(timer.intervalId);
+            timer.intervalId = null;
+        }
+        timer.paused = true;
+        console.log(`Timer paused for tournament ${tournamentId}`);
+        if (ioInstance) {
+            ioInstance.to(`tournament_${tournamentId}`).emit('timer_tick', {
+                secondsRemaining: timer.secondsRemaining,
+                playerId: timer.playerId,
+                isPaused: true
+            });
+        }
+    }
+};
+
+exports.resumeTimer = (tournamentId) => {
+    const timer = activeTimers[tournamentId];
+    if (timer && timer.paused) {
+        timer.paused = false;
+        console.log(`Timer resumed for tournament ${tournamentId} at ${timer.secondsRemaining}s`);
+        startTournamentTimer(tournamentId, timer.playerId, timer.secondsRemaining);
+    }
+};
+
 const pickNextRandomPlayer = async (tournamentId, io) => {
     // Wait for 5 seconds to show SOLD/UNSOLD status before auto-starting next
     setTimeout(async () => {
@@ -8,8 +208,8 @@ const pickNextRandomPlayer = async (tournamentId, io) => {
             if (!tournament) return;
 
             const nextPlayer = await Player.findOne({
-                where: { 
-                    tournamentId, 
+                where: {
+                    tournamentId,
                     status: tournament.lastPoolMode || 'UPCOMING'
                 },
                 order: sequelize.random()
@@ -30,6 +230,9 @@ const pickNextRandomPlayer = async (tournamentId, io) => {
                 io.to(`tournament_${tournamentId}`).emit('auction_started', {
                     player: nextPlayer
                 });
+
+                // Start the server-side countdown timer (30s)
+                startTournamentTimer(tournamentId, nextPlayer.id, 30);
             }
         } catch (error) {
             console.error('Error auto-picking next player:', error);
@@ -71,11 +274,20 @@ exports.getAuctionState = async (req, res) => {
             }
         }
 
+        // Get remaining seconds and paused state if a timer is active
+        const timer = activeTimers[tournamentId];
+        const secondsRemaining = (timer && timer.playerId === (currentPlayer ? currentPlayer.id : null))
+            ? timer.secondsRemaining
+            : null;
+        const isPaused = timer ? !!timer.paused : false;
+
         res.json({
             player: currentPlayer,
             bids: bids,
             currentBid: bids.length > 0 ? bids[0].amount : (currentPlayer ? currentPlayer.basePrice : 0),
-            highestBidderTeam: highestBidderTeam
+            highestBidderTeam: highestBidderTeam,
+            secondsRemaining: secondsRemaining,
+            isPaused: isPaused
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -118,6 +330,9 @@ exports.startPlayerAuction = async (req, res) => {
             player: player
         });
 
+        // Start countdown timer (30s)
+        startTournamentTimer(tournamentId, player.id, 30);
+
         res.json(player);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -131,23 +346,32 @@ exports.placeBid = async (req, res) => {
         const player = await Player.findByPk(playerId);
         if (!player) return res.status(404).json({ message: 'Player not found' });
 
-        const team = await Team.findByPk(teamId);
-        if (!team) return res.status(404).json({ message: 'Team not found' });
-
-        // Calculate MaxAllowedBid
         const tournament = await Tournament.findByPk(tournamentId);
         if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
 
+        // Reject if the player is not the active player currently up for auction
+        if (tournament.currentPlayerId != player.id) {
+            return res.status(400).json({ message: 'Bidding is closed for this player' });
+        }
+
+        const team = await Team.findByPk(teamId);
+        if (!team) return res.status(404).json({ message: 'Team not found' });
+
         const remainingSlots = tournament.playersPerTeam - (team.playersBought || 0);
-        
+
+        // BUG FIX: Reject bid if remainingSlots <= 0 (squad capacity full)
+        if (remainingSlots <= 0) {
+            return res.status(400).json({ message: 'Team has already completed its squad' });
+        }
+
         // Ensure team can afford remaining slots at base price
         const reserveAmount = (remainingSlots - 1) * tournament.minimumPlayerBasePrice;
         const maxAllowedBid = team.remainingBudget - reserveAmount;
 
         if (amount > maxAllowedBid) {
-            return res.status(100).json({ 
+            return res.status(400).json({
                 message: `Bid exceeds maximum allowed bid for this team. Max Allowed: ${maxAllowedBid}`,
-                maxAllowedBid 
+                maxAllowedBid
             });
         }
 
@@ -172,6 +396,9 @@ exports.placeBid = async (req, res) => {
             bid: bidWithTeam,
             team: team
         });
+
+        // Reset timer to 30s
+        resetTournamentTimer(tournamentId, playerId, 30);
 
         res.json(bidWithTeam);
     } catch (error) {
@@ -212,6 +439,9 @@ exports.sellPlayer = async (req, res) => {
         team.playersBought += 1;
         await team.save();
 
+        // Stop active countdown timer
+        stopTournamentTimer(tournamentId);
+
         req.io.to(`tournament_${tournamentId}`).emit('player_sold', {
             player,
             team,
@@ -227,6 +457,7 @@ exports.sellPlayer = async (req, res) => {
     }
 };
 
+// Admin: Mark player as UNSOLD
 exports.markUnsold = async (req, res) => {
     const { tournamentId, playerId } = req.body;
     try {
@@ -255,6 +486,9 @@ exports.markUnsold = async (req, res) => {
             await tournament.save();
         }
 
+        // Stop active countdown timer
+        stopTournamentTimer(tournamentId);
+
         req.io.to(`tournament_${tournamentId}`).emit('player_unsold', {
             player
         });
@@ -268,6 +502,7 @@ exports.markUnsold = async (req, res) => {
     }
 };
 
+// Get team recent activity
 exports.getTeamRecentActivity = async (req, res) => {
     const { teamId } = req.params;
     try {

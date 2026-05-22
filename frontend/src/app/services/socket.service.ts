@@ -15,7 +15,7 @@ export class SocketService {
 
     constructor() { }
 
-    connectToTournament(tournamentId: string | number) {
+    connectToTournament(tournamentId: string | number, isAdmin: boolean = false) {
         if (this.socket) {
             this.socket.disconnect();
         }
@@ -23,7 +23,7 @@ export class SocketService {
 
         this.socket.on('connect', () => {
             console.log('Connected to socket server');
-            this.socket?.emit('join_tournament', tournamentId);
+            this.socket?.emit('join_tournament', { tournamentId, isAdmin });
         });
 
         this.socket.on('disconnect', () => {

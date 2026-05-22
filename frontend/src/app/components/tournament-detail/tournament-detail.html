@@ -43,7 +43,7 @@
                             <button class="btn-edit" (click)="setTab('Settings')">Edit Tournament</button>
                             <button class="btn-continue" (click)="openRegistrationLinkModal()">Copy Tournament
                                 Link</button>
-                            <button *ngIf="stats.unsoldPlayers > 0" class="btn-unsold" (click)="startUnsoldAuction()">
+                            <button *ngIf="stats.unsoldPlayers > 0" class="btn-continue" (click)="startUnsoldAuction()">
                                 <span class="icon-refresh">🔄</span> Unsold Auction
                             </button>
                             <button *ngIf="shouldShowAuctionButton()" class="btn-continue" (click)="startAuction()">
@@ -544,6 +544,22 @@
                             </div>
                         </div>
 
+                        <div class="selection-action-bar" *ngIf="!loadingGlobal && globalPlayers.length > 0">
+                            <div class="select-all-container">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" [checked]="isAllGlobalPlayersSelected()" (change)="toggleAllGlobalPlayers($event)">
+                                    <span class="custom-checkbox"></span>
+                                    Select All Current
+                                </label>
+                            </div>
+                            <div class="selection-summary" *ngIf="selectedGlobalPlayers.length > 0">
+                                <span>{{ selectedGlobalPlayers.length }} player(s) selected</span>
+                                <button type="button" class="btn-add-selected" (click)="addSelectedGlobalPlayers()" [disabled]="saving">
+                                    {{ saving ? 'Adding...' : 'Add Selected' }}
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="global-players-list">
                             <div class="loading-overlay-inline" *ngIf="loadingGlobal">
                                 <div class="spinner"></div>
@@ -554,6 +570,12 @@
                             </div>
 
                             <div class="global-player-row" *ngFor="let p of globalPlayers">
+                                <div class="p-selection">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" [checked]="isGlobalPlayerSelected(p)" (change)="toggleGlobalPlayerSelection(p)">
+                                        <span class="custom-checkbox"></span>
+                                    </label>
+                                </div>
                                 <div class="p-avatar">
                                     <img [src]="getGlobalPlayerImageUrl(p.image)" alt="">
                                 </div>
