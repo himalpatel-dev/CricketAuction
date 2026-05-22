@@ -179,26 +179,41 @@
 }
 
 @media (max-width: 580px) {
+    .nav-container {
+        padding: 0 12px;
+    }
+
     .nav-links {
         gap: 6px;
     }
     
     .nav-link {
-        padding: 6px 12px;
+        padding: 6px 10px;
         font-size: 13px;
     }
     
     .logo-text {
         font-size: 18px;
     }
+
+    .nav-right {
+        gap: 10px;
+    }
+
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+
+    .logout-btn {
+        width: 36px;
+        height: 36px;
+    }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 480px) {
     .logo-text {
         display: none;
-    }
-    
-    .nav-container {
-        padding: 0 12px;
     }
 }
