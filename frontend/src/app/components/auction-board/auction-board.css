@@ -311,6 +311,14 @@
     object-fit: cover;
 }
 
+/* player without a photo: large initial instead of a tiny letter */
+.avatar-circle > span {
+    font-size: clamp(64px, 14vh, 160px);
+    font-weight: 800;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.35);
+}
+
 .player-info {
     margin-top: auto;
     flex-shrink: 0;
@@ -776,23 +784,24 @@
     }
 
     .team-bid-btn-sidebar {
-        padding: 8px;
-        border-radius: 8px;
+        padding: 10px;
+        border-radius: 10px;
         gap: 4px;
+        min-height: 64px;
     }
 
     .team-bid-btn-sidebar .code {
-        font-size: 12px;
+        font-size: 14px;
     }
 
     .team-bid-btn-sidebar .slots {
-        font-size: 8px;
-        padding: 1px 4px;
+        font-size: 9px;
+        padding: 2px 5px;
     }
 
     .team-bid-btn-sidebar .purse,
     .team-bid-btn-sidebar .max-bid {
-        font-size: 8px;
+        font-size: 10px;
     }
 
     .increment-grid {
@@ -833,7 +842,8 @@
     }
 }
 
-@media (max-width: 400px) {
+/* keep 2 columns of team buttons on normal phones; only very narrow screens go single column */
+@media (max-width: 340px) {
     .teams-grid-sidebar {
         grid-template-columns: 1fr;
     }

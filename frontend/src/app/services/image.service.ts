@@ -25,7 +25,7 @@ export class ImageService {
   }
 
   getTeamImageUrl(imagePath: string | null | undefined): string | SafeUrl | null {
-    if (!imagePath) return '/assets/images/default-team.png';
+    if (!imagePath) return '/assets/images/default-team.svg';
 
     if (imagePath.startsWith('data:') || imagePath.startsWith('http')) {
       return imagePath;

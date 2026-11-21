@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Team logo placeholder">
+  <rect width="120" height="120" rx="24" fill="#e8f1ee"/>
+  <path d="M60 22 88 32v24c0 20-12 34-28 42-16-8-28-22-28-42V32z" fill="#133b33"/>
+  <path d="M60 30 81 37.5v18.5c0 15.5-8.8 26.6-21 33.4-12.2-6.8-21-17.9-21-33.4V37.5z" fill="none" stroke="#ffb700" stroke-width="3"/>
+  <circle cx="60" cy="58" r="11" fill="#ffffff"/>
+  <path d="M51.5 52.5c4 2.2 4 9.8 0 12M68.5 52.5c-4 2.2-4 9.8 0 12" fill="none" stroke="#ef4444" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

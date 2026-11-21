@@ -201,6 +201,13 @@
     border-color: #10b981;
 }
 
+/* smaller placeholder so the hint fits on phones; typed digits keep the large style */
+.highlight-group input::placeholder {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
 .registration-content-grid {
     display: grid;
     grid-template-columns: 1fr;
