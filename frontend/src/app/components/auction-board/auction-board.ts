@@ -28,6 +28,9 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
 
   loading = true;
   isAdmin = false;
+  // Public spectator mode (/live/:id) — no login, no controls
+  isViewer = false;
+  liveLinkCopied = false;
   currentUserId: string | null = null;
   userTeamId: number | null = null;
   teamPlayers: any[] = [];
@@ -70,6 +73,20 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.tournamentId = this.route.snapshot.paramMap.get('id');
+    this.isViewer = !!this.route.snapshot.data['viewer'];
+
+    // Public viewer link: always read-only, regardless of who (if anyone) is logged in
+    if (this.isViewer) {
+      this.isAdmin = false;
+      this.userTeamId = null;
+      this.auctionMode = 'normal';
+      if (this.tournamentId) {
+        this.setupSocket();
+        await this.loadInitialData();
+      }
+      return;
+    }
+
     const user = this.authService.getUser();
 
     // Treat TOURNAMENT_ADMIN as admin for this page
@@ -124,12 +141,15 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
       // or if they are already IN_AUCTION.
       // But if they are still UPCOMING, and we are in unsold mode, hide them.
       let validPlayer = state.player;
-      if (this.auctionMode === 'unsold' && state.player && state.player.status === 'UPCOMING') {
-        validPlayer = null;
-      }
-      // Conversely, if we are in normal mode and the player is UNSOLD (re-auction), hide them.
-      if (this.auctionMode === 'normal' && state.player && state.player.status === 'UNSOLD') {
-        validPlayer = null;
+      // Viewers don't know which round the admin is running, so they always see the current player.
+      if (!this.isViewer) {
+        if (this.auctionMode === 'unsold' && state.player && state.player.status === 'UPCOMING') {
+          validPlayer = null;
+        }
+        // Conversely, if we are in normal mode and the player is UNSOLD (re-auction), hide them.
+        if (this.auctionMode === 'normal' && state.player && state.player.status === 'UNSOLD') {
+          validPlayer = null;
+        }
       }
 
       this.isPaused = !!state.isPaused;
@@ -430,6 +450,24 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
+  }
+
+  get liveViewUrl(): string {
+    return `${window.location.origin}/live/${this.tournamentId}`;
+  }
+
+  copyLiveLink() {
+    navigator.clipboard.writeText(this.liveViewUrl).then(() => {
+      this.liveLinkCopied = true;
+      this.cdr.detectChanges();
+      setTimeout(() => {
+        this.liveLinkCopied = false;
+        this.cdr.detectChanges();
+      }, 2000);
+    }).catch(err => {
+      console.error('Could not copy live link:', err);
+      prompt('Copy this live auction link:', this.liveViewUrl);
+    });
   }
 
   logout() {

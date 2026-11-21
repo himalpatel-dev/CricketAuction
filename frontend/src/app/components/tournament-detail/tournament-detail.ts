@@ -58,6 +58,7 @@ export class TournamentDetailComponent implements OnInit {
   registrationUrl: string = '';
   copiedRegistration = false;
   qrCodeUrl = '';
+  shareLinkType: 'registration' | 'live' = 'registration';
 
   showAddPlayerForm = false;
   newPlayer: any = {
@@ -672,6 +673,19 @@ export class TournamentDetailComponent implements OnInit {
     const tournamentIdPart = this.tournament && this.tournament.id ? `?tournamentId=${this.tournament.id}` : '';
     this.registrationUrl = `${origin}/register${tournamentIdPart}`;
     this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(this.registrationUrl)}`;
+    this.shareLinkType = 'registration';
+    this.showRegistrationModal = true;
+    this.copiedRegistration = false;
+    this.cdr.detectChanges();
+  }
+
+  // Public, login-free link where anyone can watch the auction live
+  openLiveLinkModal() {
+    if (!this.tournament?.id) return;
+    const origin = window.location.origin || '';
+    this.registrationUrl = `${origin}/live/${this.tournament.id}`;
+    this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(this.registrationUrl)}`;
+    this.shareLinkType = 'live';
     this.showRegistrationModal = true;
     this.copiedRegistration = false;
     this.cdr.detectChanges();

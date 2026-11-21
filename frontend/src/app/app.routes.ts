@@ -14,6 +14,8 @@ export const routes: Routes = [
     { path: 'add-tournament', component: AddTournamentComponent },
     { path: 'tournament-detail/:id', component: TournamentDetailComponent },
     { path: 'auction/:id', component: AuctionBoardComponent },
+    // Public, login-free, read-only view of the live auction (shareable link)
+    { path: 'live/:id', component: AuctionBoardComponent, data: { viewer: true } },
     { path: 'register', loadComponent: () => import('./components/player-registration/player-registration').then(m => m.PlayerRegistrationComponent) },
     { path: 'team-dashboard', loadComponent: () => import('./components/team-dashboard/team-dashboard').then(m => m.TeamDashboardComponent) },
     { path: 'team-dashboard/:tournamentId/:teamId', loadComponent: () => import('./components/team-dashboard/team-dashboard').then(m => m.TeamDashboardComponent) },

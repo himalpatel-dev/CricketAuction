@@ -6,12 +6,20 @@
 
     <header class="auction-header">
         <div class="header-left">
+            @if (!isViewer) {
             <button class="back-btn" [routerLink]="backLink">
                 {{ '← Dashboard' }}
             </button>
+            @if (isAdmin) {
+            <button class="back-btn share-live-btn" (click)="copyLiveLink()" [attr.title]="liveViewUrl">
+                {{ liveLinkCopied ? '✅ Link Copied' : '🔗 Share Live Link' }}
+            </button>
+            }
+            }
         </div>
 
         <div class="tournament-info" *ngIf="tournament" style="text-align: center;">
+            <h1 *ngIf="isViewer" class="viewer-tournament-name">{{ tournament.name }}</h1>
             <span class="live-indicator" style="justify-content: center;"
                 [class.unsold-mode]="auctionMode === 'unsold'">
                 <span class="dot"></span> {{ auctionMode === 'unsold' ? 'UNSOLD PLAYER AUCTION' : 'LIVE AUCTION' }}
@@ -23,10 +31,16 @@
                 <span class="dot"></span>
                 {{ socketService.isConnected ? 'Server Connected' : 'Connecting...' }}
             </div>
+            @if (isViewer) {
+            <div class="user-info">
+                <span class="role">👁 LIVE VIEW</span>
+            </div>
+            } @else {
             <div class="user-info">
                 <span class="role">{{ isAdmin ? 'ADMINISTRATOR' : 'TEAM OWNER' }}</span>
                 <button (click)="logout()" class="logout-link">Sign Out</button>
             </div>
+            }
         </div>
     </header>
 
@@ -115,7 +129,7 @@
             </div>
             } @else {
             <div class="empty-state-center">
-                <h2>Auction Paused</h2>
+                <h2>{{ isViewer ? 'Waiting for Next Player' : 'Auction Paused' }}</h2>
                 <p>Waiting for the administrator to start the next auction.</p>
 
                 <div *ngIf="isAdmin" class="admin-start-action">
@@ -262,6 +276,35 @@
                 </div>
             </div>
 
+            }
+
+            <!-- Public Viewer: read-only team standings -->
+            @else if (isViewer) {
+            <div class="panel-card secondary-panel">
+                <div class="panel-header">
+                    <h3>Teams</h3>
+                    <span class="icon">🏏</span>
+                </div>
+                <div class="scroll-list">
+                    @for (team of tournament?.teams; track team.id) {
+                    <div class="history-pill viewer-team-pill"
+                        [class.leading]="auctionState?.leadingTeam?.id === team.id">
+                        <div class="viewer-team-name">
+                            <span class="h-team-code">{{ team.code }}</span>
+                            <span class="viewer-team-sub">{{ team.name }}</span>
+                        </div>
+                        <div class="viewer-team-stats">
+                            <span class="h-bid-amount">₹{{ formatPrice(team.remainingBudget) }}</span>
+                            <span class="viewer-team-sub">Slots left: {{ getRemainingSlots(team.id) }}</span>
+                        </div>
+                    </div>
+                    } @empty {
+                    <div class="empty-state">
+                        <p>No teams yet</p>
+                    </div>
+                    }
+                </div>
+            </div>
             }
         </aside>
     </div>

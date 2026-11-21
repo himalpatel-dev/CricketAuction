@@ -43,6 +43,9 @@
                             <button class="btn-edit" (click)="setTab('Settings')">Edit Tournament</button>
                             <button class="btn-continue" (click)="openRegistrationLinkModal()">Copy Tournament
                                 Link</button>
+                            <button class="btn-continue" (click)="openLiveLinkModal()">
+                                <span>📺</span> Live Auction Link
+                            </button>
                             <button *ngIf="stats.unsoldPlayers > 0" class="btn-continue" (click)="startUnsoldAuction()">
                                 <span class="icon-refresh">🔄</span> Unsold Auction
                             </button>
@@ -1482,16 +1485,22 @@
                 <span class="link-icon">🔗</span>
             </div>
 
+            @if (shareLinkType === 'live') {
+            <h2>Share Live Auction Link</h2>
+            <p class="subtitle">Anyone with this link can watch the <strong>{{ tournament?.name }}</strong> auction
+                live. No login needed, and it's view only.</p>
+            } @else {
             <h2>Share Player Registration Link</h2>
             <p class="subtitle">Share this link or QR code with players to register them for <strong>{{ tournament?.name
                     }}</strong>.</p>
+            }
 
             <!-- QR Code Section -->
             <div class="qr-code-section" *ngIf="qrCodeUrl">
                 <div class="qr-code-container">
-                    <img [src]="qrCodeUrl" alt="Registration QR Code" class="qr-code-img" />
+                    <img [src]="qrCodeUrl" alt="Share Link QR Code" class="qr-code-img" />
                 </div>
-                <p class="qr-hint">Scan with phone camera to register</p>
+                <p class="qr-hint">{{ shareLinkType === 'live' ? 'Scan with phone camera to watch live' : 'Scan with phone camera to register' }}</p>
             </div>
 
             <!-- Link Box -->
