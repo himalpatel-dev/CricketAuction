@@ -574,37 +574,6 @@
     transform: translateY(-2px);
 }
 
-/* Overlays */
-.status-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(6, 42, 30, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    backdrop-filter: blur(8px);
-    border-radius: 24px;
-}
-
-.stamp {
-    font-size: 48px;
-    font-weight: 900;
-    border: 8px solid;
-    padding: 10px 30px;
-    transform: rotate(-10deg);
-}
-
-.sold .stamp {
-    color: var(--primary-light);
-    border-color: var(--primary-light);
-}
-
-.unsold .stamp {
-    color: #ef4444;
-    border-color: #ef4444;
-}
-
 /* Empty States */
 .empty-state-center {
     text-align: center;
@@ -843,11 +812,6 @@
         border-radius: 8px;
     }
 
-    .stamp {
-        font-size: 28px;
-        border-width: 6px;
-        padding: 8px 20px;
-    }
 }
 
 @media (max-width: 580px) {
@@ -1015,5 +979,688 @@
 
     .viewer-tournament-name {
         font-size: 18px !important;
+    }
+}
+
+/* ===== Current highest bid card pulses on each new bid ===== */
+.current-bid-display-left.bid-bump {
+    animation: bid-bump 0.9s ease-out;
+}
+
+@keyframes bid-bump {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 183, 0, 0.9);
+    }
+
+    25% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 18px rgba(255, 183, 0, 0);
+    }
+}
+
+/* ===== Live Bids feed (left panel) ===== */
+.live-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.live-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+    animation: live-ping 1.6s infinite;
+}
+
+@keyframes live-ping {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+    }
+
+    70% {
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+.bid-count {
+    background: #062a1e;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 5px 11px;
+    border-radius: 100px;
+}
+
+.bid-feed {
+    padding-top: 4px;
+}
+
+.bid-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 16px;
+    transition: background 0.2s;
+}
+
+.bid-row:not(.latest):hover {
+    background: #f8fafc;
+}
+
+/* timeline connector between team badges */
+.bid-row:not(.latest)::before {
+    content: '';
+    position: absolute;
+    left: 29px;
+    top: -26px;
+    height: 36px;
+    width: 2px;
+    background: #e2e8f0;
+}
+
+.bid-row.faded {
+    opacity: 0.6;
+}
+
+.bid-badge {
+    position: relative;
+    z-index: 1;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.3px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.bid-badge img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #ffffff;
+}
+
+.bid-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.bid-team {
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #1e293b;
+    /* full team name, up to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.bid-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.bid-step {
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 6px;
+}
+
+.bid-time {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.bid-value {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.bid-amount {
+    font-size: 15px;
+    font-weight: 900;
+    color: #065f46;
+    white-space: nowrap;
+}
+
+/* Latest bid: dark highlighted card */
+.bid-row.latest {
+    grid-template-columns: 44px 1fr auto;
+    padding: 14px;
+    margin-bottom: 14px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #062a1e 0%, #0d5c40 100%);
+    /* negative spread keeps the shadow inside the scroll area (no clipped edges) */
+    box-shadow: 0 8px 14px -8px rgba(6, 42, 30, 0.6);
+    animation: bid-arrive 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* one-time light sweep when a new bid lands */
+.bid-row.latest::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -60%;
+    width: 50%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+    transform: skewX(-20deg);
+    animation: bid-shine 1.1s 0.2s ease-out forwards;
+    pointer-events: none;
+}
+
+.bid-row.latest .bid-badge {
+    width: 44px;
+    height: 44px;
+    font-size: 12px;
+    border: 3px solid #ffb700;
+    box-shadow: 0 0 0 4px rgba(255, 183, 0, 0.2);
+}
+
+.bid-row.latest .bid-team {
+    color: #ffffff;
+    font-size: 15px;
+}
+
+.bid-row.latest .bid-step {
+    background: #ffb700;
+    color: #062a1e;
+}
+
+.bid-row.latest .bid-time {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.bid-row.latest .bid-amount {
+    color: #ffb700;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.bid-leading {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+}
+
+@keyframes bid-arrive {
+    0% {
+        opacity: 0;
+        transform: translateY(-18px) scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes bid-shine {
+    to {
+        left: 130%;
+    }
+}
+
+.bid-feed-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 40px 12px;
+    text-align: center;
+    color: #94a3b8;
+}
+
+.bid-feed-empty .icon {
+    font-size: 28px;
+    opacity: 0.6;
+}
+
+.bid-feed-empty p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: #64748b;
+}
+
+.bid-feed-empty span:last-child {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ===== New bid: broadcast lower third (bottom of screen, ~3s) ===== */
+.bid-lower {
+    position: fixed;
+    left: 50%;
+    /* sit low so the player's name above stays visible */
+    bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) + 8px));
+    z-index: 1000;
+    width: min(760px, calc(100% - 32px));
+    transform: translateX(-50%);
+    filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.5));
+    pointer-events: none;
+    /* never blocks the admin's buttons underneath */
+}
+
+.bl-inner {
+    display: grid;
+    grid-template-columns: 96px 1fr auto;
+    height: 68px;
+    /* white base so the angled cuts of the code / amount blocks show white, not the page behind */
+    background: #ffffff;
+    animation: bl-wipe 3.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.bl-code {
+    position: relative;
+    z-index: 1;
+    margin-right: -16px;
+    display: grid;
+    place-items: center;
+    background: var(--team);
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 900;
+    clip-path: polygon(0 0, 100% 0, 83% 100%, 0 100%);
+}
+
+.bl-code img {
+    position: absolute;
+    top: 50%;
+    left: 42%;
+    width: 50px;
+    height: 50px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    object-fit: cover;
+    background: #ffffff;
+}
+
+.bl-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 0 22px 0 30px;
+    background: #ffffff;
+    color: #062a1e;
+}
+
+.bl-main small {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: #64748b;
+}
+
+.bl-main b {
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bl-amount {
+    margin-left: -16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 0 22px 0 34px;
+    background: #ffb700;
+    color: #062a1e;
+    clip-path: polygon(16% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.bl-amount small {
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.bl-amount b {
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+@keyframes bl-wipe {
+    0% {
+        clip-path: inset(0 100% 0 0);
+    }
+
+    14%,
+    86% {
+        clip-path: inset(0 0 0 0);
+    }
+
+    100% {
+        clip-path: inset(0 0 0 100%);
+    }
+}
+
+/* ===== SOLD / UNSOLD: full-screen broadcast flash (held ~5s until next player) ===== */
+.result-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 1001;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: rgba(4, 18, 13, 0.85);
+    pointer-events: none;
+    animation: rf-in 0.3s ease both;
+}
+
+.result-flash.unsold {
+    --team: #b91c1c;
+}
+
+/* stage wraps the text, so the band always fits its content at any screen size */
+.rf-stage {
+    position: relative;
+    max-width: 92vw;
+    display: grid;
+    place-items: center;
+    padding: 56px 0;
+}
+
+.rf-band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -50vw;
+    right: -50vw;
+    background: var(--team);
+    box-shadow: 0 -6px 0 #ffb700, 0 6px 0 #ffb700;
+    /* tilt around the centre so the band stays centred on the text;
+       the left-to-right sweep is a clip reveal (negative inset keeps the gold edges) */
+    transform: skewY(-5deg);
+    transform-origin: center;
+    clip-path: inset(-10px 100% -10px 0);
+    animation: rf-band 0.45s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+.result-flash.unsold .rf-band {
+    box-shadow: 0 -6px 0 #ffffff, 0 6px 0 #ffffff;
+}
+
+.rf-body {
+    position: relative;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    color: #ffffff;
+    animation: rf-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.rf-badge {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: #ffffff;
+    color: var(--team);
+    border: 4px solid #ffb700;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.rf-badge img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #ffffff;
+}
+
+.rf-team {
+    font-size: clamp(26px, 5vw, 64px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-wrap: balance;
+    text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.rf-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.rf-stamp {
+    padding: 6px 16px;
+    border-radius: 8px;
+    background: #062a1e;
+    color: #ffffff;
+    font-size: clamp(16px, 2vw, 22px);
+    font-weight: 900;
+    letter-spacing: 4px;
+}
+
+.result-flash.unsold .rf-stamp {
+    background: #ffffff;
+    color: #b91c1c;
+}
+
+.rf-amount {
+    font-size: clamp(44px, 8vw, 104px);
+    font-weight: 900;
+    line-height: 1;
+    color: #ffb700;
+    text-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.rf-player {
+    font-size: clamp(14px, 1.6vw, 20px);
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* 5-second bar until the next player is called */
+.next-bar {
+    width: 220px;
+    max-width: 70%;
+    height: 4px;
+    margin-top: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.next-bar span {
+    display: block;
+    height: 100%;
+    background: #ffffff;
+    border-radius: inherit;
+    transform-origin: left;
+    animation: next-bar 5s linear forwards;
+}
+
+@keyframes next-bar {
+    from {
+        transform: scaleX(1);
+    }
+
+    to {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes rf-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes rf-band {
+    to {
+        clip-path: inset(-10px 0 -10px 0);
+    }
+}
+
+@keyframes rf-pop {
+    from {
+        opacity: 0;
+        transform: scale(1.4);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* shorter laptop screens: slimmer graphic so the player's name above stays clear */
+@media (min-width: 769px) and (max-height: 820px) {
+    .bl-inner {
+        height: 60px;
+    }
+
+    .bl-main b {
+        font-size: 22px;
+    }
+
+    .bl-amount b {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 768px) {
+    .bl-inner {
+        grid-template-columns: 62px 1fr auto;
+        height: 62px;
+    }
+
+    .bl-code {
+        font-size: 15px;
+    }
+
+    .bl-code img {
+        width: 38px;
+        height: 38px;
+        border-width: 2px;
+    }
+
+    .bl-main {
+        padding: 0 12px 0 24px;
+    }
+
+    .bl-main small {
+        font-size: 9px;
+        letter-spacing: 2px;
+    }
+
+    .bl-main b {
+        font-size: 15px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .bl-amount {
+        padding: 0 14px 0 26px;
+    }
+
+    .bl-amount small {
+        font-size: 9px;
+    }
+
+    .bl-amount b {
+        font-size: 22px;
+    }
+
+    .rf-badge {
+        width: 64px;
+        height: 64px;
+        font-size: 16px;
+    }
+
+    .rf-stage {
+        padding: 40px 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bl-inner,
+    .result-flash,
+    .rf-body,
+    .bid-row.latest,
+    .bid-row.latest::after,
+    .live-dot,
+    .current-bid-display-left.bid-bump {
+        animation: none;
+    }
+
+    .rf-band {
+        animation: none;
+        clip-path: none;
     }
 }

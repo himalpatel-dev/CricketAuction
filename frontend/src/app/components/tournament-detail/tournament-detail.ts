@@ -9,6 +9,7 @@ import { TopNavComponent } from '../top-nav/top-nav';
 import { TeamCardComponent } from '../team-card/team-card.component';
 import { PlayerCardComponent } from '../player-card/player-card.component';
 import { ImageCropperComponent, ImageCroppedEvent, LoadedImage, CropperPosition } from 'ngx-image-cropper';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-tournament-detail',
@@ -185,7 +186,7 @@ export class TournamentDetailComponent implements OnInit {
       };
       await this.tournamentService.addPlayer(this.tournament.id, payload);
       await this.loadTournament(this.tournament.id.toString(), true);
-      alert(`${player.name} added successfully to this tournament!`);
+      this.toast.success(`${player.name} added successfully to this tournament!`);
       
       // Remove from selected list if it was selected
       const sIndex = this.selectedGlobalPlayers.findIndex(p => p.mobileNo === player.mobileNo);
@@ -197,7 +198,7 @@ export class TournamentDetailComponent implements OnInit {
     } catch (err: any) {
       console.error('Error adding global player:', err);
       const errMsg = err.error?.error || err.error?.message || 'Failed to add player.';
-      alert(errMsg);
+      this.toast.error(errMsg);
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -236,9 +237,9 @@ export class TournamentDetailComponent implements OnInit {
       this.selectedGlobalPlayers = [];
 
       if (failedCount === 0) {
-        alert(`Successfully added ${addedCount} player(s) to this tournament!`);
+        this.toast.success(`Successfully added ${addedCount} player(s) to this tournament!`);
       } else {
-        alert(`Added ${addedCount} player(s). Failed to add ${failedCount} player(s): ${failedNames.join(', ')}.`);
+        this.toast.warning(`Added ${addedCount} player(s). Failed to add ${failedCount} player(s): ${failedNames.join(', ')}.`);
       }
     } finally {
       this.saving = false;
@@ -260,7 +261,7 @@ export class TournamentDetailComponent implements OnInit {
         this.tournament.players = this.tournament.players.filter((p: any) => p.id !== player.id);
       }
 
-      alert('Player removed successfully');
+      this.toast.success('Player removed successfully');
 
       // Recalculate everything locally for instant UI response
       this.processTeams();
@@ -271,7 +272,7 @@ export class TournamentDetailComponent implements OnInit {
       await this.loadTournament(this.tournament.id.toString(), true);
     } catch (err: any) {
       console.error('Error removing player:', err);
-      alert(err.error?.message || 'Failed to remove player');
+      this.toast.error(err.error?.message || 'Failed to remove player');
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -334,7 +335,7 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   loadImageFailed() {
-    alert('Failed to load image. Please try another file.');
+    this.toast.error('Failed to load image. Please try another file.');
     this.showCropper = false;
     this.isCropperLoading = false;
     this.cdr.detectChanges();
@@ -381,7 +382,7 @@ export class TournamentDetailComponent implements OnInit {
         console.error('Manual crop failed', e);
       }
 
-      alert('The cropped image is not ready yet. Please try moving the crop box slightly or wait a second.');
+      this.toast.warning('The cropped image is not ready yet. Please try moving the crop box slightly or wait a second.');
     }
     console.log('--- CROPPING DEBUG END ---');
   }
@@ -645,7 +646,7 @@ export class TournamentDetailComponent implements OnInit {
     } catch (err: any) {
       console.error('Error adding team:', err);
       const errorMsg = err.error?.error || err.error?.message || 'Failed to add team. Check if team code is unique.';
-      alert(errorMsg);
+      this.toast.error(errorMsg);
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -702,7 +703,7 @@ export class TournamentDetailComponent implements OnInit {
       }, 2000);
     }).catch(err => {
       console.error('Could not copy registration link:', err);
-      alert('Could not copy link to clipboard');
+      this.toast.error('Could not copy link to clipboard');
     });
   }
 
@@ -742,7 +743,7 @@ export class TournamentDetailComponent implements OnInit {
     } catch (err: any) {
       console.error('Error saving player:', err);
       const errorMsg = err.error?.error || err.error?.message || 'Failed to save player. Please try again.';
-      alert(errorMsg);
+      this.toast.error(errorMsg);
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -784,7 +785,8 @@ export class TournamentDetailComponent implements OnInit {
     private tournamentService: TournamentService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private imageService: ImageService
+    private imageService: ImageService,
+    private toast: ToastService
   ) {
     const currentYear = new Date().getFullYear();
     for (let i = currentYear - 60; i <= currentYear + 5; i++) {
@@ -1181,12 +1183,12 @@ export class TournamentDetailComponent implements OnInit {
       }
 
       await this.tournamentService.update(this.tournament.id, this.tournament);
-      alert('Tournament updated successfully!');
+      this.toast.success('Tournament updated successfully!');
       this.setTab('Overview');
       await this.loadTournament(this.tournament.id.toString());
     } catch (err: any) {
       console.error('Error updating tournament:', err);
-      alert('Failed to update tournament');
+      this.toast.error('Failed to update tournament');
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -1214,11 +1216,11 @@ export class TournamentDetailComponent implements OnInit {
     this.saving = true;
     try {
       await this.tournamentService.update(this.tournament.id, { isrequestedtoedit: 1 });
-      alert('Edit permission requested successfully! Waiting for main admin approval.');
+      this.toast.success('Edit permission requested successfully! Waiting for main admin approval.');
       await this.loadTournament(this.tournament.id.toString(), true);
     } catch (err: any) {
       console.error('Error requesting edit permission:', err);
-      alert('Failed to request edit permission');
+      this.toast.error('Failed to request edit permission');
     } finally {
       this.saving = false;
       this.cdr.detectChanges();
@@ -1231,14 +1233,14 @@ export class TournamentDetailComponent implements OnInit {
     try {
       await this.tournamentService.update(this.tournament.id, { isrequestedtoedit: status });
       if (status === 2) {
-        alert('Edit request approved! The tournament admin can now modify details.');
+        this.toast.success('Edit request approved! The tournament admin can now modify details.');
       } else {
-        alert('Edit request declined.');
+        this.toast.info('Edit request declined.');
       }
       await this.loadTournament(this.tournament.id.toString(), true);
     } catch (err: any) {
       console.error('Error responding to edit request:', err);
-      alert('Failed to respond to edit request');
+      this.toast.error('Failed to respond to edit request');
     } finally {
       this.saving = false;
       this.cdr.detectChanges();

@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { PlayerCardComponent } from '../player-card/player-card.component';
 import { API_CONFIG } from '../../config/api.config';
 import { ImageService } from '../../services/image.service';
+import { ToastService } from '../../services/toast.service';
 @Component({
     selector: 'app-team-dashboard',
     standalone: true,
@@ -66,7 +67,8 @@ export class TeamDashboardComponent implements OnInit {
         private router: Router,
         private http: HttpClient,
         private authService: AuthService,
-        private imageService: ImageService
+        private imageService: ImageService,
+        private toast: ToastService
     ) { }
 
     setTab(tab: string) {
@@ -130,7 +132,7 @@ export class TeamDashboardComponent implements OnInit {
 
         this.http.put(`${API_CONFIG.baseUrl}/api/teams/${this.teamId}`, formData).subscribe({
             next: (res: any) => {
-                alert('Team details updated successfully!');
+                this.toast.success('Team details updated successfully!');
                 this.teamName = res.name;
                 this.totalBudget = res.budget;
                 if (res.logoUrl) {
@@ -139,7 +141,7 @@ export class TeamDashboardComponent implements OnInit {
                 this.fetchTournamentInfo(this.tournamentId!);
                 this.selectedLogoFile = null;
             },
-            error: (err) => alert('Error updating team: ' + err.message)
+            error: (err) => this.toast.error('Error updating team: ' + err.message)
         });
     }
 

@@ -6,6 +6,7 @@ import { SocketService } from '../../services/socket.service';
 import { TournamentService } from '../../services/tournament.service';
 import { AuthService } from '../../services/auth.service';
 import { ImageService } from '../../services/image.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-auction-board',
@@ -41,6 +42,17 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
   timerInterval: any = null;
   isPaused = false;
 
+  // SOLD / UNSOLD result shown until the server calls the next player (~5s)
+  resultInfo: { team: any; amount: number } | null = null;
+  private resultFallbackTimeout: any = null;
+
+  // Bumped on every new bid so the current-bid card re-renders and pulses
+  bidPulseKey = 0;
+
+  // Top announcement bar shown for ~3s on every new bid
+  bidAlert: { key: number; team: any; amount: number; raise: string } | null = null;
+  private bidAlertTimeout: any = null;
+
   constructor(
     private route: ActivatedRoute,
     private auctionService: AuctionService,
@@ -49,11 +61,33 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private router: Router,
-    private imageService: ImageService
+    private imageService: ImageService,
+    private toast: ToastService
   ) { }
 
   getPlayerImageUrl(imagePath: string | null | undefined): any {
     return this.imageService.getPlayerImageUrl(imagePath);
+  }
+
+  getTeamLogoUrl(logoPath: string | null | undefined): any {
+    return this.imageService.getTeamImageUrl(logoPath);
+  }
+
+  /** Stable, distinct colour per team for its badge in the live bids feed. */
+  teamColor(code: string | null | undefined): string {
+    let hue = 0;
+    for (const ch of code || '') hue = (hue * 31 + ch.charCodeAt(0)) % 360;
+    return `hsl(${hue}, 62%, 40%)`;
+  }
+
+  /** How much bid #i raised over the previous bid (history is newest first). */
+  bidStep(i: number): string {
+    const bid = this.history[i];
+    const prev = this.history[i + 1];
+    if (!bid) return '';
+    if (prev) return `+₹${this.formatPrice(bid.amount - prev.amount)}`;
+    if (bid.amount === this.auctionState?.currentPlayer?.basePrice) return 'BASE PRICE';
+    return '';
   }
 
   get availablePlayers() {
@@ -128,12 +162,7 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     if (showLoading) this.loading = true;
 
     try {
-      this.tournament = await this.tournamentService.getById(this.tournamentId);
-
-      // Sort teams alphabetically by name
-      if (this.tournament?.teams) {
-        this.tournament.teams.sort((a: any, b: any) => a.name.localeCompare(b.name));
-      }
+      this.tournament = await this.fetchTournament();
 
       const state: any = await this.auctionService.getAuctionState(this.tournamentId);
 
@@ -153,6 +182,7 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
       }
 
       this.isPaused = !!state.isPaused;
+      this.clearResult();
 
       this.auctionState = {
         currentPlayer: validPlayer,
@@ -169,7 +199,10 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
 
       if (state.bids) {
         this.history = state.bids.map((b: any) => ({
+          id: b.id,
           teamCode: b.team?.code,
+          teamName: b.team?.name,
+          logoUrl: b.team?.logoUrl,
           amount: b.amount,
           time: b.createdAt
         }));
@@ -206,6 +239,65 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async fetchTournament() {
+    const tournament = await this.tournamentService.getById(this.tournamentId!);
+    // Sort teams alphabetically by name
+    if (tournament?.teams) {
+      tournament.teams.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    }
+    return tournament;
+  }
+
+  // Update purses / squads in the background without touching what's on the board
+  private async refreshTournamentData() {
+    if (!this.tournamentId) return;
+    try {
+      this.tournament = await this.fetchTournament();
+      if (this.userTeamId) {
+        this.teamPlayers = await this.tournamentService.getTeamPlayers(this.userTeamId);
+      }
+      this.cdr.detectChanges();
+    } catch (err) {
+      console.error('Error refreshing tournament data:', err);
+    }
+  }
+
+  /** Show SOLD (with buying team + price) or UNSOLD until the server calls the next player. */
+  private showResult(status: 'SOLD' | 'UNSOLD', team: any = null, amount = 0) {
+    this.isPaused = false;
+    this.auctionState.status = status;
+    this.resultInfo = { team, amount };
+    this.bidAlert = null;
+    this.clearClientTimer();
+    this.refreshTournamentData();
+
+    // Server auto-calls the next player 5s after a result. If nothing arrives
+    // (e.g. pool finished), resync so the board doesn't stay stuck on the result.
+    clearTimeout(this.resultFallbackTimeout);
+    this.resultFallbackTimeout = setTimeout(() => this.loadInitialData(false), 6500);
+    this.cdr.detectChanges();
+  }
+
+  private announceBid(team: any, amount: number, raise: number) {
+    this.bidAlert = {
+      key: Date.now(),
+      team,
+      amount,
+      raise: raise > 0 ? `+₹${this.formatPrice(raise)}` : 'OPENING BID'
+    };
+    clearTimeout(this.bidAlertTimeout);
+    this.bidAlertTimeout = setTimeout(() => {
+      this.bidAlert = null;
+      this.cdr.detectChanges();
+    }, 3200);
+  }
+
+  private clearResult() {
+    clearTimeout(this.resultFallbackTimeout);
+    this.resultFallbackTimeout = null;
+    this.resultInfo = null;
+  }
+
   setupSocket() {
     if (!this.tournamentId) return;
 
@@ -213,6 +305,7 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
 
     this.socketService.on('auction_started', (data: any) => {
       console.log('Auction Started:', data);
+      this.clearResult();
       this.isPaused = false;
       this.auctionState = {
         currentPlayer: data.player,
@@ -228,13 +321,19 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     this.socketService.on('new_bid', (data: any) => {
       console.log('New Bid:', data);
       this.isPaused = false;
+      const previousBid = this.history[0];
+      this.announceBid(data.team, data.amount, previousBid ? data.amount - previousBid.amount : 0);
       this.auctionState.currentBid = data.amount;
       this.auctionState.leadingTeam = data.team;
       this.history.unshift({
+        id: data.bid?.id ?? Date.now(),
         teamCode: data.team.code,
+        teamName: data.team.name,
+        logoUrl: data.team.logoUrl,
         amount: data.amount,
         time: new Date()
       });
+      this.bidPulseKey++;
       // Reset client timer to exactly 30 seconds on a new bid
       this.startClientTimer(30);
       this.cdr.detectChanges();
@@ -242,18 +341,12 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
 
     this.socketService.on('player_sold', (data: any) => {
       console.log('Sold:', data);
-      this.isPaused = false;
-      this.auctionState.status = 'SOLD';
-      this.clearClientTimer();
-      setTimeout(() => this.loadInitialData(false), 3000); // Reload after 3s to show next (background sync)
+      this.showResult('SOLD', data.team, data.amount);
     });
 
     this.socketService.on('player_unsold', (data: any) => {
       console.log('Unsold:', data);
-      this.isPaused = false;
-      this.auctionState.status = 'UNSOLD';
-      this.clearClientTimer();
-      setTimeout(() => this.loadInitialData(false), 3000);
+      this.showResult('UNSOLD');
     });
 
     this.socketService.on('timer_tick', (data: any) => {
@@ -326,13 +419,13 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     // Frontend Check
     const remainingSlots = this.getRemainingSlots(teamId);
     if (remainingSlots <= 0) {
-      alert(`This team has already completed its squad! Cannot bid.`);
+      this.toast.warning(`This team has already completed its squad! Cannot bid.`);
       return;
     }
 
     const maxAllowed = this.getMaxAllowedBid(teamId);
     if (nextBid > maxAllowed) {
-      alert(`Bid exceeds maximum allowed bid for this team. \nMax Allowed: ₹${this.formatPrice(maxAllowed)} \n(Reserved for squad completion)`);
+      this.toast.warning(`Bid exceeds maximum allowed bid for this team. \nMax Allowed: ₹${this.formatPrice(maxAllowed)} \n(Reserved for squad completion)`);
       return;
     }
 
@@ -348,7 +441,7 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
 
     } catch (err: any) {
       console.error('Bid failed:', err);
-      alert('Bid failed: ' + (err.error?.message || 'Connection error'));
+      this.toast.error('Bid failed: ' + (err.error?.message || 'Connection error'));
     }
   }
 
@@ -357,10 +450,8 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     try {
       await this.auctionService.sellPlayer(this.tournamentId, this.auctionState.currentPlayer.id);
 
-      // Optimistic Update
-      this.auctionState.status = 'SOLD';
-      this.cdr.detectChanges();
-      setTimeout(() => this.loadInitialData(false), 3000);
+      // Optimistic Update (socket 'player_sold' shows the same result)
+      this.showResult('SOLD', this.auctionState.leadingTeam, this.auctionState.currentBid);
 
     } catch (err: any) {
       console.error('Sell failed:', err);
@@ -372,10 +463,8 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     try {
       await this.auctionService.markUnsold(this.tournamentId, this.auctionState.currentPlayer.id);
 
-      // Optimistic Update
-      this.auctionState.status = 'UNSOLD';
-      this.cdr.detectChanges();
-      setTimeout(() => this.loadInitialData(false), 3000); // Reload to get next player
+      // Optimistic Update (socket 'player_unsold' shows the same result)
+      this.showResult('UNSOLD');
 
     } catch (err: any) {
       console.error('Unsold failed:', err);
@@ -519,6 +608,8 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.clearClientTimer();
+    clearTimeout(this.resultFallbackTimeout);
+    clearTimeout(this.bidAlertTimeout);
     this.socketService.disconnect();
   }
 }

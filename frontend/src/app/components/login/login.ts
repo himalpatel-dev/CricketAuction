@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -44,7 +45,8 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) { }
 
   async onSubmit() {
@@ -112,7 +114,7 @@ export class LoginComponent {
       // Clear temporary session so they have to log in again
       this.authService.logout();
 
-      alert('Password updated successfully! Please sign in using your new password.');
+      this.toast.success('Password updated successfully! Please sign in using your new password.');
       
       // Reset form states
       this.mustChange = false;

@@ -44,6 +44,68 @@
         </div>
     </header>
 
+    <!-- New bid: broadcast-style lower third at the bottom of the screen for ~3s.
+         Keyed on the bid so the wipe-in replays for every bid. -->
+    @if (bidAlert && auctionState.status === 'BIDDING') {
+    @for (a of [bidAlert]; track a.key) {
+    <div class="bid-lower" role="status" aria-live="polite" [style.--team]="teamColor(a.team?.code)">
+        <div class="bl-inner">
+            <span class="bl-code">
+                {{ a.team?.code }}
+                @if (a.team?.logoUrl) {
+                <img [src]="getTeamLogoUrl(a.team.logoUrl)" [alt]="a.team?.code"
+                    (error)="$any($event.target).style.display = 'none'">
+                }
+            </span>
+            <span class="bl-main">
+                <small>🔨 NEW BID</small>
+                <b>{{ a.team?.name || a.team?.code }}</b>
+            </span>
+            <span class="bl-amount">
+                <small>{{ a.raise }}</small>
+                <b>₹{{ formatPrice(a.amount) }}</b>
+            </span>
+        </div>
+    </div>
+    }
+    }
+
+    <!-- SOLD / UNSOLD: full-screen broadcast flash, held until the next player is called (~5s) -->
+    @if (auctionState?.currentPlayer && (auctionState.status === 'SOLD' || auctionState.status === 'UNSOLD')) {
+    <div class="result-flash" [class.unsold]="auctionState.status === 'UNSOLD'"
+        [style.--team]="teamColor(resultInfo?.team?.code)" role="status" aria-live="assertive">
+        <div class="rf-stage">
+        <span class="rf-band"></span>
+        <div class="rf-body">
+            @if (auctionState.status === 'SOLD') {
+            @if (resultInfo?.team; as soldTeam) {
+            <span class="rf-badge">
+                {{ soldTeam.code }}
+                @if (soldTeam.logoUrl) {
+                <img [src]="getTeamLogoUrl(soldTeam.logoUrl)" [alt]="soldTeam.code"
+                    (error)="$any($event.target).style.display = 'none'">
+                }
+            </span>
+            <span class="rf-team">{{ soldTeam.name }}</span>
+            }
+            <div class="rf-line">
+                <span class="rf-stamp">SOLD</span>
+                <span class="rf-amount">₹{{ formatPrice(resultInfo?.amount || auctionState.currentBid) }}</span>
+            </div>
+            <span class="rf-player">{{ auctionState.currentPlayer.name }}</span>
+            } @else {
+            <span class="rf-team">{{ auctionState.currentPlayer.name }}</span>
+            <div class="rf-line">
+                <span class="rf-stamp">UNSOLD</span>
+            </div>
+            <span class="rf-player">No bids received</span>
+            }
+            <div class="next-bar"><span></span></div>
+        </div>
+        </div>
+    </div>
+    }
+
     @if (loading) {
     <div class="loading-screen">
         <div class="loader"></div>
@@ -55,26 +117,50 @@
         <aside class="side-panel">
             <div class="panel-card secondary-panel">
                 <div class="panel-header">
-                    <h3>Bidding History</h3>
-                    <span class="icon">⌛</span>
+                    <h3 class="live-title"><span class="live-dot"></span> Live Bids</h3>
+                    <span class="bid-count">{{ history.length }} {{ history.length === 1 ? 'BID' : 'BIDS' }}</span>
                 </div>
-                <div class="scroll-list">
-                    @for (h of history; track h.time) {
-                    <!-- @for (h of (history || []).slice(-7).reverse(); track $index) { -->
-                    <div class="history-pill">
-                        <span class="h-team-code">{{ h.teamCode }}</span>
-                        <span class="h-bid-amount">₹{{ formatPrice(h.amount) }}</span>
+                <div class="scroll-list bid-feed">
+                    @for (h of history; track h.id; let i = $index, first = $first) {
+                    <div class="bid-row" [class.latest]="first" [class.faded]="i > 3">
+                        <div class="bid-badge" [style.background]="teamColor(h.teamCode)">
+                            {{ h.teamCode }}
+                            @if (h.logoUrl) {
+                            <img [src]="getTeamLogoUrl(h.logoUrl)" [alt]="h.teamCode"
+                                (error)="$any($event.target).style.display = 'none'">
+                            }
+                        </div>
+                        <div class="bid-info">
+                            <span class="bid-team">{{ h.teamName || h.teamCode }}</span>
+                            <span class="bid-meta">
+                                @if (bidStep(i); as step) {
+                                <span class="bid-step">{{ step }}</span>
+                                }
+                                <span class="bid-time">{{ h.time | date:'h:mm:ss a' }}</span>
+                            </span>
+                        </div>
+                        <div class="bid-value">
+                            @if (first) {
+                            <span class="bid-leading">{{ auctionState.status === 'SOLD' ? '🏆 WON' : '👑 LEADING' }}</span>
+                            }
+                            <span class="bid-amount">₹{{ formatPrice(h.amount) }}</span>
+                        </div>
                     </div>
                     } @empty {
-                    <div class="empty-state">
-                        <p>No bids recorded yet</p>
+                    <div class="bid-feed-empty">
+                        <span class="icon">🔨</span>
+                        <p>No bids yet</p>
+                        <span>Waiting for the first bid…</span>
                     </div>
                     }
                 </div>
             </div>
 
             <!-- Moved Bid Display here -->
-            <div class="current-bid-display-left" *ngIf="auctionState?.currentPlayer">
+            @if (auctionState?.currentPlayer) {
+            <!-- keyed on bidPulseKey so the card is re-created (and pulses) on every new bid -->
+            @for (k of [bidPulseKey]; track k) {
+            <div class="current-bid-display-left" [class.bid-bump]="k > 0">
                 <div class="bid-label">CURRENT HIGHEST BID</div>
                 <h1 class="bid-amount-sidebar">₹ {{ formatPrice(auctionState.currentBid ||
                     auctionState.currentPlayer.basePrice) }}</h1>
@@ -84,6 +170,8 @@
                     <span class="leading-text">Leading Bid: <strong>{{ auctionState.leadingTeam.name }}</strong></span>
                 </div>
             </div>
+            }
+            }
         </aside>
 
         <!-- Center Panel: The Main Board -->
@@ -98,16 +186,6 @@
                         <span class="timer-icon">{{ isPaused ? '⏸️' : '⏱️' }}</span>
                         <span class="timer-text">{{ secondsRemaining }}s {{ isPaused ? '(PAUSED)' : '' }}</span>
                     </div>
-
-                    @if (auctionState.status === 'SOLD') {
-                    <div class="status-overlay sold">
-                        <span class="stamp">SOLD</span>
-                    </div>
-                    } @else if (auctionState.status === 'UNSOLD') {
-                    <div class="status-overlay unsold">
-                        <span class="stamp">UNSOLD</span>
-                    </div>
-                    }
 
                     <div class="avatar-container">
                         <div class="avatar-circle">

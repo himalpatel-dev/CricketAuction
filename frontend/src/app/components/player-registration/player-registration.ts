@@ -5,6 +5,7 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ImageService } from '../../services/image.service';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { TournamentService } from '../../services/tournament.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-player-registration',
@@ -90,7 +91,8 @@ export class PlayerRegistrationComponent {
     private route: ActivatedRoute,
     private tournamentService: TournamentService,
     private imageService: ImageService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {
     // Read query params first, then load tournaments so we can preselect and lock if requested
     this.route.queryParams.subscribe(params => {
@@ -114,7 +116,7 @@ export class PlayerRegistrationComponent {
 
       // Check file size (2MB = 2 * 1024 * 1024 bytes)
       if (file.size > 2 * 1024 * 1024) {
-        alert('Image size is more than 2MB. Please select a smaller file.');
+        this.toast.warning('Image size is more than 2MB. Please select a smaller file.');
         if (this.photoInput) this.photoInput.nativeElement.value = '';
         return;
       }
@@ -163,7 +165,7 @@ export class PlayerRegistrationComponent {
   }
 
   loadImageFailed() {
-    alert('Failed to load image. Please try another file.');
+    this.toast.error('Failed to load image. Please try another file.');
     this.showCropper = false;
     this.isCropperLoading = false;
     this.cdr.detectChanges();
@@ -194,7 +196,7 @@ export class PlayerRegistrationComponent {
       if (this.photoInput) this.photoInput.nativeElement.value = '';
       this.cdr.detectChanges();
     } else {
-      alert('The cropped image is not ready yet. Please try moving the crop box slightly or wait a second.');
+      this.toast.warning('The cropped image is not ready yet. Please try moving the crop box slightly or wait a second.');
     }
   }
 

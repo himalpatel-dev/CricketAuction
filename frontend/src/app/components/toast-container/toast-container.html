@@ -1,0 +1,15 @@
+<div class="toast-stack" aria-live="polite">
+    @for (t of toastService.toasts(); track t.id) {
+    <div class="toast" [attr.data-type]="t.type" [class.leaving]="t.leaving"
+        [attr.role]="t.type === 'error' ? 'alert' : 'status'" [style.--duration]="t.duration + 'ms'">
+        <span class="toast-icon" aria-hidden="true">{{ icons[t.type] }}</span>
+        <div class="toast-body">
+            <strong class="toast-title">{{ titles[t.type] }}</strong>
+            <p class="toast-message">{{ t.message }}</p>
+        </div>
+        <button type="button" class="toast-close" (click)="toastService.dismiss(t.id)"
+            aria-label="Dismiss notification">×</button>
+        <span class="toast-progress" aria-hidden="true"></span>
+    </div>
+    }
+</div>
