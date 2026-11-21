@@ -13,7 +13,11 @@ const io = socketIo(server, {
     cors: {
         origin: '*', // Allow all for dev
         methods: ['GET', 'POST']
-    }
+    },
+    // Detect an admin who vanished without a clean disconnect (crash, network loss) within ~15s
+    // instead of the default ~45s, so the auction timer pauses quickly.
+    pingInterval: 10000,
+    pingTimeout: 5000
 });
 
 // Pass io to auctionController for async/timer actions

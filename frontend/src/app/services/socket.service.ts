@@ -13,6 +13,15 @@ export class SocketService {
         return this.socket?.connected || false;
     }
 
+    /** True while a socket exists (connected or auto-reconnecting). */
+    get hasSocket(): boolean {
+        return !!this.socket;
+    }
+
+    get socketId(): string | null {
+        return this.socket?.id || null;
+    }
+
     constructor() { }
 
     connectToTournament(tournamentId: string | number, isAdmin: boolean = false) {

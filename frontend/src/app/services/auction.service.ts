@@ -41,4 +41,18 @@ export class AuctionService {
     async markUnsold(tournamentId: string | number, playerId: string | number) {
         return firstValueFrom(this.http.post(`${this.apiUrl}/unsold`, { tournamentId, playerId }, { headers: this.getHeaders() }));
     }
+
+    /**
+     * Tell the server the admin left the auction board so the timer pauses immediately.
+     * Uses sendBeacon (form-encoded, no CORS preflight) because it still gets delivered while
+     * the page is closing / navigating away, where a normal HTTP or socket call may be dropped.
+     */
+    notifyAdminLeft(tournamentId: string | number, socketId: string | null) {
+        const url = `${this.apiUrl}/admin-left`;
+        const body = new URLSearchParams({ tournamentId: String(tournamentId), socketId: socketId || '' });
+        try {
+            if (navigator.sendBeacon && navigator.sendBeacon(url, body)) return;
+        } catch { /* fall through */ }
+        fetch(url, { method: 'POST', body, keepalive: true }).catch(() => { });
+    }
 }

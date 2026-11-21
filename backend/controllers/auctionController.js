@@ -83,25 +83,25 @@ const autoResolveAuction = async (tournamentId, playerId) => {
     }
 };
 
+// Is at least one admin / tournament-admin socket watching this tournament's auction board?
+const hasActiveAdmin = (tournamentId, excludeSocketId = null) => {
+    if (!ioInstance) return false;
+    const roomSockets = ioInstance.sockets.adapter.rooms.get(`tournament_${tournamentId}`);
+    if (!roomSockets) return false;
+    for (const socketId of roomSockets) {
+        if (socketId === excludeSocketId) continue;
+        const s = ioInstance.sockets.sockets.get(socketId);
+        if (s && s.isAdmin) return true;
+    }
+    return false;
+};
+
 // Timer Helper Functions
 const startTournamentTimer = (tournamentId, playerId, initialSeconds = 30) => {
     stopTournamentTimer(tournamentId);
 
     // Check if there is at least one admin socket in the room
-    let hasAdmin = false;
-    if (ioInstance) {
-        const roomName = `tournament_${tournamentId}`;
-        const roomSockets = ioInstance.sockets.adapter.rooms.get(roomName);
-        if (roomSockets) {
-            for (const socketId of roomSockets) {
-                const s = ioInstance.sockets.sockets.get(socketId);
-                if (s && s.isAdmin) {
-                    hasAdmin = true;
-                    break;
-                }
-            }
-        }
-    }
+    const hasAdmin = hasActiveAdmin(tournamentId);
 
     activeTimers[tournamentId] = {
         secondsRemaining: initialSeconds,
@@ -146,9 +146,10 @@ const startTournamentTimer = (tournamentId, playerId, initialSeconds = 30) => {
 
 const resetTournamentTimer = (tournamentId, playerId, resetSeconds = 30) => {
     const timer = activeTimers[tournamentId];
-    if (timer && timer.playerId === playerId) {
+    // Only reset in place if the countdown is actually running. A paused timer has no
+    // interval, so restart it properly (which re-checks that an admin is present).
+    if (timer && timer.playerId === playerId && !timer.paused && timer.intervalId) {
         timer.secondsRemaining = resetSeconds;
-        timer.paused = false;
         if (ioInstance) {
             ioInstance.to(`tournament_${tournamentId}`).emit('timer_tick', {
                 secondsRemaining: timer.secondsRemaining,
@@ -189,6 +190,27 @@ exports.pauseTimer = (tournamentId) => {
             });
         }
     }
+};
+
+// Called via navigator.sendBeacon when an admin's auction page is closed, hidden or navigated away.
+// Beacons get delivered even while the page unloads, so the pause is instant instead of waiting
+// for the socket heartbeat to notice the admin is gone.
+exports.adminLeft = (req, res) => {
+    const { tournamentId, socketId } = req.body || {};
+    if (!tournamentId) return res.status(400).json({ message: 'tournamentId is required' });
+
+    if (ioInstance && socketId) {
+        const s = ioInstance.sockets.sockets.get(socketId);
+        if (s && s.isAdmin && String(s.tournamentId) === String(tournamentId)) {
+            // Drop the stale admin socket; server.js 'disconnect' handler pauses if no admin remains
+            s.disconnect(true);
+        }
+    }
+
+    if (!hasActiveAdmin(tournamentId, socketId)) {
+        exports.pauseTimer(tournamentId);
+    }
+    res.status(204).end();
 };
 
 exports.resumeTimer = (tournamentId) => {

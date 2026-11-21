@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuctionService } from '../../services/auction.service';
@@ -450,6 +450,48 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
+  }
+
+  // ---- Pause the auction the moment the admin leaves the board ----
+  // In-app navigation already disconnects in ngOnDestroy. These cover everything else:
+  // closing the tab, browser/phone back out of the site, refresh, switching apps / tabs,
+  // or locking the phone. Without them the server only notices via heartbeat timeout.
+
+  @HostListener('document:visibilitychange')
+  onVisibilityChange() {
+    if (document.visibilityState === 'hidden') {
+      this.leaveBoardAsAdmin();
+    } else {
+      this.returnToBoard();
+    }
+  }
+
+  @HostListener('window:pagehide')
+  onPageHide() {
+    this.leaveBoardAsAdmin();
+  }
+
+  @HostListener('window:pageshow', ['$event'])
+  onPageShow(event: PageTransitionEvent) {
+    // Page restored from the browser's back/forward cache
+    if (event.persisted) this.returnToBoard();
+  }
+
+  private leaveBoardAsAdmin() {
+    if (!this.isAdmin || !this.tournamentId || !this.socketService.hasSocket) return;
+    this.auctionService.notifyAdminLeft(this.tournamentId, this.socketService.socketId);
+    this.socketService.disconnect();
+    this.clearClientTimerIntervalOnly();
+  }
+
+  private returnToBoard() {
+    if (!this.tournamentId) return;
+    // Admin: rejoin as admin (server resumes the timer). Viewers/teams: just refresh state,
+    // since events may have been missed while the page was in the background.
+    if (!this.socketService.hasSocket) {
+      this.setupSocket();
+    }
+    this.loadInitialData(false);
   }
 
   get liveViewUrl(): string {
