@@ -155,6 +155,7 @@ export class TournamentDetailComponent implements OnInit {
     } else {
       this.selectedGlobalPlayers.push(player);
     }
+    this.cdr.detectChanges();
   }
 
   toggleAllGlobalPlayers(event: any) {
@@ -169,6 +170,7 @@ export class TournamentDetailComponent implements OnInit {
       const visibleMobiles = this.globalPlayers.map(p => p.mobileNo);
       this.selectedGlobalPlayers = this.selectedGlobalPlayers.filter(p => !visibleMobiles.includes(p.mobileNo));
     }
+    this.cdr.detectChanges();
   }
 
   isAllGlobalPlayersSelected(): boolean {
