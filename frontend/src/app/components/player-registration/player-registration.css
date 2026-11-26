@@ -1,6 +1,6 @@
 .registration-page {
     min-height: 100vh;
-    background: linear-gradient(rgba(19, 59, 51, 0.7), rgba(10, 31, 27, 0.8)), url('/assets/images/background.jfif');
+    background: linear-gradient(rgba(var(--primary-rgb), 0.7), rgba(10, 31, 27, 0.8)), url('/assets/images/background.jfif');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -189,7 +189,7 @@
 
 .quick-start-section {
     background: #ecfdf5;
-    border: 2px solid #10b981;
+    border: 2px solid var(--primary-light);
     margin-bottom: 24px;
 }
 
@@ -198,7 +198,7 @@
     font-weight: 800;
     text-align: center;
     letter-spacing: 2px;
-    border-color: #10b981;
+    border-color: var(--primary-light);
 }
 
 /* smaller placeholder so the hint fits on phones; typed digits keep the large style */
@@ -269,7 +269,7 @@
 .form-group label {
     font-size: 11px;
     font-weight: 700;
-    color: #133b33;
+    color: var(--primary);
     text-transform: uppercase;
     letter-spacing: 0.8px;
     padding-left: 2px;
@@ -291,9 +291,9 @@ select {
 input:focus,
 select:focus {
     outline: none;
-    border-color: #10b981;
+    border-color: var(--primary-light);
     background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 0 4px rgba(var(--secondary-rgb), 0.1);
 }
 
 .select-wrapper {
@@ -341,8 +341,8 @@ select {
 }
 
 .custom-dropdown.open .dropdown-selected {
-    border-color: #10b981;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(var(--secondary-rgb), 0.1);
 }
 
 .dropdown-selected .caret {
@@ -453,8 +453,8 @@ select {
 }
 
 .date-input-wrapper .dropdown-selected.active {
-    border-color: #10b981;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(var(--secondary-rgb), 0.1);
 }
 
 .calendar-icon-svg {
@@ -527,7 +527,7 @@ select {
 }
 
 .cal-dropdowns select:focus {
-    border-color: #10b981;
+    border-color: var(--primary-light);
 }
 
 .cal-nav {
@@ -578,7 +578,7 @@ select {
 
 .day:hover {
     background: #f0fdf4;
-    color: #10b981;
+    color: var(--primary-light);
 }
 
 .day.other-month {
@@ -586,7 +586,7 @@ select {
 }
 
 .day.selected {
-    background: #10b981;
+    background: var(--primary-light);
     color: #ffffff;
 }
 
@@ -595,7 +595,7 @@ select {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #133b33;
+    background: var(--primary);
     padding: 14px 20px;
     border-radius: 16px;
     margin-top: 12px;
@@ -663,16 +663,16 @@ select {
 }
 
 .btn-primary {
-    background: #133b33;
+    background: var(--primary);
     color: white;
     flex: 2;
-    box-shadow: 0 10px 15px rgba(19, 59, 51, 0.2);
+    box-shadow: 0 10px 15px rgba(var(--primary-rgb), 0.2);
 }
 
 .btn-primary:hover:not(:disabled) {
     background: #1a4d43;
     transform: translateY(-3px);
-    box-shadow: 0 20px 40px rgba(19, 59, 51, 0.3);
+    box-shadow: 0 20px 40px rgba(var(--primary-rgb), 0.3);
 }
 
 .btn-primary:disabled {
@@ -684,7 +684,7 @@ select {
 .btn-outline {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    color: #133b33;
+    color: var(--primary);
     flex: 1;
 }
 
@@ -844,7 +844,7 @@ select {
 
 .day:hover {
     background: #f0fdf4;
-    color: #10b981;
+    color: var(--primary-light);
 }
 
 .day.other-month {
@@ -852,7 +852,7 @@ select {
 }
 
 .day.selected {
-    background: #10b981;
+    background: var(--primary-light);
     color: #ffffff;
 }
 
@@ -879,9 +879,9 @@ select {
 }
 
 .photo-preview.has-image {
-    border-color: #10b981;
+    border-color: var(--primary-light);
     border-style: solid;
-    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 10px 25px rgba(var(--secondary-rgb), 0.2);
 }
 
 .photo-preview img {
@@ -918,8 +918,8 @@ select {
 .btn-outline.small {
     padding: 10px 20px;
     font-size: 12px;
-    border: 2px solid #133b33;
-    color: #133b33;
+    border: 2px solid var(--primary);
+    color: var(--primary);
     background: transparent;
     font-weight: 700;
     border-radius: 12px;
@@ -929,13 +929,13 @@ select {
 }
 
 .btn-outline.small:hover {
-    background: #133b33;
+    background: var(--primary);
     color: white;
 }
 
 .input-hint {
     font-size: 12px;
-    color: #133b33;
+    color: var(--primary);
     margin: 4px 0 0 0;
     font-weight: 600;
 }
@@ -1291,4 +1291,44 @@ select {
 .custom-dropdown.disabled .lock-icon {
     font-size: 14px;
     opacity: 0.75;
+}
+
+/* ===== Tournament branding (registration link for one tournament) ===== */
+.tournament-reg-logo {
+    width: 72px;
+    height: 72px;
+    margin-left: 20px;
+    flex-shrink: 0;
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 3px var(--accent);
+}
+
+.tournament-reg-logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+.brand-name.tournament-reg-name {
+    font-size: 26px;
+    letter-spacing: -0.3px;
+    line-height: 1.1;
+}
+
+@media (max-width: 768px) {
+    .tournament-reg-logo {
+        width: 56px;
+        height: 56px;
+        margin-left: 12px;
+    }
+
+    .brand-name.tournament-reg-name {
+        font-size: 20px;
+    }
 }

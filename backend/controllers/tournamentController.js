@@ -5,6 +5,177 @@ const { saveBase64Image } = require('../utils/imageUpload');
 const { sendCredentialsEmail } = require('../utils/mailer');
 const crypto = require('crypto');
 
+// ---------- Tournament branding (logo, banner, theme colors) ----------
+
+const BRANDING_UPLOAD_DIR = 'uploads/tournament';
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+// SVG is left out on purpose: it can carry scripts when opened directly.
+const BRANDING_IMAGE = /^data:image\/(png|jpe?g|webp|gif);base64,/i;
+const BRANDING_FIELDS = ['id', 'name', 'logo', 'bannerImage', 'primaryColor', 'secondaryColor', 'accentColor', 'location', 'category'];
+
+/**
+ * Turns an incoming logo/banner value into what we store:
+ *   - new upload (data URL)  -> saved to uploads/tournament, returns the file name
+ *   - null / ''              -> null (image removed)
+ *   - anything else          -> undefined (leave the stored value alone)
+ */
+const resolveBrandingImage = (value, tournamentId, kind) => {
+    if (value === null || value === '') return null;
+    if (typeof value !== 'string' || !BRANDING_IMAGE.test(value)) return undefined;
+    const saved = saveBase64Image(value, `tournament_${tournamentId}_${kind}`, BRANDING_UPLOAD_DIR);
+    // saveBase64Image hands the input back when it could not write the file
+    if (saved === value) throw new Error(`Could not save the ${kind} image`);
+    return saved;
+};
+
+const resolveColor = (value) => {
+    if (value === null || value === '') return null;
+    if (typeof value === 'string' && HEX_COLOR.test(value)) return value.toLowerCase();
+    return undefined;
+};
+
+/** Public: just what the login page / live view needs to show a tournament's look. */
+exports.getTournamentBranding = async (req, res) => {
+    try {
+        const tournament = await Tournament.findByPk(req.params.id, { attributes: BRANDING_FIELDS });
+        if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+        res.json(tournament);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+/**
+ * Saves only the branding fields. Kept separate from updateTournament so changing the look
+ * does not use up (reset) a tournament admin's approved edit permission.
+ */
+exports.updateTournamentBranding = async (req, res) => {
+    try {
+        const tournament = await Tournament.findByPk(req.params.id);
+        if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+
+        const updates = {};
+        const set = (field, value) => { if (value !== undefined) updates[field] = value; };
+
+        if ('logo' in req.body) set('logo', resolveBrandingImage(req.body.logo, tournament.id, 'logo'));
+        if ('bannerImage' in req.body) set('bannerImage', resolveBrandingImage(req.body.bannerImage, tournament.id, 'banner'));
+        for (const field of ['primaryColor', 'secondaryColor', 'accentColor']) {
+            if (field in req.body) {
+                const color = resolveColor(req.body[field]);
+                if (color === undefined) {
+                    return res.status(400).json({ message: `${field} must be a color like #1a2b3c` });
+                }
+                updates[field] = color;
+            }
+        }
+
+        await tournament.update(updates);
+        const branding = await Tournament.findByPk(tournament.id, { attributes: BRANDING_FIELDS });
+        res.json(branding);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ---------- Login accounts of a tournament (main admin only) ----------
+
+// Never includes the password hash
+const LOGIN_FIELDS = ['id', 'username', 'email', 'role', 'mustChangePassword', 'teamId', 'tournamentId', 'createdAt', 'updatedAt'];
+
+const toLogin = (user) => ({
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    // true = still on the temporary password from the email (has not set their own yet)
+    mustChangePassword: !!user.mustChangePassword,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+});
+
+/** The tournament admin account and every team owner account of one tournament. */
+exports.getTournamentLogins = async (req, res) => {
+    try {
+        const tournament = await Tournament.findByPk(req.params.id, { attributes: ['id', 'name'] });
+        if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+
+        const teams = await Team.findAll({
+            where: { tournamentId: tournament.id },
+            attributes: ['id', 'name', 'code', 'ownerName'],
+            order: [['name', 'ASC']],
+        });
+
+        const who = [{ role: 'TOURNAMENT_ADMIN', tournamentId: tournament.id }];
+        if (teams.length) who.push({ role: 'TEAM', teamId: { [Op.in]: teams.map(t => t.id) } });
+        const users = await User.findAll({ where: { [Op.or]: who }, attributes: LOGIN_FIELDS, order: [['id', 'ASC']] });
+
+        res.json({
+            tournamentAdmins: users.filter(u => u.role === 'TOURNAMENT_ADMIN').map(toLogin),
+            teams: teams.map(team => {
+                const user = users.find(u => u.role === 'TEAM' && Number(u.teamId) === team.id);
+                return {
+                    teamId: team.id,
+                    teamName: team.name,
+                    teamCode: team.code,
+                    ownerName: team.ownerName,
+                    login: user ? toLogin(user) : null,
+                };
+            }),
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+/**
+ * Gives a tournament admin or team owner a new temporary password. Passwords are stored hashed,
+ * so the old one can't be shown; this is how the main admin hands out working login details again.
+ * The new password is emailed (when the account has an email) and returned once in the response.
+ */
+exports.resetTournamentLoginPassword = async (req, res) => {
+    try {
+        const tournament = await Tournament.findByPk(req.params.id, { attributes: ['id', 'name'] });
+        if (!tournament) return res.status(404).json({ message: 'Tournament not found' });
+
+        const user = await User.findByPk(req.params.userId);
+        let roleName = null;
+        let recipientName = null;
+        let prefix = null;
+
+        if (user && user.role === 'TOURNAMENT_ADMIN' && Number(user.tournamentId) === tournament.id) {
+            roleName = 'Tournament Admin';
+            recipientName = tournament.name;
+            prefix = 'Admin';
+        } else if (user && user.role === 'TEAM' && user.teamId) {
+            const team = await Team.findByPk(user.teamId, { attributes: ['id', 'name', 'code', 'ownerName', 'tournamentId'] });
+            if (team && Number(team.tournamentId) === tournament.id) {
+                roleName = 'Team Owner';
+                recipientName = team.ownerName || team.name;
+                prefix = 'Team';
+            }
+        }
+        // Only accounts of this tournament can be reset from its page
+        if (!roleName) return res.status(404).json({ message: 'This login does not belong to this tournament' });
+
+        const password = prefix + crypto.randomBytes(3).toString('hex').toUpperCase(); // e.g. TeamA1B2C3
+        user.password = await bcrypt.hash(password, 10);
+        user.mustChangePassword = true;
+        await user.save();
+
+        let emailed = false;
+        if (user.email) {
+            try {
+                emailed = await sendCredentialsEmail(user.email, recipientName, roleName, user.username, password, tournament.id, { reset: true });
+            } catch (mailErr) {
+                console.error('Failed to send password reset email:', mailErr);
+            }
+        }
+
+        res.json({ username: user.username, password, email: user.email, role: roleName, emailed: !!emailed });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 exports.createTournament = async (req, res) => {
     try {
         const { email } = req.body;
@@ -30,7 +201,7 @@ exports.createTournament = async (req, res) => {
 
         // Send email notification
         try {
-            await sendCredentialsEmail(email, tournament.name, 'Tournament Admin', username, defaultPassword);
+            await sendCredentialsEmail(email, tournament.name, 'Tournament Admin', username, defaultPassword, tournament.id);
         } catch (mailErr) {
             console.error('Failed to send tournament admin credentials email:', mailErr);
         }
@@ -112,6 +283,11 @@ exports.updateTournament = async (req, res) => {
         const { minimumPlayerBasePrice, totalAmount } = req.body;
 
         let updateData = { ...req.body };
+        // Branding has its own endpoint (PUT /:id/branding). Ignore it here so saving the
+        // settings form with an older copy of the tournament can't undo a branding change.
+        for (const field of ['logo', 'bannerImage', 'primaryColor', 'secondaryColor', 'accentColor']) {
+            delete updateData[field];
+        }
         const isStatusOnlyUpdate = Object.keys(req.body).length === 1 && req.body.isrequestedtoedit !== undefined;
         if (tournament.isrequestedtoedit === 2 && (!isStatusOnlyUpdate || req.body.isrequestedtoedit === 0)) {
             updateData.isrequestedtoedit = 0;
@@ -202,7 +378,7 @@ exports.addTeam = async (req, res) => {
 
             // Send welcome credentials email
             try {
-                await sendCredentialsEmail(email, team.ownerName || team.name, 'Team Owner', username, defaultPassword);
+                await sendCredentialsEmail(email, team.ownerName || team.name, 'Team Owner', username, defaultPassword, tournament.id);
             } catch (mailErr) {
                 console.error('Failed to send team owner credentials email:', mailErr);
             }

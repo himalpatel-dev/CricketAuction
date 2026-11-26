@@ -12,7 +12,8 @@
         } @else {
         <main class="dashboard-content">
             <!-- Premium Hero Card -->
-            <section class="premium-hero-card">
+            <section class="premium-hero-card" [class.has-banner]="!!theme.bannerUrl()"
+                [style.background-image]="heroBackground()">
                 <div class="hero-content">
                     <!-- Back Button for Admin/Tournament Admin -->
                     @if (isAdmin() || isTournamentAdmin()) {

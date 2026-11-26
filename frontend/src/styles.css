@@ -16,6 +16,26 @@
   /* Golden Yellow */
   --accent-hover: #eab308;
 
+  /* Theme tokens derived from the three brand colors.
+     ThemeService overrides all of these when a tournament has its own colors,
+     so brand-colored CSS should use these instead of hex values. */
+  --primary-rgb: 19, 59, 51;
+  --primary-deep: #062a1e;
+  /* Darkest panel color (auction board) */
+  --primary-deep-rgb: 6, 42, 30;
+  --secondary-rgb: 16, 185, 129;
+  --secondary-dark: #059669;
+  /* Gradient end / hover for highlight color */
+  --secondary-soft: #ecfdf5;
+  /* Very light highlight tint (backgrounds) */
+  --secondary-ink: #065f46;
+  /* Highlight color dark enough for text on light backgrounds */
+  --accent-rgb: 255, 183, 0;
+  --on-accent: #133b33;
+  /* Text on accent */
+  --on-secondary: #ffffff;
+  /* Text on highlight */
+
   --bg-sidebar: #133b33;
   /* Deep Teal/Green sidebar */
   --bg-main: #f4f6f3;
@@ -484,4 +504,28 @@ button {
 
 .empty-state.compact p {
   font-size: 13px;
+}
+/* Banner crop dialog (tournament Branding & Theme): mark the strip the dashboard header shows.
+   ngx-image-cropper's inner elements can't be styled from component CSS, so this lives here.
+   The header card is about 4:1, which is the middle 44% of the 16:9 crop. */
+.banner-cropper-wrap .ngx-ic-cropper::before {
+    content: 'Dashboard header';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 28%;
+    bottom: 28%;
+    padding: 4px 8px;
+    border-top: 2px dashed rgba(255, 255, 255, 0.9);
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: left;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    z-index: 1;
 }

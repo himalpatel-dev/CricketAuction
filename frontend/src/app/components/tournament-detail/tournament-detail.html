@@ -12,7 +12,8 @@
         } @else if (tournament) {
         <main class="dashboard-content">
             <!-- Premium Hero Card -->
-            <section class="premium-hero-card">
+            <section class="premium-hero-card" [class.has-banner]="!!theme.bannerUrl()"
+                [style.background-image]="heroBackground()">
                 <div class="hero-content">
                     <div class="hero-header">
                         <div class="hero-left">
@@ -20,7 +21,14 @@
                                 <span class="badge active">{{ tournament.status }}</span>
                                 <span class="badge category">{{ tournament.category || 'T20 League' }}</span>
                             </div>
-                            <h1 class="tournament-title">{{ tournament.name }}</h1>
+                            <div class="hero-title-row">
+                                @if (theme.logoUrl()) {
+                                <div class="hero-tournament-logo">
+                                    <img [src]="theme.logoUrl()" [alt]="tournament.name + ' logo'">
+                                </div>
+                                }
+                                <h1 class="tournament-title">{{ tournament.name }}</h1>
+                            </div>
                             <div class="meta-info">
                                 <span class="meta-item">
                                     <i class="icon-calendar">📅</i>
@@ -202,6 +210,17 @@
                     </svg>
                     Settings
                 </button>
+                @if (isAdmin()) {
+                <button [class.active]="currentTab === 'Logins'" (click)="setTab('Logins')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4">
+                        </path>
+                    </svg>
+                    Logins
+                </button>
+                }
             </nav>
 
             <!-- Dynamic Grid -->
@@ -1434,11 +1453,379 @@
                         </div>
                     </form>
                 </div>
+
+                <!-- Branding & Theme: no edit approval needed, it only changes the look -->
+                <div class="settings-card branding-card">
+                    <div class="settings-header">
+                        <h2>Branding &amp; Theme</h2>
+                        <p>Your logo, banner and colors appear on your own login page, dashboards, auction board and
+                            live view.</p>
+                    </div>
+
+                    <div class="branding-layout">
+                        <div class="branding-editor">
+                            <!-- Logo -->
+                            <div class="brand-field">
+                                <label class="section-subtitle">TOURNAMENT LOGO</label>
+                                <div class="brand-upload-row">
+                                    <button type="button" class="brand-logo-drop" (click)="logoFileInput.click()"
+                                        [class.has-image]="!!brandingLogoPreview" title="Upload logo">
+                                        @if (brandingLogoPreview) {
+                                        <img [src]="brandingLogoPreview" alt="Logo preview">
+                                        } @else {
+                                        <span class="drop-plus">+</span>
+                                        }
+                                    </button>
+                                    <div class="brand-upload-info">
+                                        <p class="brand-hint">Square image works best. PNG with a transparent
+                                            background looks great on dark colors.</p>
+                                        <div class="brand-upload-actions">
+                                            <button type="button" class="btn-brand-outline"
+                                                (click)="logoFileInput.click()">
+                                                {{ brandingLogoPreview ? 'Change logo' : 'Upload logo' }}
+                                            </button>
+                                            @if (brandingLogoPreview) {
+                                            <button type="button" class="btn-brand-text"
+                                                (click)="removeBrandingImage('logo')">Remove</button>
+                                            }
+                                        </div>
+                                    </div>
+                                    <input #logoFileInput type="file" accept="image/png,image/jpeg,image/webp" hidden
+                                        (change)="onBrandingImageSelected($event, 'logo')">
+                                </div>
+                            </div>
+
+                            <!-- Banner -->
+                            <div class="brand-field">
+                                <label class="section-subtitle">BANNER IMAGE</label>
+                                <button type="button" class="brand-banner-drop"
+                                    (click)="onBannerBoxClick(bannerFileInput)"
+                                    [class.has-image]="!!brandingBannerPreview" [style.background-image]="bannerDropBg"
+                                    [title]="brandingBannerPreview ? 'Adjust banner' : 'Upload banner'">
+                                    @if (!brandingBannerPreview) {
+                                    <span class="drop-plus">+</span>
+                                    <span class="drop-text">Upload a photo. You can crop and position it next.</span>
+                                    } @else {
+                                    <span class="banner-adjust-chip">✥ Adjust</span>
+                                    }
+                                </button>
+                                <div class="brand-upload-actions">
+                                    <p class="brand-hint">Shown behind your login page and the dashboard header.</p>
+                                    @if (brandingBannerPreview) {
+                                    <button type="button" class="btn-brand-outline" (click)="adjustBanner()">Adjust
+                                        banner</button>
+                                    <button type="button" class="btn-brand-outline"
+                                        (click)="bannerFileInput.click()">Change photo</button>
+                                    <button type="button" class="btn-brand-text"
+                                        (click)="removeBrandingImage('bannerImage')">Remove</button>
+                                    }
+                                </div>
+                                <input #bannerFileInput type="file" accept="image/png,image/jpeg,image/webp" hidden
+                                    (change)="onBrandingImageSelected($event, 'bannerImage')">
+                            </div>
+
+                            <!-- Ready-made color combinations -->
+                            <div class="brand-field">
+                                <label class="section-subtitle">COLOR THEMES</label>
+                                <div class="theme-preset-grid">
+                                    @for (preset of themePresets; track preset.name) {
+                                    <button type="button" class="theme-preset" [class.selected]="isPresetSelected(preset)"
+                                        (click)="applyPreset(preset)">
+                                        <span class="preset-swatches">
+                                            <span [style.background]="preset.primary"></span>
+                                            <span [style.background]="preset.secondary"></span>
+                                            <span [style.background]="preset.accent"></span>
+                                        </span>
+                                        <span class="preset-name">{{ preset.name }}</span>
+                                    </button>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Custom colors -->
+                            <div class="brand-field">
+                                <label class="section-subtitle">CUSTOM COLORS</label>
+                                <div class="brand-color-grid">
+                                    @for (field of colorFields; track field.key) {
+                                    <div class="brand-color">
+                                        <input type="color" class="brand-color-swatch"
+                                            [value]="brandingColors[field.key]"
+                                            (input)="onBrandingColorPicked(field.key, $any($event.target).value)">
+                                        <div class="brand-color-text">
+                                            <span class="brand-color-label">{{ field.label }}</span>
+                                            <span class="brand-color-hint">{{ field.hint }}</span>
+                                            <input type="text" class="brand-color-hex" maxlength="7" spellcheck="false"
+                                                [value]="brandingColors[field.key]"
+                                                (input)="onBrandingHexTyped(field.key, $any($event.target).value)">
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                                @if (primaryTooLight()) {
+                                <p class="brand-warning">⚠️ The main color is very light. White text on the nav bar
+                                    and headers will be hard to read, so pick a darker shade.</p>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Live preview: uses the picked colors before they are saved -->
+                        <div class="branding-preview-col">
+                            <label class="section-subtitle">LIVE PREVIEW</label>
+                            <div class="brand-preview" [ngStyle]="brandingPreviewVars()">
+                                <div class="pv-nav">
+                                    @if (brandingLogoPreview) {
+                                    <span class="pv-logo"><img [src]="brandingLogoPreview" alt=""></span>
+                                    } @else {
+                                    <span class="pv-logo pv-initials">{{ tournament.name?.charAt(0) || 'T' }}</span>
+                                    }
+                                    <span class="pv-name">{{ tournament.name }}</span>
+                                    <span class="pv-nav-pill">Dashboard</span>
+                                </div>
+                                <div class="pv-hero" [style.background-image]="bannerPreviewBg">
+                                    <span class="pv-badge">{{ tournament.category || 'T20 League' }}</span>
+                                    <span class="pv-title">{{ tournament.name }}</span>
+                                    <span class="pv-btn-accent">▶ Continue Auction</span>
+                                </div>
+                                <div class="pv-body">
+                                    <div class="pv-tabs">
+                                        <span class="pv-tab active">Overview</span>
+                                        <span class="pv-tab">Teams</span>
+                                        <span class="pv-tab">Players</span>
+                                    </div>
+                                    <div class="pv-row">
+                                        <span class="pv-btn-secondary">+ Add Player</span>
+                                        <span class="pv-bid">Current bid <strong>₹2.4 Cr</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="brand-login-link">
+                                <div>
+                                    <p class="brand-login-title">Your tournament's login page</p>
+                                    <p class="brand-hint">Share it with your team owners. It shows this branding.</p>
+                                </div>
+                                <div class="brand-login-url">
+                                    <code>{{ brandedLoginUrl }}</code>
+                                    <button type="button" class="btn-brand-outline" (click)="copyBrandedLoginLink()">
+                                        {{ copiedLoginLink ? 'Copied ✓' : 'Copy' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions branding-actions">
+                        <button type="button" class="btn-brand-text" (click)="resetBrandingToDefault()">
+                            Use BidWicket colors
+                        </button>
+                        <button type="button" class="btn btn-primary" (click)="saveBranding()"
+                            [disabled]="savingBranding || !brandingDirty()">
+                            {{ savingBranding ? 'Saving...' : 'Save Branding' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            } @else if (currentTab === 'Logins' && isAdmin()) {
+            <!-- Login details: only the main admin sees this tab (the backend checks it too) -->
+            <div class="settings-tab-content">
+                <div class="settings-card logins-card">
+                    <div class="settings-header logins-header">
+                        <div>
+                            <h2>Login Details</h2>
+                            <p>Everyone who can log in to {{ tournament.name }}. Only you, the main admin, can see
+                                this tab.</p>
+                        </div>
+                        <button type="button" class="btn-brand-outline" (click)="loadLogins()" [disabled]="loadingLogins">
+                            {{ loadingLogins ? 'Loading...' : '↻ Refresh' }}
+                        </button>
+                    </div>
+
+                    <div class="brand-login-link logins-link">
+                        <div>
+                            <p class="brand-login-title">Login page for this tournament</p>
+                            <p class="brand-hint">The tournament admin and team owners log in here. It shows the
+                                tournament's logo and colors.</p>
+                        </div>
+                        <div class="brand-login-url">
+                            <code>{{ brandedLoginUrl }}</code>
+                            <button type="button" class="btn-brand-outline" (click)="copyBrandedLoginLink()">
+                                {{ copiedLoginLink ? 'Copied ✓' : 'Copy' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="logins-note">🔒 Passwords are stored encrypted, so no one can see a current password, not
+                        even you. <strong>Reset password</strong> creates a new temporary one: it is emailed to the
+                        person and shown to you once. They must change it when they log in.</p>
+
+                    @if (loginsError) {
+                    <div class="error-msg alert-danger">⚠️ {{ loginsError }}</div>
+                    } @else if (!logins) {
+                    <p class="brand-hint">Loading login details...</p>
+                    } @else {
+                    <h3 class="logins-section-title">Tournament Admin</h3>
+                    @for (login of logins.tournamentAdmins; track login.id) {
+                    <div class="login-row">
+                        <div class="login-who">
+                            <span class="login-avatar admin">TA</span>
+                            <div class="login-who-text">
+                                <span class="login-name">Tournament Admin</span>
+                                <span class="login-sub">{{ login.email || 'No email on file' }}</span>
+                            </div>
+                        </div>
+                        <div class="login-username">
+                            <span class="login-label">Username</span>
+                            <code>{{ login.username }}</code>
+                            <button type="button" class="login-copy" title="Copy username"
+                                (click)="copyText(login.username, 'Username')">📋</button>
+                        </div>
+                        <span class="login-status" [class.pending]="login.mustChangePassword"
+                            [title]="login.mustChangePassword ? 'Has not set their own password yet' : 'Changed the temporary password'">
+                            {{ login.mustChangePassword ? 'Temporary password' : 'Own password set' }}
+                        </span>
+                        <button type="button" class="btn-brand-outline" [disabled]="resettingLoginId === login.id"
+                            (click)="resetLoginPassword(login, 'the tournament admin')">
+                            {{ resettingLoginId === login.id ? 'Resetting...' : 'Reset password' }}
+                        </button>
+                    </div>
+                    } @empty {
+                    <p class="login-empty">No tournament admin account was found for this tournament.</p>
+                    }
+
+                    <h3 class="logins-section-title">
+                        Team Owners <span class="logins-count">{{ logins.teams.length }}</span>
+                    </h3>
+                    @if (teamsWithoutLogin) {
+                    <p class="brand-warning logins-warning">⚠️ {{ teamsWithoutLogin }} team(s) have no login account,
+                        so their owner can't log in.</p>
+                    }
+                    @for (team of logins.teams; track team.teamId) {
+                    <div class="login-row">
+                        <div class="login-who">
+                            <span class="login-avatar">{{ team.teamCode }}</span>
+                            <div class="login-who-text">
+                                <span class="login-name">{{ team.teamName }}</span>
+                                <span class="login-sub">{{ team.ownerName || 'Owner not set' }} · {{ team.login?.email
+                                    || 'No email on file' }}</span>
+                            </div>
+                        </div>
+                        @if (team.login; as login) {
+                        <div class="login-username">
+                            <span class="login-label">Username</span>
+                            <code>{{ login.username }}</code>
+                            <button type="button" class="login-copy" title="Copy username"
+                                (click)="copyText(login.username, 'Username')">📋</button>
+                        </div>
+                        <span class="login-status" [class.pending]="login.mustChangePassword"
+                            [title]="login.mustChangePassword ? 'Has not set their own password yet' : 'Changed the temporary password'">
+                            {{ login.mustChangePassword ? 'Temporary password' : 'Own password set' }}
+                        </span>
+                        <button type="button" class="btn-brand-outline" [disabled]="resettingLoginId === login.id"
+                            (click)="resetLoginPassword(login, team.teamName + ' owner')">
+                            {{ resettingLoginId === login.id ? 'Resetting...' : 'Reset password' }}
+                        </button>
+                        } @else {
+                        <span class="login-missing">No login account</span>
+                        }
+                    </div>
+                    } @empty {
+                    <p class="login-empty">No teams yet. Each team you add gets its own login.</p>
+                    }
+                    }
+                </div>
             </div>
             }
         </main>
         }
     </div>
+
+    <!-- Banner crop / adjust: one 16:9 crop, previewed on every place the banner shows -->
+    @if (bannerCropOpen) {
+    <div class="banner-crop-overlay">
+        <div class="banner-crop-card" [ngStyle]="brandingPreviewVars()">
+            <button type="button" class="close-btn-corner" (click)="closeBannerCrop()" title="Close">×</button>
+            <div class="banner-crop-head">
+                <h2>Adjust banner</h2>
+                <p>Drag the box to choose which part of the photo to show. Drag its corners or use zoom to get
+                    closer. The dashed strip is about what the dashboard header shows.</p>
+            </div>
+
+            <div class="banner-crop-body">
+                <div class="banner-crop-editor">
+                    <div class="banner-cropper-wrap">
+                        <image-cropper #bannerCropper [imageFile]="bannerCropFile ?? undefined"
+                            [imageURL]="bannerCropUrl ?? undefined" [maintainAspectRatio]="true"
+                            [aspectRatio]="16 / 9" [resizeToWidth]="1920" [onlyScaleDown]="true" format="jpeg"
+                            [imageQuality]="88" output="base64" [autoCrop]="true" [allowMoveImage]="true"
+                            backgroundColor="#0f172a" [transform]="bannerCropTransform" [cropper]="bannerCropPosition"
+                            (imageCropped)="onBannerCropped($event)" (cropperReady)="onBannerCropperReady()"
+                            (loadImageFailed)="onBannerCropFailed()"
+                            (transformChange)="bannerCropTransform = $event"></image-cropper>
+                        @if (bannerCropLoading) {
+                        <div class="banner-crop-loading">Loading photo...</div>
+                        }
+                    </div>
+
+                    <div class="banner-crop-tools">
+                        <span class="banner-crop-tool-label">Zoom</span>
+                        <button type="button" class="banner-zoom-btn" (click)="zoomBanner(-0.1)"
+                            [disabled]="(bannerCropTransform.scale || 1) <= 1" title="Zoom out">−</button>
+                        <input type="range" class="banner-zoom-range" min="1" [max]="bannerMaxZoom" step="0.05"
+                            [value]="bannerCropTransform.scale || 1" (input)="setBannerZoom(+$any($event.target).value)">
+                        <button type="button" class="banner-zoom-btn" (click)="zoomBanner(0.1)"
+                            [disabled]="(bannerCropTransform.scale || 1) >= bannerMaxZoom" title="Zoom in">+</button>
+                        <span class="banner-zoom-value">{{ ((bannerCropTransform.scale || 1) * 100) | number:'1.0-0'
+                            }}%</span>
+                        <button type="button" class="btn-brand-text" (click)="resetBannerCrop()">Reset</button>
+                    </div>
+                    <p class="brand-hint">When zoomed in, drag the photo itself to move it under the box.</p>
+                    @if (bannerCropFromSaved) {
+                    <p class="brand-hint banner-crop-note">This is your saved banner, so you can only zoom in further. To
+                        show more of the original photo, use <strong>Change photo</strong> and upload it again.</p>
+                    }
+                </div>
+
+                <div class="banner-crop-previews">
+                    <span class="section-subtitle">HOW IT WILL LOOK</span>
+
+                    <div class="crop-pv">
+                        <span class="crop-pv-label">Login &amp; registration page (computer)</span>
+                        <div class="crop-pv-frame crop-pv-login" [style.background-image]="cropLoginBg">
+                            <span class="crop-pv-login-card">
+                                <span class="crop-pv-login-logo"></span>
+                                <span class="crop-pv-line"></span>
+                                <span class="crop-pv-line short"></span>
+                                <span class="crop-pv-login-btn"></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="crop-pv">
+                        <span class="crop-pv-label">Dashboard header</span>
+                        <div class="crop-pv-frame crop-pv-header" [style.background-image]="cropHeaderBg">
+                            <span class="crop-pv-title">{{ tournament?.name }}</span>
+                        </div>
+                    </div>
+
+                    <div class="crop-pv crop-pv-phone-row">
+                        <div>
+                            <span class="crop-pv-label">Phone</span>
+                            <div class="crop-pv-frame crop-pv-phone" [style.background-image]="cropLoginBg"></div>
+                        </div>
+                        <p class="brand-hint">Phones show only the middle of the picture, so keep the important part
+                            (logo, trophy, players) near the center.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="banner-crop-actions">
+                <button type="button" class="btn-cancel" (click)="closeBannerCrop()">Cancel</button>
+                <button type="button" class="btn btn-primary" (click)="applyBannerCrop()"
+                    [disabled]="bannerCropLoading || !bannerCropResult">Use this banner</button>
+            </div>
+        </div>
+    </div>
+    }
 
     <!-- Credentials Modal Overlay -->
     <div class="credentials-modal-overlay" *ngIf="showCredentialsModal">
@@ -1446,9 +1833,15 @@
             <div class="card-icon-container">
                 <span class="lock-icon">🔒</span>
             </div>
-            <h2>Team Owner Created!</h2>
+            <h2>{{ credentialsTitle }}</h2>
+            @if (credentialsEmailed && createdCredentials.email) {
             <p class="subtitle">An email has been sent to <strong>{{ createdCredentials.email }}</strong> with their
                 login details.</p>
+            } @else {
+            <p class="subtitle">⚠️ These details could not be emailed{{ createdCredentials.email ? ' to ' +
+                createdCredentials.email : ' (no email on file)' }}. Copy them and send them yourself.</p>
+            }
+            <p class="subtitle cred-role">{{ createdCredentials.role }} login. This password is shown only once.</p>
 
             <div class="credentials-box">
                 <div class="cred-field">

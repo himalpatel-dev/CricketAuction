@@ -3,13 +3,19 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ImageService } from '../../services/image.service';
-import { TournamentService } from '../../services/tournament.service';
+import { TournamentService, TournamentLogins, LoginAccount } from '../../services/tournament.service';
 import { AuthService } from '../../services/auth.service';
 import { TopNavComponent } from '../top-nav/top-nav';
 import { TeamCardComponent } from '../team-card/team-card.component';
 import { PlayerCardComponent } from '../player-card/player-card.component';
-import { ImageCropperComponent, ImageCroppedEvent, LoadedImage, CropperPosition } from 'ngx-image-cropper';
+import { ImageCropperComponent, ImageCroppedEvent, LoadedImage, CropperPosition, ImageTransform } from 'ngx-image-cropper';
 import { ToastService } from '../../services/toast.service';
+import { ThemeService, THEME_PRESETS, DEFAULT_THEME, ThemeColors } from '../../services/theme.service';
+
+/** Tint over the banner on the dashboard header, so the white text on the left stays readable. */
+const HERO_TINT = 'linear-gradient(90deg, rgba(var(--primary-rgb), 0.97) 0%, rgba(var(--primary-rgb), 0.85) 45%, rgba(var(--primary-rgb), 0.5) 100%)';
+/** Same tint the branded login page puts over the banner (see login.ts bannerBackground). */
+const LOGIN_TINT = 'linear-gradient(rgba(var(--primary-deep-rgb), 0.55), rgba(0, 0, 0, 0.75))';
 
 @Component({
   selector: 'app-tournament-detail',
@@ -52,7 +58,16 @@ export class TournamentDetailComponent implements OnInit {
     email: '',
     role: 'Team Owner'
   };
+  credentialsTitle = 'Team Owner Created!';
+  /** false when the details could not be emailed, so the admin knows to share them by hand */
+  credentialsEmailed = true;
   copied = false;
+
+  // Logins tab (main admin only)
+  logins: TournamentLogins | null = null;
+  loadingLogins = false;
+  loginsError = '';
+  resettingLoginId: number | null = null;
 
   // Registration link modal state
   showRegistrationModal = false;
@@ -635,7 +650,10 @@ export class TournamentDetailComponent implements OnInit {
           email: this.newTeam.email,
           role: 'Team Owner'
         };
+        this.credentialsTitle = 'Team Owner Created!';
+        this.credentialsEmailed = true;
         this.showCredentialsModal = true;
+        if (this.logins) this.loadLogins(); // the new team's login shows up in the Logins tab
       }
 
       this.newTeam = {
@@ -656,7 +674,7 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   copyCredentials() {
-    const text = `BidWicket Login Credentials\n---------------------------\nRole: ${this.createdCredentials.role}\nUsername: ${this.createdCredentials.username}\nPassword: ${this.createdCredentials.password}\n---------------------------\nChange your password on first login.`;
+    const text = `BidWicket Login Credentials\n---------------------------\nRole: ${this.createdCredentials.role}\nUsername: ${this.createdCredentials.username}\nPassword: ${this.createdCredentials.password}\nLogin: ${this.brandedLoginUrl}\n---------------------------\nChange your password on first login.`;
     navigator.clipboard.writeText(text).then(() => {
       this.copied = true;
       setTimeout(() => this.copied = false, 2000);
@@ -788,7 +806,8 @@ export class TournamentDetailComponent implements OnInit {
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private imageService: ImageService,
-    private toast: ToastService
+    private toast: ToastService,
+    public theme: ThemeService
   ) {
     const currentYear = new Date().getFullYear();
     for (let i = currentYear - 60; i <= currentYear + 5; i++) {
@@ -832,6 +851,8 @@ export class TournamentDetailComponent implements OnInit {
         this.tournamentService.getAll()
       ]);
       this.tournament = detail;
+      // Fill the branding editor once per tournament, so silent reloads don't wipe unsaved picks
+      if (this.brandingFormFor !== detail?.id) this.initBrandingForm();
       this.computeAndSetStatus();
       this.buildTimeline();
       this.tournaments = all || [];
@@ -1004,7 +1025,68 @@ export class TournamentDetailComponent implements OnInit {
 
   setTab(tab: string) {
     this.currentTab = tab;
+    if (tab === 'Logins') this.loadLogins();
     this.cdr.detectChanges();
+  }
+
+  // ---------- Logins tab (main admin only) ----------
+
+  async loadLogins() {
+    if (!this.isAdmin() || !this.tournament?.id) return;
+    this.loadingLogins = true;
+    this.loginsError = '';
+    this.cdr.detectChanges();
+    try {
+      this.logins = await this.tournamentService.getLogins(this.tournament.id);
+    } catch (err: any) {
+      this.loginsError = err.status === 403 || err.status === 401
+        ? 'Only the main admin can see login details. Please log in again as the main admin.'
+        : (err.error?.message || err.error?.error || 'Could not load login details.');
+    } finally {
+      this.loadingLogins = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  get teamsWithoutLogin(): number {
+    return this.logins?.teams.filter(t => !t.login).length || 0;
+  }
+
+  /** Passwords are stored hashed, so the only way to hand out working details again is a new one. */
+  async resetLoginPassword(login: LoginAccount, who: string) {
+    if (this.resettingLoginId) return;
+    const emailNote = login.email ? ` The new password will be emailed to ${login.email}.` : '';
+    if (!confirm(`Reset the password for ${who} (${login.username})?\n\nTheir current password will stop working.${emailNote}`)) {
+      return;
+    }
+
+    this.resettingLoginId = login.id;
+    this.cdr.detectChanges();
+    try {
+      const result = await this.tournamentService.resetLoginPassword(this.tournament.id, login.id);
+      this.createdCredentials = {
+        username: result.username,
+        password: result.password,
+        email: result.email || '',
+        role: result.role
+      };
+      this.credentialsTitle = 'New Password Created';
+      this.credentialsEmailed = result.emailed;
+      this.copied = false;
+      this.showCredentialsModal = true;
+      await this.loadLogins();
+    } catch (err: any) {
+      this.toast.error(err.error?.message || err.error?.error || 'Could not reset the password');
+    } finally {
+      this.resettingLoginId = null;
+      this.cdr.detectChanges();
+    }
+  }
+
+  copyText(text: string, what: string) {
+    navigator.clipboard.writeText(text)
+      .then(() => this.toast.success(`${what} copied`))
+      .catch(() => this.toast.error('Could not copy to clipboard'));
   }
 
   formatCurrency(value: number): string {
@@ -1195,6 +1277,319 @@ export class TournamentDetailComponent implements OnInit {
       this.saving = false;
       this.cdr.detectChanges();
     }
+  }
+
+  // ---------- Branding & theme (logo, banner, colors) ----------
+
+  readonly themePresets = THEME_PRESETS;
+  readonly colorFields: Array<{ key: keyof ThemeColors; label: string; hint: string }> = [
+    { key: 'primary', label: 'Main color', hint: 'Nav bar, headers, dark panels' },
+    { key: 'secondary', label: 'Highlight color', hint: 'Buttons, tabs, links' },
+    { key: 'accent', label: 'Accent color', hint: 'Badges, bids, logo frame' },
+  ];
+  brandingColors: ThemeColors = { ...DEFAULT_THEME };
+  brandingLogoPreview: string | null = null;
+  brandingBannerPreview: string | null = null;
+  // Built once per banner change, not on every change detection (a data URL can be ~0.5 MB)
+  bannerDropBg: string | null = null;
+  bannerPreviewBg: string | null = null;
+  savingBranding = false;
+  copiedLoginLink = false;
+  private savedBrandingColors: ThemeColors = { ...DEFAULT_THEME };
+  /** Only images the user changed: data URL = new upload, null = removed. */
+  private brandingImageChanges: { logo?: string | null; bannerImage?: string | null } = {};
+  private brandingFormFor: number | null = null;
+
+  private initBrandingForm() {
+    if (!this.tournament) return;
+    this.brandingFormFor = this.tournament.id;
+    this.brandingColors = this.theme.colorsOf(this.tournament);
+    this.savedBrandingColors = { ...this.brandingColors };
+    this.brandingLogoPreview = this.theme.imageUrl(this.tournament.logo);
+    this.setBannerPreview(this.theme.imageUrl(this.tournament.bannerImage));
+    this.brandingImageChanges = {};
+  }
+
+  private setBannerPreview(src: string | null) {
+    this.brandingBannerPreview = src;
+    this.bannerDropBg = src ? `url("${src}")` : null;
+    this.bannerPreviewBg = src ? `${HERO_TINT}, url("${src}")` : null;
+  }
+
+  get brandedLoginUrl(): string {
+    return this.tournament ? this.theme.loginLink(this.tournament.id) : '';
+  }
+
+  /** CSS variables for the live preview box only, so the page itself changes only after saving. */
+  brandingPreviewVars(): Record<string, string> {
+    return this.theme.cssVarsFor(this.brandingColors);
+  }
+
+  /** Dashboard hero card: tournament banner behind the title, tinted so white text stays readable. */
+  heroBackground(): string | null {
+    const banner = this.theme.bannerUrl();
+    if (!banner) return null;
+    return `${HERO_TINT}, url("${banner}")`;
+  }
+
+  isPresetSelected(preset: ThemeColors): boolean {
+    const c = this.brandingColors;
+    return c.primary === preset.primary && c.secondary === preset.secondary && c.accent === preset.accent;
+  }
+
+  applyPreset(preset: ThemeColors) {
+    this.brandingColors = { primary: preset.primary, secondary: preset.secondary, accent: preset.accent };
+  }
+
+  onBrandingColorPicked(key: keyof ThemeColors, value: string) {
+    this.brandingColors = { ...this.brandingColors, [key]: value.toLowerCase() };
+  }
+
+  /** Hex text box: only take the value once it's a full #rrggbb. */
+  onBrandingHexTyped(key: keyof ThemeColors, value: string) {
+    let v = (value || '').trim();
+    if (v && !v.startsWith('#')) v = '#' + v;
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) this.onBrandingColorPicked(key, v);
+  }
+
+  primaryTooLight(): boolean {
+    return this.theme.isLightColor(this.brandingColors.primary);
+  }
+
+  brandingDirty(): boolean {
+    const a = this.brandingColors, b = this.savedBrandingColors;
+    return a.primary !== b.primary || a.secondary !== b.secondary || a.accent !== b.accent
+      || Object.keys(this.brandingImageChanges).length > 0;
+  }
+
+  async onBrandingImageSelected(event: Event, kind: 'logo' | 'bannerImage') {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // let the same file be picked again later
+    if (!file) return;
+    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
+      this.toast.error('Please choose a PNG, JPG or WEBP image.');
+      return;
+    }
+    // Banners are cropped and shrunk in the browser before upload, so a big phone photo is fine
+    const maxMb = kind === 'logo' ? 10 : 25;
+    if (file.size > maxMb * 1024 * 1024) {
+      this.toast.error(`Image is too large (max ${maxMb} MB).`);
+      return;
+    }
+    if (kind === 'bannerImage') {
+      this.openBannerCrop({ file });
+      return;
+    }
+    try {
+      // Shrink before upload: 512px keeps logos sharp, PNG keeps transparency
+      const dataUrl = await this.resizeImage(file, 512, 512, file.type === 'image/jpeg' ? 'image/jpeg' : 'image/png');
+      this.brandingImageChanges.logo = dataUrl;
+      this.brandingLogoPreview = dataUrl;
+    } catch (err) {
+      console.error('Could not read image:', err);
+      this.toast.error('Could not read that image. Please try another file.');
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  removeBrandingImage(kind: 'logo' | 'bannerImage') {
+    this.brandingImageChanges[kind] = null;
+    if (kind === 'logo') {
+      this.brandingLogoPreview = null;
+    } else {
+      this.setBannerPreview(null);
+      this.bannerSourceFile = null;
+      this.lastBannerCrop = null;
+    }
+  }
+
+  // ---------- Banner crop / adjust dialog ----------
+  // One 16:9 crop is used everywhere. The login and registration pages show all of it on a computer,
+  // the dashboard header shows a wide strip across the middle, and phones show the center.
+
+  @ViewChild('bannerCropper') bannerCropper?: ImageCropperComponent;
+  bannerCropOpen = false;
+  bannerCropFile: File | null = null;
+  /** Used when there is no original photo from this visit: re-crop the saved banner */
+  bannerCropUrl: string | null = null;
+  bannerCropFromSaved = false;
+  bannerCropLoading = false;
+  bannerCropTransform: ImageTransform = { scale: 1 };
+  bannerCropPosition?: CropperPosition;
+  bannerCropResult: string | null = null;
+  cropLoginBg: string | null = null;
+  cropHeaderBg: string | null = null;
+  readonly bannerMaxZoom = 3;
+  /** The full photo picked in this visit, so "Adjust" can go back to it instead of re-cropping a crop */
+  private bannerSourceFile: File | null = null;
+  private lastBannerCrop: { position: CropperPosition; transform: ImageTransform } | null = null;
+  private pendingCropPosition: CropperPosition | null = null;
+  private lastCropPosition: CropperPosition | null = null;
+
+  /** Opens the crop dialog for the current banner (from the original photo when we still have it). */
+  adjustBanner() {
+    if (this.bannerSourceFile) this.openBannerCrop({ file: this.bannerSourceFile });
+    else if (this.brandingBannerPreview) this.openBannerCrop({ url: this.brandingBannerPreview });
+  }
+
+  /** Clicking the banner box: adjust the banner if there is one, otherwise pick a photo. */
+  onBannerBoxClick(fileInput: HTMLInputElement) {
+    if (this.brandingBannerPreview) this.adjustBanner();
+    else fileInput.click();
+  }
+
+  private openBannerCrop(source: { file?: File; url?: string }) {
+    const restore = source.file && source.file === this.bannerSourceFile ? this.lastBannerCrop : null;
+    this.bannerCropFile = source.file || null;
+    this.bannerCropUrl = source.file ? null : source.url || null;
+    this.bannerCropFromSaved = !source.file;
+    this.bannerCropTransform = restore ? { ...restore.transform } : { scale: 1 };
+    this.bannerCropPosition = undefined;
+    this.pendingCropPosition = restore ? { ...restore.position } : null;
+    this.lastCropPosition = null;
+    this.setCropResult(null);
+    this.bannerCropLoading = true;
+    this.bannerCropOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  onBannerCropperReady() {
+    this.bannerCropLoading = false;
+    // Put the crop box back where it was last time (has to wait until the image is on screen)
+    const restore = this.pendingCropPosition;
+    this.pendingCropPosition = null;
+    if (restore) {
+      setTimeout(() => {
+        this.bannerCropPosition = restore;
+        this.cdr.detectChanges();
+      });
+    }
+    this.cdr.detectChanges();
+  }
+
+  onBannerCropped(event: ImageCroppedEvent) {
+    this.lastCropPosition = event.cropperPosition;
+    this.setCropResult(event.base64 || null);
+    this.cdr.detectChanges();
+  }
+
+  onBannerCropFailed() {
+    this.toast.error(this.bannerCropFromSaved
+      ? 'Could not open the saved banner. Please upload the photo again.'
+      : 'Could not read that image. Please try another file.');
+    this.closeBannerCrop();
+  }
+
+  setBannerZoom(scale: number) {
+    const clamped = Math.min(this.bannerMaxZoom, Math.max(1, Math.round(scale * 100) / 100));
+    this.bannerCropTransform = { ...this.bannerCropTransform, scale: clamped };
+  }
+
+  zoomBanner(step: number) {
+    this.setBannerZoom((this.bannerCropTransform.scale || 1) + step);
+  }
+
+  /** Back to the whole photo, no zoom. */
+  resetBannerCrop() {
+    this.bannerCropTransform = { scale: 1 };
+    this.cdr.detectChanges(); // apply the zoom reset before measuring the full-size crop box
+    this.bannerCropper?.resetCropperPosition();
+    this.bannerCropper?.crop('base64');
+  }
+
+  applyBannerCrop() {
+    const result = this.bannerCropResult || this.bannerCropper?.crop('base64')?.base64 || null;
+    if (!result) {
+      this.toast.warning('The banner is not ready yet. Please wait a second and try again.');
+      return;
+    }
+    this.brandingImageChanges.bannerImage = result;
+    this.setBannerPreview(result);
+    if (this.bannerCropFile) {
+      this.bannerSourceFile = this.bannerCropFile;
+      this.lastBannerCrop = this.lastCropPosition
+        ? { position: { ...this.lastCropPosition }, transform: { ...this.bannerCropTransform } }
+        : null;
+    }
+    this.closeBannerCrop();
+  }
+
+  closeBannerCrop() {
+    this.bannerCropOpen = false;
+    this.bannerCropFile = null;
+    this.bannerCropUrl = null;
+    this.setCropResult(null);
+    this.cdr.detectChanges();
+  }
+
+  private setCropResult(base64: string | null) {
+    this.bannerCropResult = base64;
+    this.cropLoginBg = base64 ? `${LOGIN_TINT}, url("${base64}")` : null;
+    this.cropHeaderBg = base64 ? `${HERO_TINT}, url("${base64}")` : null;
+  }
+
+  resetBrandingToDefault() {
+    this.brandingColors = { ...DEFAULT_THEME };
+  }
+
+  async saveBranding() {
+    if (!this.tournament || this.savingBranding) return;
+    this.savingBranding = true;
+    try {
+      const saved = await this.theme.saveBranding(this.tournament.id, {
+        primaryColor: this.brandingColors.primary,
+        secondaryColor: this.brandingColors.secondary,
+        accentColor: this.brandingColors.accent,
+        ...this.brandingImageChanges,
+      });
+      Object.assign(this.tournament, {
+        logo: saved.logo,
+        bannerImage: saved.bannerImage,
+        primaryColor: saved.primaryColor,
+        secondaryColor: saved.secondaryColor,
+        accentColor: saved.accentColor,
+      });
+      this.initBrandingForm();
+      this.toast.success('Branding saved! Your login page and dashboards now use it.');
+    } catch (err: any) {
+      console.error('Error saving branding:', err);
+      this.toast.error(err.error?.message || err.error?.error || 'Failed to save branding');
+    } finally {
+      this.savingBranding = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  copyBrandedLoginLink() {
+    if (!this.brandedLoginUrl) return;
+    navigator.clipboard.writeText(this.brandedLoginUrl).then(() => {
+      this.copiedLoginLink = true;
+      this.cdr.detectChanges();
+      setTimeout(() => { this.copiedLoginLink = false; this.cdr.detectChanges(); }, 2000);
+    }).catch(() => this.toast.error('Could not copy link to clipboard'));
+  }
+
+  /** Scales an image down to fit maxW x maxH and returns it as a data URL. */
+  private resizeImage(file: File, maxW: number, maxH: number, type: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxW / img.width, maxH / img.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { URL.revokeObjectURL(url); return reject(new Error('Canvas not supported')); }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL(type, 0.88));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Invalid image')); };
+      img.src = url;
+    });
   }
 
   isAdmin(): boolean {

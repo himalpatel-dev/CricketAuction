@@ -101,4 +101,38 @@ export class TournamentService {
 
         return firstValueFrom(this.http.get<any[]>(`${this.apiUrl}/global/players${queryParams}`, { headers: this.getHeaders() }));
     }
+
+    /** Main admin only: the tournament admin and team owner logins of a tournament. */
+    async getLogins(tournamentId: string | number) {
+        return firstValueFrom(this.http.get<TournamentLogins>(`${this.apiUrl}/${tournamentId}/logins`, { headers: this.getHeaders() }));
+    }
+
+    /** Main admin only: gives that login a new temporary password (emailed, and returned once). */
+    async resetLoginPassword(tournamentId: string | number, userId: number) {
+        return firstValueFrom(this.http.post<ResetPasswordResult>(
+            `${this.apiUrl}/${tournamentId}/logins/${userId}/reset-password`, {}, { headers: this.getHeaders() }));
+    }
+}
+
+export interface LoginAccount {
+    id: number;
+    username: string;
+    email: string | null;
+    /** true = still using the temporary password (has not set their own yet) */
+    mustChangePassword: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface TournamentLogins {
+    tournamentAdmins: LoginAccount[];
+    teams: Array<{ teamId: number; teamName: string; teamCode: string; ownerName: string | null; login: LoginAccount | null }>;
+}
+
+export interface ResetPasswordResult {
+    username: string;
+    password: string;
+    email: string | null;
+    role: string;
+    emailed: boolean;
 }

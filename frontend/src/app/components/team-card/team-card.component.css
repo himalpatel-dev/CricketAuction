@@ -257,6 +257,6 @@
 }
 
 .btn-view:hover {
-    background: #133b33;
+    background: var(--primary);
     transform: translateY(-1px);
 }

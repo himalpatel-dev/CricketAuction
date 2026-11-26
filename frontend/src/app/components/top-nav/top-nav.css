@@ -72,6 +72,88 @@
     color: var(--accent);
 }
 
+/* ---- Tournament branding (logo + name instead of BidWicket) ---- */
+.tournament-brand {
+    gap: 12px;
+    min-width: 0;
+}
+
+.nav-tournament-logo-wrapper {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
+.nav-tournament-logo {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 7px;
+}
+
+.nav-tournament-initials {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 800;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tournament-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    min-width: 0;
+}
+
+.tournament-brand-name {
+    font-size: 19px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 38vw;
+}
+
+.powered-by {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.3px;
+}
+
+@media (max-width: 580px) {
+    .tournament-brand-name {
+        font-size: 16px;
+        max-width: 45vw;
+    }
+
+    .powered-by {
+        display: none;
+    }
+
+    .nav-tournament-logo-wrapper,
+    .nav-tournament-initials {
+        width: 38px;
+        height: 38px;
+    }
+}
+
 .nav-center {
     display: flex;
     justify-content: center;
@@ -100,7 +182,7 @@
 
 .nav-link.active {
     background-color: var(--accent);
-    color: var(--bg-sidebar);
+    color: var(--on-accent);
     /* High contrast text on accent */
 }
 
@@ -124,7 +206,7 @@
     width: 36px;
     height: 36px;
     background-color: var(--accent);
-    color: var(--bg-sidebar);
+    color: var(--on-accent);
     border-radius: 50%;
     display: flex;
     align-items: center;

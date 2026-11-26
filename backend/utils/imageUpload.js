@@ -5,9 +5,11 @@ const path = require('path');
  * Saves a base64 image string to the uploads/player_photo directory
  * @param {string} base64String - The base64 image string
  * @param {string} playerName - The name of the player for the filename
+ * @param {string} [subDir] - Folder (relative to the backend root) to save into.
+ *                            Defaults to UPLOAD_PATH / uploads/player_photo.
  * @returns {string} - The saved filename
  */
-const saveBase64Image = (base64String, playerName) => {
+const saveBase64Image = (base64String, playerName, subDir) => {
     if (!base64String || typeof base64String !== 'string') {
         console.log('[imageUpload] Not a string or empty:', typeof base64String);
         return base64String;
@@ -47,7 +49,7 @@ const saveBase64Image = (base64String, playerName) => {
         const sanitizedPlayerName = playerName ? playerName.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'player';
         const fileName = `${sanitizedPlayerName}_${timestamp}.${extension}`;
         
-        const uploadDir = path.join(__dirname, '..', process.env.UPLOAD_PATH || 'uploads/player_photo');
+        const uploadDir = path.join(__dirname, '..', subDir || process.env.UPLOAD_PATH || 'uploads/player_photo');
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }

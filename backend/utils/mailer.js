@@ -20,20 +20,25 @@ const getTransporter = () => {
  * @param {string} roleName Name of the role (e.g. Tournament Admin or Team Owner)
  * @param {string} username Generated username
  * @param {string} password Generated plain text password
+ * @param {number|string} [tournamentId] When given, the login button opens that tournament's branded login page
+ * @param {{ reset?: boolean }} [options] reset: the main admin gave an existing account a new password
  */
-const sendCredentialsEmail = async (email, recipientName, roleName, username, password) => {
+const sendCredentialsEmail = async (email, recipientName, roleName, username, password, tournamentId, options = {}) => {
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
         console.warn('Mailer Warning: SMTP credentials are not configured in environment. Skipping email sending.');
         return false;
     }
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const loginUrl = tournamentId ? `${frontendUrl}/login/${tournamentId}` : `${frontendUrl}/login`;
     const transporter = getTransporter();
 
     const mailOptions = {
         from: `"${process.env.SMTP_FROM_NAME || 'BidWicket Auction'}" <${process.env.SMTP_USER}>`,
         to: email,
-        subject: `Welcome to BidWicket - Your ${roleName} Credentials`,
+        subject: options.reset
+            ? `BidWicket - Your ${roleName} password was reset`
+            : `Welcome to BidWicket - Your ${roleName} Credentials`,
         html: `
         <!DOCTYPE html>
         <html>
@@ -163,7 +168,9 @@ const sendCredentialsEmail = async (email, recipientName, roleName, username, pa
                 </div>
                 <div class="content">
                     <div class="welcome-text">Hello <strong>${recipientName}</strong>,</div>
-                    <p>You have been registered as a <strong>${roleName}</strong> on the BidWicket Cricket Auction Portal.</p>
+                    <p>${options.reset
+                        ? `The main admin has reset your <strong>${roleName}</strong> password on the BidWicket Cricket Auction Portal. Your old password no longer works.`
+                        : `You have been registered as a <strong>${roleName}</strong> on the BidWicket Cricket Auction Portal.`}</p>
                     <p>Please use the following login credentials to access your dashboard:</p>
                     
                     <div class="credentials-card">
@@ -187,7 +194,7 @@ const sendCredentialsEmail = async (email, recipientName, roleName, username, pa
                     </div>
                     
                     <div class="btn-container">
-                        <a href="${frontendUrl}/login" class="btn-login">Login to Portal</a>
+                        <a href="${loginUrl}" class="btn-login">Login to Portal</a>
                     </div>
                 </div>
                 <div class="footer">

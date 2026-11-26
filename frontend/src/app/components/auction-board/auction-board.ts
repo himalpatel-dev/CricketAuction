@@ -7,6 +7,7 @@ import { TournamentService } from '../../services/tournament.service';
 import { AuthService } from '../../services/auth.service';
 import { ImageService } from '../../services/image.service';
 import { ToastService } from '../../services/toast.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-auction-board',
@@ -62,7 +63,8 @@ export class AuctionBoardComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private imageService: ImageService,
-    private toast: ToastService
+    private toast: ToastService,
+    public theme: ThemeService
   ) { }
 
   getPlayerImageUrl(imagePath: string | null | undefined): any {

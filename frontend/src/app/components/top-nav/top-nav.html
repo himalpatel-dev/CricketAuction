@@ -1,12 +1,29 @@
 <nav class="top-nav">
     <div class="nav-container">
         <div class="nav-left">
+            @if (theme.branding(); as brand) {
+            <!-- Tournament's own branding -->
+            <div class="nav-logo tournament-brand">
+                @if (theme.logoUrl()) {
+                <div class="nav-tournament-logo-wrapper">
+                    <img [src]="theme.logoUrl()" [alt]="brand.name + ' logo'" class="nav-tournament-logo">
+                </div>
+                } @else {
+                <div class="nav-tournament-initials">{{ initialsOf(brand.name) }}</div>
+                }
+                <div class="tournament-brand-text">
+                    <span class="tournament-brand-name">{{ brand.name }}</span>
+                    <span class="powered-by">Powered by Bid<span class="logo-accent">Wicket</span></span>
+                </div>
+            </div>
+            } @else {
             <div class="nav-logo">
                 <div class="nav-brand-logo-wrapper">
                     <img src="/assets/images/sidelogo.png" alt="BidWicket Logo" class="nav-brand-logo">
                 </div>
                 <span class="logo-text">Bid<span class="logo-accent">Wicket</span></span>
             </div>
+            }
         </div>
 
         <div class="nav-center" *ngIf="isAdmin">

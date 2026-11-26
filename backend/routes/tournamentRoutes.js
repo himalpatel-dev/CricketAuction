@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { createTournament, getAllTournaments, getTournamentById, updateTournament, addTeam, addPlayer, updatePlayer, deletePlayer, registerPlayer, getLatestPublicTournament, getOpenTournaments, uploadPlayers, getDashboardRosters, checkExistingPlayer, getGlobalPlayers } = require('../controllers/tournamentController');
+const { createTournament, getAllTournaments, getTournamentById, updateTournament, addTeam, addPlayer, updatePlayer, deletePlayer, registerPlayer, getLatestPublicTournament, getOpenTournaments, uploadPlayers, getDashboardRosters, checkExistingPlayer, getGlobalPlayers, getTournamentBranding, updateTournamentBranding, getTournamentLogins, resetTournamentLoginPassword } = require('../controllers/tournamentController');
 const { register } = require('../controllers/authController');
+const { authenticate, requireRole } = require('../middleware/auth');
+const mainAdminOnly = [authenticate, requireRole('ADMIN')];
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -15,6 +17,14 @@ router.get('/check-player/:mobileNo', checkExistingPlayer);
 router.get('/latest-public', getLatestPublicTournament);
 router.get('/open-tournaments', getOpenTournaments);
 router.get('/dashboard/rosters', getDashboardRosters);
+
+// Public: logo / banner / colors for the tournament's branded login page and live view
+router.get('/:id/branding', getTournamentBranding);
+router.put('/:id/branding', updateTournamentBranding);
+
+// Main admin only: who can log in to this tournament, and resetting their passwords
+router.get('/:id/logins', ...mainAdminOnly, getTournamentLogins);
+router.post('/:id/logins/:userId/reset-password', ...mainAdminOnly, resetTournamentLoginPassword);
 
 router.get('/:id', getTournamentById);
 router.put('/:id', updateTournament);

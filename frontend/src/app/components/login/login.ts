@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -46,8 +47,16 @@ export class LoginComponent {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private toast: ToastService
+    private toast: ToastService,
+    public theme: ThemeService
   ) { }
+
+  /** On a tournament's own login page (/login/:tournamentId) its banner replaces the stadium photo. */
+  bannerBackground(): string | null {
+    const banner = this.theme.bannerUrl();
+    if (!banner) return null;
+    return `linear-gradient(rgba(var(--primary-deep-rgb), 0.55), rgba(0, 0, 0, 0.75)), url("${banner}")`;
+  }
 
   async onSubmit() {
     if (!this.credentials.username || !this.credentials.password) {

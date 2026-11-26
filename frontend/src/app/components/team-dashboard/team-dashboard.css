@@ -134,7 +134,7 @@
     background: var(--primary);
     color: white;
     border-color: var(--primary);
-    box-shadow: 0 4px 12px rgba(19, 59, 51, 0.2);
+    box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
 }
 
 .players-grid {
@@ -196,9 +196,9 @@
 }
 
 .badge.category {
-    background: rgba(255, 183, 0, 0.1);
-    color: #ffb700;
-    border: 1px solid rgba(255, 183, 0, 0.3);
+    background: rgba(var(--accent-rgb), 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
 }
 
 .tournament-title {
@@ -247,8 +247,8 @@
 }
 
 .btn-continue {
-    background: #ffb700;
-    color: var(--primary);
+    background: var(--accent);
+    color: var(--on-accent);
     border: none;
     padding: 12px 24px;
     border-radius: 12px;
@@ -263,7 +263,7 @@
 .btn-continue:hover {
     background: #ffa000;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(255, 183, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.3);
 }
 
 .hero-stats-panel {
@@ -302,7 +302,7 @@
 .stat-unit {
     font-size: 20px;
     font-weight: 700;
-    color: #ffb700;
+    color: var(--accent);
 }
 
 .stat-sub {
@@ -320,7 +320,7 @@
 
 .stat-column.budget-spent .stat-value,
 .stat-column.highest-bid .stat-value {
-    color: #ffb700;
+    color: var(--accent);
     /* Golden Yellow */
 }
 
@@ -429,7 +429,7 @@
     background: var(--primary);
     color: white;
     border-color: var(--primary);
-    box-shadow: 0 10px 15px -3px rgba(19, 59, 51, 0.2);
+    box-shadow: 0 10px 15px -3px rgba(var(--primary-rgb), 0.2);
 }
 
 .content-tabs i {
@@ -1116,7 +1116,7 @@
 .upload-overlay {
     position: absolute;
     inset: 12px;
-    background: rgba(19, 59, 51, 0.85);
+    background: rgba(var(--primary-rgb), 0.85);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1209,7 +1209,7 @@
 .select-wrapper select:focus {
     border-color: var(--primary);
     background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(19, 59, 51, 0.05);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.05);
     /* Subtle focus ring */
 }
 
@@ -1651,3 +1651,9 @@
         display: none; /* Hide dividers for right column items */
     }
 }
+
+/* Tournament banner behind the hero card */
+.premium-hero-card.has-banner {
+    background-size: cover;
+    background-position: center;
+}

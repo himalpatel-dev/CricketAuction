@@ -9,6 +9,7 @@ import { PlayerCardComponent } from '../player-card/player-card.component';
 import { API_CONFIG } from '../../config/api.config';
 import { ImageService } from '../../services/image.service';
 import { ToastService } from '../../services/toast.service';
+import { ThemeService } from '../../services/theme.service';
 @Component({
     selector: 'app-team-dashboard',
     standalone: true,
@@ -68,8 +69,16 @@ export class TeamDashboardComponent implements OnInit {
         private http: HttpClient,
         private authService: AuthService,
         private imageService: ImageService,
-        private toast: ToastService
+        private toast: ToastService,
+        public theme: ThemeService
     ) { }
+
+    /** Tournament banner behind the hero card, tinted so white text stays readable. */
+    heroBackground(): string | null {
+        const banner = this.theme.bannerUrl();
+        if (!banner) return null;
+        return `linear-gradient(90deg, rgba(var(--primary-rgb), 0.97) 0%, rgba(var(--primary-rgb), 0.85) 45%, rgba(var(--primary-rgb), 0.5) 100%), url("${banner}")`;
+    }
 
     setTab(tab: string) {
         this.currentTab = tab;

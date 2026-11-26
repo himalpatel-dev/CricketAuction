@@ -19,11 +19,16 @@
         </div>
 
         <div class="tournament-info" *ngIf="tournament" style="text-align: center;">
-            <h1 *ngIf="isViewer" class="viewer-tournament-name">{{ tournament.name }}</h1>
-            <span class="live-indicator" style="justify-content: center;"
-                [class.unsold-mode]="auctionMode === 'unsold'">
-                <span class="dot"></span> {{ auctionMode === 'unsold' ? 'UNSOLD PLAYER AUCTION' : 'LIVE AUCTION' }}
-            </span>
+            @if (theme.logoUrl()) {
+            <img class="auction-tournament-logo" [src]="theme.logoUrl()" [alt]="tournament.name + ' logo'">
+            }
+            <div class="tournament-info-text">
+                <h1 *ngIf="isViewer" class="viewer-tournament-name">{{ tournament.name }}</h1>
+                <span class="live-indicator" style="justify-content: center;"
+                    [class.unsold-mode]="auctionMode === 'unsold'">
+                    <span class="dot"></span> {{ auctionMode === 'unsold' ? 'UNSOLD PLAYER AUCTION' : 'LIVE AUCTION' }}
+                </span>
+            </div>
         </div>
 
         <div class="header-right">
@@ -302,7 +307,7 @@
 
                 <!-- Leading Alert Bubble -->
                 <div *ngIf="auctionState.leadingTeam?.id === userTeamId"
-                    style="position: absolute; top: -16px; left: 50%; transform: translateX(-50%); background: #ffb700; color: #062a1e; font-weight: 900; font-size: 12px; padding: 6px 20px; border-radius: 20px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); white-space: nowrap; z-index: 10;">
+                    style="position: absolute; top: -16px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--on-accent); font-weight: 900; font-size: 12px; padding: 6px 20px; border-radius: 20px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); white-space: nowrap; z-index: 10;">
                     👑 YOU ARE LEADING THE BID
                 </div>
 

@@ -6,6 +6,7 @@ import { ImageService } from '../../services/image.service';
 import { ImageCropperComponent, ImageCroppedEvent } from 'ngx-image-cropper';
 import { TournamentService } from '../../services/tournament.service';
 import { ToastService } from '../../services/toast.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-player-registration',
@@ -92,7 +93,8 @@ export class PlayerRegistrationComponent {
     private tournamentService: TournamentService,
     private imageService: ImageService,
     private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private toast: ToastService,
+    public theme: ThemeService
   ) {
     // Read query params first, then load tournaments so we can preselect and lock if requested
     this.route.queryParams.subscribe(params => {
@@ -441,7 +443,7 @@ export class PlayerRegistrationComponent {
 
       this.success = true;
       this.message = 'Registration successful! Redirecting to login...';
-      setTimeout(() => this.router.navigate(['/login']), 2000);
+      setTimeout(() => this.goToLogin(), 2000);
     } catch (err: any) {
       console.error('Registration Error:', err);
       this.success = false;
@@ -451,6 +453,15 @@ export class PlayerRegistrationComponent {
   }
 
   goToLogin() {
-    this.router.navigate(['/login']);
+    // Came from a tournament's page: go back to that tournament's branded login
+    const brand = this.theme.branding();
+    this.router.navigate(brand ? ['/login', brand.id] : ['/login']);
+  }
+
+  /** Registering for one tournament: its banner replaces the stadium photo. */
+  bannerBackground(): string | null {
+    const banner = this.theme.bannerUrl();
+    if (!banner) return null;
+    return `linear-gradient(rgba(var(--primary-rgb), 0.7), rgba(var(--primary-deep-rgb), 0.85)), url("${banner}")`;
   }
 }

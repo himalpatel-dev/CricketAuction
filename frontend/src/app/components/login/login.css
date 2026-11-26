@@ -188,7 +188,7 @@
     display: block;
     font-size: 11px;
     font-weight: 800;
-    color: #133b33;
+    color: var(--primary);
     margin-bottom: 12px;
     letter-spacing: 1px;
 }
@@ -317,7 +317,7 @@
     width: 100%;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    color: #133b33;
+    color: var(--primary);
     border-radius: 16px;
     padding: 18px;
     font-size: 16px;
@@ -376,6 +376,94 @@
 .f-sub {
     font-size: 10px;
     color: #64748b;
+}
+
+/* ---- Tournament-branded login (/login/:tournamentId) ---- */
+.login-container.branded {
+    /* Without a banner: keep the stadium photo, tinted with the tournament's main color */
+    background-image: linear-gradient(rgba(var(--primary-deep-rgb), 0.6), rgba(0, 0, 0, 0.75)), url('/assets/images/background.jfif');
+}
+
+.login-container.branded::before,
+.login-container.branded::after {
+    background: radial-gradient(circle at center, rgba(var(--accent-rgb), 0.35) 0%, transparent 70%);
+}
+
+.login-container.branded .login-card {
+    border-top: 6px solid var(--accent);
+}
+
+.tournament-login-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+}
+
+.tournament-login-logo {
+    width: 120px;
+    height: 120px;
+    border-radius: 24px;
+    background: #ffffff;
+    padding: 8px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 4px var(--accent), 0 16px 40px rgba(var(--primary-rgb), 0.35);
+}
+
+.tournament-login-logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 16px;
+}
+
+.tournament-login-name {
+    font-size: 34px;
+    font-weight: 900;
+    color: var(--primary);
+    margin: 0;
+    line-height: 1.05;
+    letter-spacing: -1px;
+    word-break: break-word;
+}
+
+.tournament-login-sub {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.tournament-login-sub .dot-sep {
+    color: var(--accent);
+    margin: 0 4px;
+}
+
+.tournament-login-header .powered-by {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: #94a3b8;
+    letter-spacing: 0.3px;
+}
+
+.tournament-login-header .powered-by strong {
+    color: var(--primary);
+}
+
+@media (max-width: 580px) {
+    .tournament-login-logo {
+        width: 96px;
+        height: 96px;
+        border-radius: 20px;
+    }
+
+    .tournament-login-name {
+        font-size: 26px;
+    }
 }
 
 /* Animations */

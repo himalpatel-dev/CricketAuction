@@ -1,6 +1,23 @@
-<div class="login-container">
+<div class="login-container" [class.branded]="!!theme.branding()"
+    [style.background-image]="bannerBackground()">
     <div class="login-card fade-in">
         <div class="logo-section">
+            @if (theme.branding(); as brand) {
+            <!-- Tournament's own login page -->
+            <div class="tournament-login-header">
+                @if (theme.logoUrl()) {
+                <div class="tournament-login-logo">
+                    <img [src]="theme.logoUrl()" [alt]="brand.name + ' logo'">
+                </div>
+                }
+                <h2 class="tournament-login-name">{{ brand.name }}</h2>
+                <p class="tournament-login-sub">
+                    Auction Portal
+                    @if (brand.location) { <span class="dot-sep">•</span> {{ brand.location }} }
+                </p>
+                <p class="powered-by">Powered by <strong>Bid<span class="accent-text">Wicket</span></strong></p>
+            </div>
+            } @else {
             <div class="branding-header">
                 <div class="main-logo-wrapper">
                     <div class="logo-accent-glow"></div>
@@ -12,6 +29,7 @@
                     </div>
                 </div>
             </div>
+            }
 
             <div class="branding-divider">
                 <div class="accent-line"></div>
@@ -143,7 +161,7 @@
             </div>
 
             <button type="submit" class="btn-signin" [disabled]="loading"
-                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);">
+                style="background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-dark) 100%); box-shadow: 0 4px 14px 0 rgba(var(--secondary-rgb), 0.4);">
                 <span *ngIf="!loading">Update Password <i class="arrow-right">→</i></span>
                 <span *ngIf="loading">Updating...</span>
             </button>
@@ -159,7 +177,8 @@
         </div>
 
         <div *ngIf="!mustChange" class="registration-section">
-            <button class="btn-register" routerLink="/register">
+            <button class="btn-register" routerLink="/register"
+                [queryParams]="theme.branding() ? { tournamentId: theme.branding()!.id } : null">
                 <span class="register-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">

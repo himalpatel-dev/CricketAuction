@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
     selector: 'app-top-nav',
@@ -18,7 +19,8 @@ export class TopNavComponent implements OnInit {
 
     constructor(
         private authService: AuthService,
-        private router: Router
+        private router: Router,
+        public theme: ThemeService
     ) { }
 
     ngOnInit() {
@@ -38,8 +40,14 @@ export class TopNavComponent implements OnInit {
         }
     }
 
+    initialsOf(name: string) {
+        return (name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    }
+
     logout() {
+        // Tournament users go back to their tournament's own branded login page
+        const brand = this.theme.branding();
         this.authService.logout();
-        this.router.navigate(['/login']);
+        this.router.navigate(brand ? ['/login', brand.id] : ['/login']);
     }
 }

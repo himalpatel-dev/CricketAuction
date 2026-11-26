@@ -1,4 +1,4 @@
-<div class="registration-page">
+<div class="registration-page" [style.background-image]="bannerBackground()">
     <div class="background-decor">
         <div class="circle c1"></div>
         <div class="circle c2"></div>
@@ -9,6 +9,18 @@
         <div class="glass-card registration-card fade-in">
             <button type="button" class="close-card-btn" (click)="goToLogin()" title="Return to Login">×</button>
             <div class="card-header">
+                @if (theme.branding(); as brand) {
+                <!-- Registering for one tournament: show its own logo and name -->
+                <div class="registration-branding tournament-branded">
+                    @if (theme.logoUrl()) {
+                    <span class="tournament-reg-logo"><img [src]="theme.logoUrl()" [alt]="brand.name + ' logo'"></span>
+                    }
+                    <div class="brand-text">
+                        <h2 class="brand-name tournament-reg-name">{{ brand.name }}</h2>
+                        <p class="brand-tagline">Powered by Bid<span class="accent-text">Wicket</span></p>
+                    </div>
+                </div>
+                } @else {
                 <div class="registration-branding">
                     <img src="/assets/images/sidelogo.png" alt="BidWicket Logo" class="brand-mini-logo">
                     <div class="brand-text">
@@ -17,6 +29,7 @@
                                 class="accent-text">Champions.</span></p>
                     </div>
                 </div>
+                }
                 <div class="title-row">
                     <h1 class="page-title">Player Registration</h1>
                 </div>

@@ -78,6 +78,25 @@ const Tournament = sequelize.define('Tournament', {
         type: DataTypes.TEXT('long'),
         allowNull: true,
     },
+    // Branding: shown on the tournament's own login page, nav bar, auction board, etc.
+    // Images are stored as file names under uploads/tournament/. Colors are #rrggbb;
+    // null means "use the default BidWicket theme" for that color.
+    bannerImage: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    primaryColor: {
+        type: DataTypes.STRING(7),
+        allowNull: true,
+    },
+    secondaryColor: {
+        type: DataTypes.STRING(7),
+        allowNull: true,
+    },
+    accentColor: {
+        type: DataTypes.STRING(7),
+        allowNull: true,
+    },
     totalPlayers: {
         type: DataTypes.INTEGER,
         defaultValue: 100,

@@ -9,6 +9,8 @@ import { TournamentListComponent } from './components/tournament-list/tournament
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
     { path: 'login', component: LoginComponent },
+    // Tournament-branded login: shows that tournament's logo, banner and colors
+    { path: 'login/:tournamentId', component: LoginComponent },
     { path: 'admin', component: AdminDashboardComponent },
     { path: 'tournaments', component: TournamentListComponent },
     { path: 'add-tournament', component: AddTournamentComponent },
